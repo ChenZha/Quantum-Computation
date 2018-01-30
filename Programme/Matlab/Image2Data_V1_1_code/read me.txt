@@ -1,0 +1,17 @@
+Hi, everyone,
+
+here I recommend you a GUI subroutine named Image2data. It can help you get the curve data from the figure. The operation is very easy and quick. After that you can use the curve fitting toolbox to get a analytical expression of the curve if necessary. In this zip package, there are five files:
+
+1 image2data.fig
+2 image2data.m
+3 image2dataV1_1_operation.pdf
+4 data.txt
+5 test.jpg
+
+The first two files are the source code of matlab, the third is a simple operation guide, the last two are the import and export data file separately.
+
+Note that, before you run the code, please have a look at the operation guide!
+
+Hope you like it! If any question, email me at the first time by yc97463240@126 or helloycheng@gmail.com.
+
+2014-04-21 

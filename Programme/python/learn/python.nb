@@ -1,0 +1,155 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 10.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      4574,        146]
+NotebookOptionsPosition[      4255,        131]
+NotebookOutlinePosition[      4675,        148]
+CellTagsIndexPosition[      4632,        145]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ StyleBox[
+  StyleBox["list\:751f\:6210",
+   FontSize->12], "Endnote",
+  FontFamily->"\:6977\:4f53",
+  FontWeight->"Plain"], "\[IndentingNewLine]", 
+ StyleBox[
+  StyleBox[
+   RowBox[{
+    RowBox[{"[", 
+     RowBox[{
+      RowBox[{"[", 
+       RowBox[{"i", "*", "j", " ", "for", " ", "i", " ", "in", " ", "range", 
+        RowBox[{"(", "3", ")"}]}], "]"}], "  ", "for", "  ", "j", "  ", "in", 
+      " ", "range", 
+      RowBox[{"(", "3", ")"}]}], "]"}], "\[IndentingNewLine]", 
+    "\[IndentingNewLine]"}],
+   FontSize->12], "Endnote",
+  FontFamily->"\:6977\:4f53",
+  FontWeight->"Plain"], "\[IndentingNewLine]", 
+ StyleBox[
+  StyleBox[
+   RowBox[{
+   "\:51fd\:6570\:4f20\:53c2\:6570", "\:ff0c", 
+    "\:5982\:679c\:662f\:6570\:7684\:8bdd\:662f\:76f4\:63a5\:590d\:5236", 
+    "\:ff0c", 
+    "\:82e5\:662flist\:6216\:5176\:4ed6\:7279\:6b8a\:7c7b\:5219\:4f20\:7684\
+\:662f\:6307\:9488"}],
+   FontSize->12], "Endnote",
+  FontFamily->"\:6977\:4f53",
+  FontWeight->"Plain"], "\[IndentingNewLine]", 
+ StyleBox[
+  RowBox[{
+   StyleBox[
+    "\:82e5\:60f3\:5bf9\:6307\:9488\:53c2\:6570\:8fdb\:884c\:590d\:5236",
+    FontFamily->"\:6977\:4f53",
+    FontSize->12,
+    FontWeight->"Plain"], 
+   StyleBox["\:ff0c",
+    FontFamily->"\:6977\:4f53",
+    FontSize->12,
+    FontWeight->"Plain"], 
+   StyleBox[
+    "\:53ef\:901a\:8fc7\:53c2\:6570\:76f8\:51cf\:7b49\:8ba1\:7b97\:751f\:6210\
+\:65b0\:7684\:5b9e\:4f8b",
+    FontFamily->"\:6977\:4f53",
+    FontSize->12,
+    FontWeight->"Plain"], 
+   StyleBox["\:ff0c",
+    FontFamily->"\:6977\:4f53",
+    FontSize->12,
+    FontWeight->"Plain"], 
+   RowBox[{
+    RowBox[{
+     StyleBox["\:518d\:53bb\:6307\:5411",
+      FontFamily->"\:6977\:4f53",
+      FontSize->12,
+      FontWeight->"Plain"], 
+     StyleBox["   ",
+      FontFamily->"\:6977\:4f53",
+      FontSize->12,
+      FontWeight->"Plain"], "outputstate"}], "=", 
+    RowBox[{"states", "-", "states"}]}]}], "Endnote",
+  FontFamily->"\:6977\:4f53",
+  FontWeight->"Plain"], "\[IndentingNewLine]", 
+ StyleBox[
+  RowBox[{
+  "list\:4e0d\:80fd\:76f4\:63a5\:76f8\:51cf", "\:ff0c", "array\:53ef\:4ee5"}],
+   "Endnote",
+  FontFamily->"\:6977\:4f53",
+  FontWeight->"Plain"], "\[IndentingNewLine]", 
+ StyleBox[
+  RowBox[{
+   RowBox[{
+   "list\:5bf9\:5e94\:76f8\:4e58\:4e5f\:4e0d\:884c", "\:ff0c", 
+    "array\:53ef\:4ee5"}], "\[IndentingNewLine]"}], "Endnote",
+  FontFamily->"\:6977\:4f53",
+  FontWeight->"Plain"], "\[IndentingNewLine]", 
+ StyleBox[
+  RowBox[{
+  "mcsolve\:4e2d", "\:ff0c", "\:6001\:7ed3\:679c\:4e3an\:4e2antraj\:884c", 
+   "\:ff0c", "tlist\:957f\:5ea6\:5217\:7684\:7ed3\:679c", "\:ff0c", "list"}], 
+  "Endnote",
+  FontFamily->"\:6977\:4f53",
+  FontWeight->"Plain"], "\[IndentingNewLine]", 
+ StyleBox[
+  RowBox[{
+   StyleBox[
+    RowBox[{"m", 
+     StyleBox[
+      StyleBox[
+       StyleBox["e", "Endnote",
+        FontFamily->"\:6977\:4f53",
+        FontWeight->"Plain"], "Endnote",
+       FontFamily->"\:6977\:4f53",
+       FontWeight->"Plain"], "Endnote",
+      FontFamily->"\:6977\:4f53",
+      FontWeight->"Plain"], "solve\:4e2d"}]], "\:ff0c", 
+   "\:6001\:7ed3\:679c\:4e3a1\:884c", "\:ff0c", 
+   "tlist\:957f\:5ea6\:5217\:7684\:7ed3\:679c", "\:ff0c", "list"}], "Endnote",
+  FontFamily->"\:6977\:4f53",
+  FontWeight->"Plain"], "\[IndentingNewLine]"
+ StyleBox[, "Endnote",
+  FontFamily->"\:6977\:4f53",
+  FontWeight->"Plain"]}], "Input",
+ CellChangeTimes->{{3.696222228978326*^9, 3.696222334342411*^9}, {
+   3.6962223734893804`*^9, 3.696222409377242*^9}, 3.6962224928907876`*^9, {
+   3.6962225420849915`*^9, 3.696222563255582*^9}, {3.696583969861272*^9, 
+   3.6965839909634247`*^9}, {3.6965841698725758`*^9, 3.696584200218845*^9}, {
+   3.696585360733354*^9, 3.6965854209880123`*^9}}]
+},
+WindowSize->{775, 601},
+WindowMargins->{{287, Automatic}, {Automatic, 54}},
+FrontEndVersion->"10.3 for Microsoft Windows (64-bit) (2015\:5e7411\:67084\
+\:65e5)",
+StyleDefinitions->FrontEnd`FileName[{"Book"}, "Textbook.nb", 
+  CharacterEncoding -> "CP936"]
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 3693, 109, 293, "Input"]
+}
+]
+*)
+
+(* End of internal cache information *)

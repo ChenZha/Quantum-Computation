@@ -1,0 +1,41 @@
+输入放置在in.csv中
+输出在out.csv
+在excel中关掉out.csv再执行，否则会报错
+代码解释
+除此以下几行代码之外的部分均是函数定义
+可以import此文件，在别的程序中调用此过程
+
+gatelist=init("in.csv")
+gatelist=cntocz(gatelist)
+gatelist=htory90zANDytoxz(gatelist)
+newlist=rightshift(gatesimplify(gatelist))
+while newlist!=gatelist:
+    gatelist=newlist
+    newlist=rightshift(gatesimplify(gatelist))
+write(gatelist,"out.csv")
+
+
+
+基于以下规则化简
+x x=i
+z z=i
+y=x z
+h=ry90 z
+cn1,cn2=cz1,h cz2 h
+cz1 cz1,cz2 cz2=i i,i i
+x rytheta=ry-theta x
+x rztheta=rz-theta x
+x rxtheta=rxtheta x
+z rytheta=ry-theta z
+z rxtheta=rx-theta z
+z rztheta=rztheta z
+rxtheta1 rxtheta2=rx(theta1+theta2)
+rx180=x
+ry180=x z
+rz180=z
+rx0=i
+ry0=i
+rz0=i
+mx=h mz h
+z mz=mz
+x mz=mz- x

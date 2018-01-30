@@ -1,0 +1,7 @@
+输入放置在gateforcal.csv中
+在excel中关掉gateforcal.csv再执行，否则表格会被excel锁住然后报错
+
+多比特门要用成组的数字（奇数，奇数+1）表示是前控制后的多比特门
+多比特门的数字不能重复，即使是不同种类的多比特门
+propagator是线路的矩阵
+output是各输出的概率
