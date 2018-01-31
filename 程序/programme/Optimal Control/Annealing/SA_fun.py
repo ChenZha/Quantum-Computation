@@ -6,7 +6,7 @@ import scipy.io as sio
 import os
 
 ''' 
-SA算法，在每次迭代里，新的点xnew在当前点x附近产生，临时区域的半径随每次迭代下降，到目前为止，找到的最佳点xbest，也被追踪
+SA算法，在每次迭代里，新的点xnew在当前点x附近产生(10)，临时区域的半径随每次迭代下降，到目前为止，找到的最佳点xbest，也被追踪
 如果f(xnew)<=f(xbest)，则xnew取代xbest和x，否则xnew以一定概率P=exp(b)取代x，b = -δf/T
 '''
 
