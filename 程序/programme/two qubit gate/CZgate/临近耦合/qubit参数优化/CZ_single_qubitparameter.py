@@ -18,7 +18,6 @@ from scipy import interpolate
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.special import *
 from multiprocessing import Pool
-from decimal import *
 from math import *
 import gc 
 import sys
@@ -179,7 +178,7 @@ def CZgate(P):
     H = [H0,Hd0,Hd1]
 
 
-    args = {'tp':tp , 'delta0':delta0 , 'delta1':delta1 , 'xita0':xita0 , 'xita1':xita1}
+    args = {'tp':tp , 'delta0':delta0 , 'delta1':delta1 }
 
     tlist = np.linspace(0,tp,2*tp+1)
     options=Options()
@@ -263,11 +262,16 @@ def CZgate(P):
 
     
     
-    ZZ = E[l11]-E[l10]-E[l01]+E[l00]
+    
     Ngate = np.pi/4/ZZ/tp
     estimate = 0
-    for j in range(50):
-        estimate += (Ufidelity>(0.90+j/500.0))*Ngate*(0.03) if j !=0 else (Ufidelity>(0.90))*Ngate*(1)
+    for j in range(51):
+        if j == 0:
+            estimate += (Ufidelity>(0.69))*Ngate*(1)
+        elif j <= 30:
+            estimate += (Ufidelity>(0.69+j/100))*Ngate*(0.02)
+        else:
+            estimate += (Ufidelity>(0.99+(j-30)/2000))*Ngate*(0.05)
     
     
     print(P[0]/2/np.pi , P[1]/2/np.pi , P[2]/np.pi*180 , P[3]/np.pi*180 , P[4] , P[5]/2/np.pi , P[6]/2/np.pi , np.mean(fid) , Ufidelity , estimate)
@@ -289,7 +293,7 @@ if __name__=='__main__':
     N = 3
     
     g = 0.0138 * 2 * np.pi
-    wq= np.array([4.3 , 5.18  ]) * 2 * np.pi
+    wq= np.array([5.0 , 5.18  ]) * 2 * np.pi
     eta_q=  np.array([-0.230 , -0.216]) * 2 * np.pi
 
     th = initial_wave()
@@ -307,8 +311,8 @@ if __name__=='__main__':
 
     # fid = CNOT([0.    ,     -4.15551826 , -0.15315065,-1.15565238])
     x_l = np.array([0*2*np.pi , -0.8*2*np.pi , -np.pi , -np.pi , 1 , 0.050*2*np.pi , 0.0001*2*np.pi])#delta0,delta1,xita0,xita1,tp,deltaqubit,g
-    x_u = np.array([0.8*2*np.pi , 0*2*np.pi , np.pi , np.pi , 150 , 1.0*2*np.pi , 0.025*2*np.pi])
-    de( CZgate , n = 7,m_size = 24,f = 0.9 , cr = 0.5 ,S = 0.9 , iterate_time = 400,x_l = x_l,x_u = x_u,inputfile = None,process = 25)
+    x_u = np.array([0.8*2*np.pi , 0*2*np.pi , np.pi , np.pi , 250 , 1.0*2*np.pi , 0.025*2*np.pi])
+    de( CZgate , n = 7,m_size = 42,f = 0.9 , cr = 0.5 ,S = 0.9 , iterate_time = 400,x_l = x_l,x_u = x_u,inputfile = None,process = 44)
     
     # x0 = [0.5*2*np.pi , -0.3*2*np.pi , 0 , 0]
     # result = minimize(CNOT , x0 , method="Nelder-Mead",options={'disp': True})
