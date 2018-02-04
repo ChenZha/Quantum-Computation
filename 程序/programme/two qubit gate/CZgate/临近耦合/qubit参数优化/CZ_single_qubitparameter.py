@@ -266,8 +266,8 @@ def CZgate(P):
     ZZ = E[l11]-E[l10]-E[l01]+E[l00]
     Ngate = np.pi/4/ZZ/tp
     estimate = 0
-    for j in range(20):
-        estimate += (Ufidelity>(0.99+j/2000.0))*Ngate*(0.05) if j !=0 else (Ufidelity>(0.99))*Ngate*(1)
+    for j in range(50):
+        estimate += (Ufidelity>(0.90+j/500.0))*Ngate*(0.03) if j !=0 else (Ufidelity>(0.90))*Ngate*(1)
     
     
     print(P[0]/2/np.pi , P[1]/2/np.pi , P[2]/np.pi*180 , P[3]/np.pi*180 , P[4] , P[5]/2/np.pi , P[6]/2/np.pi , np.mean(fid) , Ufidelity , estimate)
@@ -306,9 +306,9 @@ if __name__=='__main__':
     
 
     # fid = CNOT([0.    ,     -4.15551826 , -0.15315065,-1.15565238])
-    x_l = np.array([0*2*np.pi , -0.8*2*np.pi , -np.pi , -np.pi , 0 , 0.004*2*np.pi , 0*2*np.pi])#delta0,delta1,xita0,xita1,tp,deltaqubit,g
-    x_u = np.array([0.8*2*np.pi , 0*2*np.pi , np.pi , np.pi , 150 , 0.999*2*np.pi , 0.025*2*np.pi])
-    de(CNOT,n = 4,m_size = 25,f = 0.9 , cr = 0.5 ,S = 1 , iterate_time = 300,x_l = x_l,x_u = x_u,inputfile = None)
+    x_l = np.array([0*2*np.pi , -0.8*2*np.pi , -np.pi , -np.pi , 1 , 0.050*2*np.pi , 0.0001*2*np.pi])#delta0,delta1,xita0,xita1,tp,deltaqubit,g
+    x_u = np.array([0.8*2*np.pi , 0*2*np.pi , np.pi , np.pi , 150 , 1.0*2*np.pi , 0.025*2*np.pi])
+    de( CZgate , n = 7,m_size = 24,f = 0.9 , cr = 0.5 ,S = 0.9 , iterate_time = 400,x_l = x_l,x_u = x_u,inputfile = None,process = 25)
     
     # x0 = [0.5*2*np.pi , -0.3*2*np.pi , 0 , 0]
     # result = minimize(CNOT , x0 , method="Nelder-Mead",options={'disp': True})
