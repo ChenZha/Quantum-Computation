@@ -208,29 +208,29 @@ def CNOT(P):
     
 
 
-#    p = Pool(4)
-#   
-#    A = p.map(getfid,T)
-#    fid = [x[0] for x in A]
-#    leakage = [x[1] for x in A]
-#    outputstate = [x[2] for x in A]
-#    # fid = np.array(fid)
-#    # leakage = np.array(leakage)
-#
-#        
-#    p.close()
-#    p.join()
+    p = Pool(4)
+   
+    A = p.map(getfid,T)
+    fid = [x[0] for x in A]
+    leakage = [x[1] for x in A]
+    outputstate = [x[2] for x in A]
+    # fid = np.array(fid)
+    # leakage = np.array(leakage)
 
-    for phi in T:
-        A = getfid(phi)
-        fid.append(A[0])
-        leakage0.append(A[1][0])
-        leakage1.append(A[1][1])
-        outputstate.append(A[2])
-    fid = np.array(fid)
-    leakage0 = np.array(leakage0)
-    leakage1 = np.array(leakage1)
-    outputstate = np.array(outputstate)
+        
+    p.close()
+    p.join()
+
+#    for phi in T:
+#        A = getfid(phi)
+#        fid.append(A[0])
+#        leakage0.append(A[1][0])
+#        leakage1.append(A[1][1])
+#        outputstate.append(A[2])
+#    fid = np.array(fid)
+#    leakage0 = np.array(leakage0)
+#    leakage1 = np.array(leakage1)
+#    outputstate = np.array(outputstate)
 
     gc.collect()
 
@@ -290,14 +290,14 @@ if __name__=='__main__':
     sz = np.array([E_g[0] - E_e[0] , E_g[1] - E_e[1]])
     
 
-    fid = CNOT([0.    ,     -4.15551826 , -0.15315065,-1.15565238])
+#    fid = CNOT([0.    ,     -4.15551826 , -0.15315065,-1.15565238])
     # x_l = np.array([0*2*np.pi , -0.9*2*np.pi , -np.pi , -np.pi])#delta0,delta1,xita0,xita1
     # x_u = np.array([0.9*2*np.pi , 0*2*np.pi , np.pi , np.pi])
     # de(CNOT,n = 4,m_size = 25,f = 0.9 , cr = 0.5 ,S = 1 , iterate_time = 300,x_l = x_l,x_u = x_u,inputfile = None)
     
-    # x0 = [0.5*2*np.pi , -0.3*2*np.pi , 0 , 0]
-    # result = minimize(CNOT , x0 , method="Nelder-Mead",options={'disp': True})
-    # print(result)
+    x0 = [0.    ,     -4.15551826 , -0.15315065,-1.15565238]
+    result = minimize(CNOT , x0 , method="Nelder-Mead",options={'disp': True})
+    print(result)
 
 
     endtime  = time.time()

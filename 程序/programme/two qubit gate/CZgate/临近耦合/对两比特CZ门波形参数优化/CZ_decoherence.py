@@ -5,7 +5,7 @@ Created on Sun Jul 16 20:44:08 2017
 
 @author: chen
 """
-''' 现在的版本有问题，在考虑退相干的情况下，如何对整体的演化过程的保真度进行衡量'''
+''' 寻找CZ波形参数，两个qubit的能级都要调，然后进行相位补偿，参数: (tp),delta0,delta1,xita0,xita1 '''
 import time 
 import csv
 import matplotlib.pyplot as plt

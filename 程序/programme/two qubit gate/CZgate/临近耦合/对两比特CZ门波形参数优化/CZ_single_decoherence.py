@@ -118,12 +118,13 @@ def CZgate(P):
     options.nsteps=1e6
     options.gui='True'
     options.ntraj=1000
-    options.rhs_reuse=False
+    options.rhs_reuse=True
     
 
     
 
-    psi0 = tensor( (basis(3,0)).unit() , (basis(3,1)+basis(3,1)).unit())
+    psi0 = tensor( (basis(3,0)).unit() , (basis(3,0)+basis(3,1)).unit())
+#    psi0 = tensor( (basis(3,0)+basis(3,1)).unit() , (basis(3,0)+basis(3,1)).unit())
 
 
 
@@ -181,6 +182,7 @@ def CZgate(P):
 
 
     target = tensor( (basis(3,0)).unit() , (basis(3,0)+basis(3,1)).unit())
+#    target = (tensor(basis(3,0),basis(3,0))+tensor(basis(3,0),basis(3,1))+tensor(basis(3,1),basis(3,0))-tensor(basis(3,1),basis(3,1))).unit()
     
     compen = tensor(Qobj([[1,0,0],[0,np.exp(1j*xita0),0],[0,0,np.exp(1j*2*xita0)]]) , Qobj([[1,0,0],[0,np.exp(1j*xita1),0],[0,0,np.exp(1j*2*xita1)]]))
     
@@ -213,8 +215,8 @@ def decoherence(T):
     tp = 45
     delta0 = 0
     delta1 = -4.15551826
-    xita0 = -1.15565238
-    xita1 = -0.15315065
+    xita0 = -0.15315065
+    xita1 = -1.15565238
     
     Hd0 = [sn[0],CZ0]
     Hd1 = [sn[1],CZ1]
@@ -239,7 +241,8 @@ def decoherence(T):
     
     
 
-    psi0 = tensor( (basis(3,1)).unit() , (basis(3,0)+basis(3,1)).unit())
+#    psi0 = tensor( (basis(3,1)).unit() , (basis(3,0)+basis(3,1)).unit())
+    psi0 = tensor( (basis(3,0)+basis(3,1)).unit() , (basis(3,0)+basis(3,1)).unit())
 
 
     c_op_list = []
@@ -247,7 +250,7 @@ def decoherence(T):
     gamma_phi = 1.0/T2-1/2/T1
     c_op_list.append(np.sqrt(gamma * (1+n_th)) * sm[0])
     c_op_list.append(np.sqrt(gamma * n_th) * sm[0].dag())
-    c_op_list.append(np.sqrt(2*1/2000) * sm[0].dag()*sm[0])
+    c_op_list.append(np.sqrt(2*gamma_phi) * sm[0].dag()*sm[0])
     c_op_list.append(np.sqrt(gamma * (1+n_th)) * sm[1])
     c_op_list.append(np.sqrt(gamma * n_th) * sm[1].dag())
     c_op_list.append(np.sqrt(2*gamma_phi) * sm[1].dag()*sm[1])
@@ -303,7 +306,8 @@ def decoherence(T):
 
     
 
-    target = tensor( (basis(3,1)).unit() , (basis(3,0)-basis(3,1)).unit())
+#    target = tensor( (basis(3,1)).unit() , (basis(3,0)-basis(3,1)).unit())
+    target = (tensor(basis(3,0),basis(3,0))+tensor(basis(3,0),basis(3,1))+tensor(basis(3,1),basis(3,0))-tensor(basis(3,1),basis(3,1))).unit()
 
     compen = tensor(Qobj([[1,0,0],[0,np.exp(1j*xita0),0],[0,0,np.exp(1j*2*xita0)]]) , Qobj([[1,0,0],[0,np.exp(1j*xita1),0],[0,0,np.exp(1j*2*xita1)]]))
     
@@ -431,20 +435,20 @@ if __name__=='__main__':
 #    plot((A - 4.97*2*np.pi)/2/np.pi,fid)
 
 
-    fid = CZgate([ 0.    ,     -4.15551826 , -0.15315065 ,-1.15565238 ])
-#    decoherence([10*1000,0.098*1000])
+#    fid = CZgate([ 0.    ,     -4.15551826 , -0.15315065 ,-1.15565238 ])
+#    decoherence([10*1000,20*1000])
 
-#    a = np.linspace(0.4,1,16)*1000
-#    b = np.linspace(1,12,12)*1000
-#    T2 = np.append(a,b)
-#    T = [[10*1000,T2[i]] for i in range(0,len(T2))]
-#    p = Pool(14)
-#    
-#
-#    z = p.map(decoherence,T)
-#    p.close()
-#    p.join()
-#    figure();plot(T2,z);xlabel('T2');ylabel('fidelity');title('1+  T1 = 10')
+    a = np.linspace(0.05,1,16)*1000
+    b = np.linspace(1,8,12)*1000
+    T2 = np.append(a,b)
+    T = [[20*1000,T2[i]] for i in range(0,len(T2))]
+    p = Pool(14)
+    
+
+    z = p.map(decoherence,T)
+    p.close()
+    p.join()
+    figure();plot(T2,z);xlabel('T2');ylabel('fidelity');title('++  T1 = 20')
 
 
     endtime  = time.time()

@@ -311,7 +311,7 @@ if __name__=='__main__':
     #delta0,delta1,xita0,xita1,compen0_1,compen0_2,compen1_1,compen1_2
     x_l = np.array([0*2*np.pi , -0.7*2*np.pi , -np.pi , -np.pi , -0.04*2*np.pi , -0.04*2*np.pi , -0.04*2*np.pi , -0.04*2*np.pi])
     x_u = np.array([0.7*2*np.pi , 0*2*np.pi , np.pi , np.pi , 0.04*2*np.pi , 0.04*2*np.pi , 0.04*2*np.pi , 0.04*2*np.pi])
-    de(CNOT,n = 8,m_size = 28,f = 0.9 , cr = 0.5 ,S = 1 , iterate_time = 310,x_l = x_l,x_u = x_u,inputfile = None)
+    de(CNOT,n = 8,m_size = 28,f = 0.9 , cr = 0.5 ,S = 1 , iterate_time = 400,x_l = x_l,x_u = x_u,inputfile = None)
     
 #    x0 = [0.5*2*np.pi , -0.3*2*np.pi , 0 , 0]
 #    result = minimize(CNOT , x0 , method="Nelder-Mead",options={'disp': True})

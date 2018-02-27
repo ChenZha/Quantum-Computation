@@ -43,7 +43,7 @@ def evolution(evaluate_func,i,g,n,S,x_all,cr_list,f_list,x_u,x_l):
     
 
 def de(evaluate_func,n = 4, m_size = 20 , f = 0.5 , cr = 0.3 , S = 1 , iterate_time = 100 , x_l = np.array([0,1,0,2]),x_u = np.array([5,6,8,4]),inputfile = None ):
-    num_CPU = 25
+    num_CPU = 30
     #初始化
     x_all = np.zeros((iterate_time , m_size , n))#m_size为population ，n为dimension
     value = np.zeros((iterate_time , m_size ))
@@ -81,7 +81,7 @@ def de(evaluate_func,n = 4, m_size = 20 , f = 0.5 , cr = 0.3 , S = 1 , iterate_t
         
         result = []
         for i in range(m_size):
-            result.append(p.apply_async(evolution,(evaluate_func,i,g,n,S,x_all.copy(),cr_list.copy(),f_list.copy(),x_u.copy(),x_l.copy())))
+            result.append(p.apply_async(evolution,(evaluate_func,i,g,n,S,x_all.copy(),cr_list.copy(),f_list.copy(),x_u.copy(),x_l.copy(),)))
         res = np.array([result[i].get() for i in range(len(result))])
         v_i = np.array([res[i][0] for i in range(len(res))])
         value_vi = np.array([res[i][1] for i in range(len(res))])
