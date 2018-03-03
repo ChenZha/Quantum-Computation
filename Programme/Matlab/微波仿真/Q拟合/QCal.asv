@@ -24,38 +24,35 @@ fl = fl(argl);%左侧的-3dB点
 
 [srmin,argr] = min(abs(abs(Sr)-smax/sqrt(2)));
 dr = abs(Sr)-smax/sqrt(2);
-fr = fr(argr);%右侧的-3dB点
-
-deltaf = fr-fl;%半高宽
+fr = fr(argr);%you侧的-3dB点
+deltaf = fr-fl;
 %%
 %calulation
 Qical = f0/deltaf;
-Qccal = Qical/smax;
-phi = phase(S_21(arg));
-Qcal = [Qical,Qccal,phi,f0];
+Qccal = Qi/smax;
+phi = phase(S_21(arg))
+Qcal = [Qi,Qc,0,f0];
 s = S21(Qcal,f(1:2:end));
-plot(s,'gs');hold on;
-disp('Caculation')
-disp(['Qi=',num2str(Qcal(1))]);
-disp(['Qc=',num2str(Qcal(2))]);
-disp(['phi=',num2str(Qcal(3))]);
-disp(['f0=',num2str(Qcal(4)/10^9)]);
+plot(s,'r*');hold on;
+disp(['Qi=',num2str(Q(1))]);
+disp(['Qc=',num2str(Q(2))]);
+disp(['phi=',num2str(Q(3))]);
+disp(['f0=',num2str(Q(4))]);
 % end
 
 %%
 %Fit
-
+Q0 = [9e+05,1e+04,0.01,6.78e+09];
 modulefun = @S21;
-Qfit = nlinfit(f,S_21,modulefun,Qcal);
+Qfit = nlinfit(f,S_21,modulefun,Q0);
 
 
-s = S21(Qfit,f(1:2:end));
-plot(s,'r*');hold on;
-disp('Fitting')
-disp(['Qi=',num2str(Qfit(1))]);
-disp(['Qc=',num2str(Qfit(2))]);
-disp(['phi=',num2str(Qfit(3))]);
-disp(['f0=',num2str(Qfit(4)/10^9)]);
+s = S21(Q,f(1:2:end));
+plot(s,'r*');
+disp(['Qi=',num2str(Q(1))]);
+disp(['Qc=',num2str(Q(2))]);
+disp(['phi=',num2str(Q(3))]);
+disp(['f0=',num2str(Q(4))]);
 
 
 

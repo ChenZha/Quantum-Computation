@@ -21,10 +21,10 @@ S_21 = 1./S_21-1;%«ÛS21^(-1)-1
 figure();plot(S_21,'b');xlabel('Re(S_{21}^{-1})');ylabel('Im(S_{21}^{-1})');hold on;
 
 % nlinfit
-Q0 = [9e+05,1e+04,0.01,6.78e+09];
-modulefun = @S21;
-Q = nlinfit(f,S_21,modulefun,Q0);
-
+% Q0 = [9.979107029411765e+05,1.177987609555519e+04,0.01,6.785792780000000e+09];
+% modulefun = @S21;
+% Q = nlinfit(f,S_21,modulefun,Q0);
+% 
 
 
 % fmincon
@@ -34,9 +34,8 @@ Q = nlinfit(f,S_21,modulefun,Q0);
 % ub = [2000000,200000,pi/2,6.8e+9];
 % 
 % Q0 = [9e+05,1e+04,0.01,6.78e+09];
-% 
-% Q,val = fminsearch(modulefun,Q0);
-% disp(val)
+
+Q = fmincon(modulefun,Q0,A,b,Aeq,beq,lb,ub);
 
 
 s = S21(Q,f(1:2:end));
