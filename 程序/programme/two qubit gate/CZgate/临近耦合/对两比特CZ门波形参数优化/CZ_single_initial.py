@@ -105,51 +105,6 @@ def findstate(S,state):
         print('No state')
     else:
         return(l)
-    
-def Operator_View(M,lab):
-    if isinstance(M, Qobj):
-        # extract matrix data from Qobj
-        M = M.full()
-
-    n = np.size(M)
-    xpos, ypos = np.meshgrid(range(M.shape[0]), range(M.shape[1]))
-    xpos = xpos.T.flatten() - 0.5
-    ypos = ypos.T.flatten() - 0.5
-    zpos = np.zeros(n)
-    dx = dy = 0.8 * np.ones(n)
-    
-    dz = np.real(M.flatten())
-    z_min = min(dz)
-    z_max = max(dz)
-    if z_min == z_max:
-        z_min -= 0.1
-        z_max += 0.1
-    norm = mpl.colors.Normalize(z_min, z_max)
-    cmap = cm.get_cmap('jet')  # Spectral
-    colors = cmap(norm(dz))
-    fig = plt.figure()
-    ax = Axes3D(fig, azim=-35, elev=35)
-    ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color=colors)
-    ax.set_title(lab+'_Real')
-    cax, kw = mpl.colorbar.make_axes(ax, shrink=.75, pad=.0)
-    mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm)
-    
-    dz = np.imag(M.flatten())
-    z_min = min(dz)
-    z_max = max(dz)
-    if z_min == z_max:
-        z_min -= 0.1
-        z_max += 0.1
-    norm = mpl.colors.Normalize(z_min, z_max)
-    cmap = cm.get_cmap('jet')  # Spectral
-    colors = cmap(norm(dz))
-    fig = plt.figure()
-    ax = Axes3D(fig, azim=-35, elev=35)
-    ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color=colors)
-    ax.set_title(lab+'_Imag')
-    cax, kw = mpl.colorbar.make_axes(ax, shrink=.75, pad=.0)
-    mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm)
-
 def CNOT(P):
     
     global H0,E,S,l11,l10,l01,l00

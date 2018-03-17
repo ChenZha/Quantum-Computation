@@ -8,7 +8,8 @@ Y = yparameters(path);
 
 f = Y.Frequencies;
 Y21 = squeeze(Y.Parameters(2,1,:));
-
-Cc = mean(-imag(Y21)/2/pi./f);
-disp(Cc);
+Cclist = -imag(Y21)/2/pi./f;
+% plot(f,Cclist);
+Cc = -imag(Y21(1))/2/pi./f(1);
+disp(['Cc=',num2str(Cc)]);
 
