@@ -22,6 +22,7 @@ from decimal import *
 from math import *
 import gc 
 import sys
+from DE_improvement import *
 
 
 
@@ -49,7 +50,8 @@ def g_pulse(t,args):
 
 
 def initial_wave():
-    resolution = 1024
+    global resolution
+
     thf = 0.55*pi/2;
     thi = 0.05;
     lam2 = -0.18;
@@ -82,7 +84,7 @@ def getfid(T):
     U1 = basis(N,0)*basis(N,0).dag()+np.exp(1j*(E[l10]-E[l00])*tlist[-1])*basis(N,1)*basis(N,1).dag()
     U2 = basis(N,0)*basis(N,0).dag()+np.exp(1j*(E[l01]-E[l00])*tlist[-1])*basis(N,1)*basis(N,1).dag()
     UT = tensor(U1,U2)
-    if outputstate[-1].isket:
+    if output.states[-1].isket:
         fid = fidelity(UT*output.states[-1],target)
         return([fid,UT*output.states[-1]])
     else:
@@ -110,6 +112,8 @@ def CZgate(P):
     global H0,E,S,l11,l10,l01,l00
 
     delta = P[0]
+    xita0 = P[1]
+    xita1 = P[2]
     tp = 30
     fluc = 0.01
     
@@ -121,7 +125,7 @@ def CZgate(P):
 
     global H,tlist,args,options
     
-    Hg = [(sm[0]+sm[0].dag())*(sm[1]+sm[1].dag()),CZ0]
+    Hg = [(sm[0]+sm[0].dag())*(sm[1]+sm[1].dag()),g_pulse]
     
     H = [H0,Hg]
 
@@ -159,10 +163,9 @@ def CZgate(P):
    
     A = p.map(getfid,T)
     fid = [x[0] for x in A]
-    leakage = [x[1] for x in A]
-    outputstate = [x[2] for x in A]
-    # fid = np.array(fid)
-    # leakage = np.array(leakage)
+    outputstate = [x[1] for x in A]
+    fid = np.array(fid)
+    outputstate = np.array(outputstate)
 
         
     p.close()
@@ -171,12 +174,8 @@ def CZgate(P):
 #    for phi in T:
 #        A = getfid(phi)
 #        fid.append(A[0])
-#        leakage0.append(A[1][0])
-#        leakage1.append(A[1][1])
-#        outputstate.append(A[2])
+#        outputstate.append(A[1])
 #    fid = np.array(fid)
-#    leakage0 = np.array(leakage0)
-#    leakage1 = np.array(leakage1)
 #    outputstate = np.array(outputstate)
 
     gc.collect()
@@ -203,7 +202,7 @@ def CZgate(P):
 #    Operator_View(process,'U_Simulation')
 
 
-    print(P[0]/2/np.pi,P[1]/2/np.pi,P[2]/np.pi*180,P[3]/np.pi*180,np.mean(fid),Ufidelity)
+    print(P[0]/2/np.pi,P[1]/np.pi*180,P[2]/np.pi*180,np.mean(fid),Ufidelity)
     return(-Ufidelity)
 
 
@@ -219,7 +218,7 @@ if __name__=='__main__':
     global H0,E,S,th
     
     N = 3
-    wq= np.array([5.00 , 4.62 ]) * 2 * np.pi
+    wq= np.array([5.00 , 4.78 ]) * 2 * np.pi
     eta_q=  np.array([-0.250 , -0.250]) * 2 * np.pi
     
     
@@ -233,7 +232,6 @@ if __name__=='__main__':
     sz = np.array([E_g[0] - E_e[0] , E_g[1] - E_e[1]])
     
     
-    H0= (wq[0]) * sm[0].dag()*sm[0]] + (wq[1]) * sm[1].dag()*sm[1] + eta_q[0]*E_uc[0] + eta_q[1]*E_uc[1]
 
     th = initial_wave()
     
@@ -242,11 +240,11 @@ if __name__=='__main__':
     
 
 #    fid = CZgate([0.    ,     -4.15551826 , -0.15315065,-1.15565238])
-    # x_l = np.array([0*2*np.pi , -0.9*2*np.pi , -np.pi , -np.pi])#delta0,delta1,xita0,xita1
-    # x_u = np.array([0.9*2*np.pi , 0*2*np.pi , np.pi , np.pi])
-    # de(CZgate,n = 4,m_size = 25,f = 0.9 , cr = 0.5 ,S = 1 , iterate_time = 300,x_l = x_l,x_u = x_u,inputfile = None)
+#    x_l = np.array([0*2*np.pi , -np.pi , -np.pi])#delta0,delta1,xita0,xita1
+#    x_u = np.array([0.1*2*np.pi ,  np.pi , np.pi])
+#    de(CZgate,n = 3,m_size = 18,f = 0.9 , cr = 0.5 ,S = 1 , iterate_time = 300,x_l = x_l,x_u = x_u,inputfile = None)
     
-    x0 = [0.    ,     -4.15551826 , -0.15315065,-1.15565238]
+    x0 = [0.055*2*np.pi,   0 , 0]
     result = minimize(CZgate , x0 , method="Nelder-Mead",options={'disp': True})
     print(result)
 
