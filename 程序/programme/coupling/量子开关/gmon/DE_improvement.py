@@ -42,8 +42,8 @@ def evolution(evaluate_func,i,g,n,S,x_all,cr_list,f_list,x_u,x_l):
     return([v_i,value_vi])
     
 
-def de(evaluate_func,n = 4, m_size = 20 , f = 0.5 , cr = 0.3 , S = 1 , iterate_time = 100 , x_l = np.array([0,1,0,2]),x_u = np.array([5,6,8,4]),inputfile = None ):
-    num_CPU = 30
+def de(evaluate_func,n = 4, m_size = 20 , f = 0.5 , cr = 0.3 , S = 1 , iterate_time = 100 , x_l = np.array([0,1,0,2]),x_u = np.array([5,6,8,4]),inputfile = None,process = 2 ):
+    num_CPU = process
     #初始化
     x_all = np.zeros((iterate_time , m_size , n))#m_size为population ，n为dimension
     value = np.zeros((iterate_time , m_size ))
@@ -60,7 +60,8 @@ def de(evaluate_func,n = 4, m_size = 20 , f = 0.5 , cr = 0.3 , S = 1 , iterate_t
         initial = []
         p = Pool(num_CPU)
         for i in range(m_size):
-            x_all[0][i] = x_l + random.random()*(x_u-x_l)
+            for j in range(n):
+                x_all[0][i][j] = x_l[j] + random.random()*(x_u[j]-x_l[j])
             initial.append(p.apply_async(evaluate_func,(x_all[0][i],)))
         value[0] = np.array([initial[i].get() for i in range(len(initial))])
         p.close()
