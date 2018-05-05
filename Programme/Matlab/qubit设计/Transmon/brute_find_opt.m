@@ -1,3 +1,6 @@
+%%在一定的Cq和R范围内，寻找符合需要能级和非简谐性的对应的R和Cq
+
+
 M = 501;
 N = 501;
 Cq = linspace(70e-15,75e-15,M);
@@ -76,5 +79,5 @@ E01 = Ex(2)-Ex(1);
 E12 = Ex(3)-Ex(2);
 anham = E12-E01;
 
-delta = abs(anham-anhamc)%+ abs(E01-E01c);
+delta = abs(anham-anhamc)+ abs(E01-E01c);
 end

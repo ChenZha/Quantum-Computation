@@ -1,5 +1,5 @@
 function find_opt(Cq1,R1,anhamc,E01c)
-%%在Cq1和R1附近寻找最符合anhamc和E01c的Cq和R的值
+%%在Cq1(F)和R1(Ω)附近寻找最符合anhamc和E01c的Cq和R的值
 %单位都是GHz
 Ec1 = C_E(Cq1);
 Ej1 = R_E(R1);
@@ -89,5 +89,5 @@ E01 = Ex(2)-Ex(1);
 E12 = Ex(3)-Ex(2);
 anham = E12-E01;%负数
 
-delta = abs(anham-anhamc)+ abs(E01-E01c);
+delta = abs(anham-anhamc)*10+ abs(E01-E01c);
 end
