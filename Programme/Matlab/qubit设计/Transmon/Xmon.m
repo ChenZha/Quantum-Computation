@@ -6,8 +6,8 @@ classdef Xmon < handle
     end
     
     properties
-        Cq
-        R
+        Cq 
+        R 
         A_charge
         A_flux
         A_Ic

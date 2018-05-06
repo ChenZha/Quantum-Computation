@@ -6,8 +6,8 @@ Ej1 = R_E(R1);
 
 func = @(x) deviation(x(1),x(2),anhamc,E01c);
 x0 = [Ec1,Ej1];
-lb = [0.5*Ec1,0.5*Ej1];
-ub = [1.5*Ec1,1.5*Ej1];
+lb = [0.999*Ec1,0.5*Ej1];
+ub = [1.001*Ec1,1.5*Ej1];
 A = [];
 b = [];
 Aeq = [];
@@ -84,7 +84,7 @@ Ex = eig(H);
 end
 
 function delta = deviation(Ec,Ej,anhamc,E01c)
-[Ex,~] = E(Ec,Ej,0,60);
+[Ex,~] = E(Ec,Ej,0,100);
 E01 = Ex(2)-Ex(1);
 E12 = Ex(3)-Ex(2);
 anham = E12-E01;%¸ºÊý

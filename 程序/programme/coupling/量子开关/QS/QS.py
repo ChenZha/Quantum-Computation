@@ -7,7 +7,6 @@ Created on Mon Oct  2 14:27:44 2017
 """
 
 import time 
-import csv
 import matplotlib.pyplot as plt
 import numpy as np
 from pylab import *
@@ -15,13 +14,9 @@ from qutip import *
 from scipy.optimize import *
 from scipy.integrate import *
 from scipy import interpolate 
-from mpl_toolkits.mplot3d import Axes3D
 from scipy.special import *
 from multiprocessing import Pool
-from decimal import *
-from math import *
 import gc 
-import sys
 
 def Z_wave(t):
     tp = 100
