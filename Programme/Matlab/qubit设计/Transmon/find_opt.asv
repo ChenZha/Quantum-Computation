@@ -1,4 +1,4 @@
-function [OptEc,OptEj,Cq,R,E01,anham]=find_opt(Cq1,R1,anhamc,E01c)
+function [OptEc,]=find_opt(Cq1,R1,anhamc,E01c)
 %%在Cq1(F)和R1(Ω)附近寻找最符合anhamc和E01c的Cq和R的值
 %单位都是GHz
 Ec1 = C_E(Cq1);
@@ -6,8 +6,8 @@ Ej1 = R_E(R1);
 
 func = @(x) deviation(x(1),x(2),anhamc,E01c);
 x0 = [Ec1,Ej1];
-lb = [0.9999*Ec1,0.5*Ej1];
-ub = [1.0001*Ec1,1.5*Ej1];
+lb = [0.999*Ec1,0.5*Ej1];
+ub = [1.001*Ec1,1.5*Ej1];
 A = [];
 b = [];
 Aeq = [];
@@ -89,5 +89,5 @@ E01 = Ex(2)-Ex(1);
 E12 = Ex(3)-Ex(2);
 anham = E12-E01;%负数
 
-delta = abs(anham-anhamc)*20+ abs(E01-E01c);
+delta = abs(anham-anhamc)*10+ abs(E01-E01c);
 end
