@@ -2,7 +2,7 @@
 % function  [f0,Qi,Qc] = QCal(path)
 % 
 % if (nargin<1)
-        path = 'w4.s2p';
+        path = 'w6.s2p';
 % end
 
 ckt=read(rfdata.data, path);

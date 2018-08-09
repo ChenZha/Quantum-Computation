@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<JXY_Export_Set>
+   <JXY_Export Filename="DemoApi.csv" Label="DemoApi.son">
+      <Region Style="Whole"/>
+      <Levels Level="0" Range="One"/>
+      <Grid XStep="1" YStep="1"/>
+      <Measurement Complex="No" Type="JXY"/>
+      <Drive>
+         <JXYPort Capacitance="0" Inductance="0" Number="1" Phase="0" Reactance="0" Resistance="50" Voltage="5"/>
+         <JXYPort Capacitance="0" Inductance="0" Number="2" Phase="0" Reactance="0" Resistance="50" Voltage="5"/>
+      </Drive>
+      <Locator>
+         <Frequency Value="5000000000"/>
+      </Locator>
+   </JXY_Export>
+</JXY_Export_Set>

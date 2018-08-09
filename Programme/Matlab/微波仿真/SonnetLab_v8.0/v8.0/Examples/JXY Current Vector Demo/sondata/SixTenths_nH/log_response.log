@@ -1,0 +1,39 @@
+Run 1:  Tue Apr 01 15:18:04 2014.  sonnet9.2.99999.
+        Em version 14.54 (64-bit Windows) on VIPER local.
+
+  Project:  E:\SonnetLab\SonnetLab_v7.3\CurrentVisualization\SixTenths_nH_Oct.son.
+
+    Frequency:  17 GHZ
+      Frequency completed Tue Apr 01 15:18:27 2014.
+      De-embedded S-Parameters. 50.0 Ohm Port Terminations.
+      Magnitude/Angle. Touchstone Format. (S11 S21 S12 S22).
+        17.0000000 0.483907 51.871 0.825384 -34.56 0.825384 -34.56 0.484167 52.861
+        !< P1 F=17.0 Eeff=(undefined: mp) Z0=(undefined: mp) R=0.0 C=0.0 
+        !< P2 F=17.0 Eeff=(undefined: mp) Z0=(undefined: mp) R=0.0 C=0.0 
+        !< See "De-embedding Codes" in Help for more details on the "mp" code.
+
+Analysis completed Tue Apr 01 15:18:27 2014.
+
+
+Run 2:  Tue Apr 01 15:35:05 2014.  sonnet9.2.99999.
+        Em version 14.54 (64-bit Windows) on VIPER local.
+
+  Project:  E:\SonnetLab\SonnetLab_v7.3\CurrentVisualization\SixTenths_nH.son.
+
+Analysis completed Tue Apr 01 15:35:05 2014.
+
+
+Run 2:  Wed Apr 02 11:05:54 2014.  sonnet9.2.99999.
+        Em version 14.54 (64-bit Windows) on AMARI local.
+
+  Project:  C:\Users\rroach.SONNETSOFTWARE\Documents\MATLAB\SonnetLab7\v7.0\Examples\JXY Current Vector Demo\SixTenths_nH.son.
+
+Analysis completed Wed Apr 02 11:05:54 2014.
+
+
+Run 2:  Wed Apr 02 11:09:32 2014.  sonnet9.2.99999.
+        Em version 14.54 (64-bit Windows) on AMARI local.
+
+  Project:  C:\Users\rroach.SONNETSOFTWARE\Documents\MATLAB\SonnetLab7\v7.0\Examples\JXY Current Vector Demo\SixTenths_nH.son.
+
+Analysis completed Wed Apr 02 11:09:32 2014.

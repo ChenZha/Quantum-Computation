@@ -1,0 +1,72 @@
+Run 1:  Thu Aug 02 00:29:27 2018.  .
+        Em version 14.52 (64-bit Windows) on WQ-20160704LANE local.
+
+  Project:  F:\laboratory\Sync\Programme\Matlab\Î¢²¨·ÂÕæ\SonnetLab_v8.0\v8.0\Examples\Beginner Demo\Demo1.son.
+
+    Frequency:  5 GHZ
+      Subsectioning at 50 GHz with Eeff of 1.
+      Subsectioning time:  0.001 seconds.
+      De-embedding information for left box wall port(s):
+        Left SOC Electric Wall: 80 mils length, 26 subsections, 1 MB.
+        Left SOC Magnetic Wall: 160 mils length, 24 subsections, 1 MB.
+      De-embedding information for right box wall port(s):
+        Right SOC Electric Wall: 80 mils length, 26 subsections, 1 MB.
+        Right SOC Magnetic Wall: 160 mils length, 24 subsections, 1 MB.
+      Em license feature:  emhighperformance.
+      Circuit requires 87 subsections and 2 MB of memory.
+
+      Subsections by level and type:
+      Level 0:
+        Staircase:  83
+      Ground Plane:
+        Via:        4
+
+      Required memory by type:
+        System matrix:            0 MB
+        Elemental subsections:
+          Primary structure:      0 MB
+          Left standard:          0 MB
+          Right standard:         0 MB
+        Fourier transform:        0 MB
+        Waveguide mode:           0 MB
+        Adaptive band synthesis:  1 MB
+        Miscellaneous:            1 MB
+        TOTAL REQUIRED MEMORY:    2 MB
+
+      Matrix solver:  internal 64-bit SSE lossless.
+      Simulation mode:  local machine.
+      Threads:  using 4 thread(s), 4 core(s) available.
+      Waveguide mode time:  0.009 seconds.
+      Fourier transform time:  0.107 seconds.
+      Coupling time:  0.065 seconds.
+      Loss time:  0 seconds.
+      Matrix fill time:  0.181 seconds.
+      Matrix solve time:  0.016 seconds.
+      De-embedding time for left box wall:
+        SOC Electric Wall Std: 0.038 seconds.
+        SOC Magnetic Wall Std: 0.052 seconds.
+        Total:                 0.091 seconds.
+      Total time per frequency:  0.367 seconds.
+
+    Frequency:  50 GHZ
+      ABS time:  0.043 seconds.
+
+    Frequency:  23 GHZ
+      ABS time:  0.047 seconds.
+
+    Frequency:  9 GHZ
+      ABS time:  0.058 seconds.
+
+    Frequency:  33.6 GHZ
+      ABS time:  0.055 seconds.
+
+    Frequency:  46.6 GHZ
+      ABS time:  0.070 seconds.
+
+    Frequency:  14.6 GHZ
+      ABS time:  0.087 seconds.
+
+    Post-Analysis:
+      Total time for 7 frequencies:  1 second.
+
+Analysis completed Thu Aug 02 00:29:28 2018.

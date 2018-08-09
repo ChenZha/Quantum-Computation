@@ -22,7 +22,7 @@ paintlib.IO.pointdistance=3000#设置腔的精度,转弯处相邻两点的距离
 layer1 = layout.layer(10, 10)
 
 #变换方向的交界点
-dis = [3400000,3500000,3600000,3700000,3800000,3900000,4000000,4100000]#中心点距直线的距离
+dis = [3200000,3300000,3400000,3500000,3600000,3700000,3800000,3900000]#中心点距直线的距离
 intersection = [intersection_get(dis[0],dis[1],90),intersection_get(dis[1],dis[2],45),intersection_get(dis[2],dis[3],0),intersection_get(dis[3],dis[4],-45),intersection_get(dis[4],dis[5],270),intersection_get(dis[5],dis[6],225),intersection_get(dis[6],dis[7],180)]
 distanceinter = 200000 #圆弧起始点距离交点的距离
 radius = distanceinter/tan(pi/8)
@@ -34,7 +34,7 @@ top.insert(pya.CellInstArray(cell1.cell_index(),pya.Trans()))
 startpoint = pya.DPoint(-dis[-2]+360000,dis[0]) #起始位置
 electrode1=paintlib.BasicPainter.Electrode(startpoint.x,startpoint.y,180)#electrode1
 painter1=paintlib.CavityPainter(pya.DPoint(startpoint.x,startpoint.y),angle=0,widout=20000,widin=10000)#painter
-cavity_loc = [paintlib.CavityBrush(pointc=pya.DPoint(-750000,dis[0]), angle=0,widout=20000,widin=10000,bgn_ext=0)]#将要画腔的位置
+cavity_loc = [paintlib.CavityBrush(pointc=pya.DPoint(-650000,dis[0]), angle=0,widout=20000,widin=10000,bgn_ext=0)]#将要画腔的位置
 painter1.Run(lambda painter:painter.Straight((intersection[0]).distance(startpoint)-distanceinter))
 painter1.Run(lambda painter:painter.Turning(radius,angle = 45))
 curpos = pya.DPoint(painter1.brush.centerx , painter1.brush.centery)

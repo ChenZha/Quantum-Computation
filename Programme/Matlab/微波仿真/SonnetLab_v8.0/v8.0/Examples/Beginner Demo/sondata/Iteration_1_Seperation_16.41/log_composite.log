@@ -1,0 +1,49 @@
+Run 1:  Thu Aug 02 00:11:57 2018.  sonnet9.aa.99999.
+        Em version 14.52 (64-bit Windows) on WQ-20160704LANE local.
+
+  Project:  F:\laboratory\Sync\Programme\Matlab\Î¢²¨·ÂÕæ\SonnetLab_v8.0\v8.0\Examples\Beginner Demo\Iteration_1_Seperation_16.41.son.
+
+    Frequency:  2.086 GHZ
+      Subsectioning at 2.086 GHz with Eeff of 1.97.
+      Subsectioning time:  0.045 seconds.
+      Em license feature:  emhighperformance.
+      Circuit requires 2199 subsections and 51 MB of memory.
+
+      Subsections by level and type:
+      Level 0:
+        Staircase:  2190
+      Ground Plane:
+        Via:        9
+
+      Required memory by type:
+        System matrix:            37 MB
+        Elemental subsections:
+          Primary structure:      1 MB
+        Fourier transform:        8 MB
+        Waveguide mode:           3 MB
+        Adaptive band synthesis:  0 MB
+        Miscellaneous:            1 MB
+        TOTAL REQUIRED MEMORY:    51 MB
+
+      Matrix solver:  internal 64-bit SSE with loss.
+      Simulation mode:  local machine.
+      Threads:  using 4 thread(s), 4 core(s) available.
+      Waveguide mode time:  0.075 seconds.
+      Fourier transform time:  1 second.
+      Coupling time:  1 second.
+      Loss time:  0 seconds.
+      Matrix fill time:  3 seconds.
+      Matrix solve time:  1 second.
+      Frequency completed Thu Aug 02 00:12:02 2018.
+      De-embedded S-Parameters. 50.0 Ohm Port Terminations.
+      Magnitude/Angle. Touchstone Format.
+        2.08600000 0.898697 -175.8
+        !< P1 F=2.086 Eeff=(undefined: nd) Z0=(undefined: nd) R=0.0 C=0.0 
+        !< See "De-embedding Codes" in Help for more details on the "nd" code.
+      Total time per frequency:  4 seconds.
+
+    Post-Analysis:
+      Total time for 1 frequency:  5 seconds.
+      Errors detected: 0    Warnings detected: 0.
+
+Analysis completed Thu Aug 02 00:12:02 2018.
