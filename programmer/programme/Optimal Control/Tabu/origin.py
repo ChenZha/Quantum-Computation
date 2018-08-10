@@ -1,24 +1,6 @@
 '''
-Tabu search(禁忌搜索)由局部邻域搜索改进
-改进：
-    1.接受劣解
-    2.引入禁忌表
-    3.引入长期表和中期表
-
-特点：
-    1.基本思想：避免在搜索过程中的循环
-    2.只进不退的原则通过禁忌表实现
-    3.不易局部最优解作为停止标准
-    4.邻域优选的规则模拟了人类的记忆功能
-
-禁忌表：防止搜索出现循环(禁忌表只是数据编码需要改变的那一部分)
-    1.记录前若干步走过的点，方向，目标值，禁止返回
-    2.表是动态更新的
-    3.表的长度称为Tabu-Size
-
-    禁忌对象；禁忌长度
-
-渴望水平函数：A一般为历史上曾经到达的最好函数值，若C(x)<A(效果更好)，则x不受禁忌表限制，下一步仍然可以取x(破禁)
+Created on 2018年1月21日
+@author: WZD
 '''
 
 import numpy as np
@@ -73,11 +55,10 @@ class TS:
                 temp = self.Ghh.copy()
                 temp[i],temp[j] = temp[j],temp[i]
                 self.neighbor.append(temp)
-        #print(self.neighbor)        
+        # print(self.neighbor)        
     #判断某个编码是否在禁忌表中
     def judgment(self,GN=[]):
         #GN：要判断是否在禁忌表中的交换操作.
-        # 正反相等都表示编码相等
         flag = 0 #表示这个编码不在禁忌表中        
         for temp in self.tabu_list:
             temp_reverse = []
@@ -93,11 +74,9 @@ class TS:
         #GN：要插入禁忌表的新交换操作，GN=[1,2]
         #flag_:用于判断是否满足藐视原则,flag_ = 1表示满足藐视原则
         if flag_ == 0:
-            # 如果不满足藐视原则，弹出最后一个编码，起始位置插入新编码
             self.tabu_list.pop()        #弹出最后一个编码
             self.tabu_list.insert(0,GN) #开始位置插入新的编码
         if flag_ == 1:
-            # 如果满足藐视原则，弹出与GN相同的编码，起始位置插入新编码
             for i, temp in enumerate(self.tabu_list):
                 temp_reverse = []
                 for j in reversed(temp):
@@ -128,18 +107,6 @@ class TS:
         return fitness_pi_ij   
     
     def solver(self):
-        '''
-        1.初始化后，生成当前编码的邻居
-        2.按照邻居的fitness的大小对邻居从高到低进行排序
-        3.从fitness最高的邻居到最低开始进行循环：
-            检查该邻居需要的交换是否在禁忌表里：
-            在：
-                是否满足藐视规则(比曾经最好的结果还要好)：
-                满足：进行该交换，best更改，循环结束，回到2
-                不满足：找下一个邻居
-            不在：
-                进行该交换，如果比曾经最好的还要好，best更改；循环结束，回到2.
-        '''
         #初始化
         self.InitialSolution()        #生成当前最佳编码self.Ghh
         self.current_fitness = self.fitness(GN = self.Ghh) #self.Ghh的适应度值   
@@ -152,23 +119,21 @@ class TS:
         self.fitness_Ghh_current_list.append(self.current_fitness)  #更新当前的最佳适应度值列表         
         
         step = 0 #当前迭代步数      
-        while(step<=self.MAX_GEN):  
-
-            # 得到当前编码Ghh的邻居，并找出效果最好的N个邻居          
+        while(step<=self.MAX_GEN):            
             self.swap() #产生邻居二维列表self.neighbor,记住后面需要置空            
             #计算每个邻居的适应度函数值
             fitness = []
             for temp in self.neighbor:
                 fitness_pi_ij = self.fitness(GN = temp) #传入的一个加工序列的适应度
-                fitness.append(fitness_pi_ij)  
-            fitness = np.array(fitness)          
-            #  按照适应度函数值从大到小排定候选次序
-            args_reversed = np.argsort(-fitness).tolist()  #从大到小排序的序号
-            fitness_sort = fitness[args_reversed] 
-            #  按照适应度函数值从大到小排定候选次序后的邻居，第一个邻居的适应度函数值最大               
-            neighbor_sort = []
-            for i in args_reversed:
-                neighbor_sort.append(self.neighbor[i])  
+                fitness.append(fitness_pi_ij)            
+            #按照适应度函数值从大到小排定候选次序
+            temp = np.argsort(fitness).tolist()
+            fitness_sort = [] #适应度排序后的值
+            for i in temp:
+                fitness_sort.append(fitness[len(fitness)-1-i])                            
+            neighbor_sort = [] #按照适应度函数值从大到小排定候选次序后的邻居，第一个邻居的适应度函数值最大
+            for i in range(len(temp)):
+                neighbor_sort.append(self.neighbor[temp[len(temp)-1-i]])  
             self.neighbor = []  #将邻居二位列表置空，以便下次使用
             
             
@@ -176,9 +141,9 @@ class TS:
             fitness_sort_N = fitness_sort[:self.N]   #选取邻居中适配值最好的前N个适应度函数值
             
             
-                  
-            for m , temp in enumerate(neighbor_sort_N):                
-                GN = [] #用来装交换的元素，GN=[1,2]和GN=[2,1]相同
+            m = 0            
+            for temp in neighbor_sort_N:                
+                GN = [] #用来装交换的元素GN=[1,2]和GN=[2,1]相同
                 for i,temp_Ghh in enumerate(self.Ghh): #self.Ghh:当前最佳编码
                     if temp_Ghh != temp[i]:
                         GN.append(temp_Ghh)        
@@ -198,27 +163,29 @@ class TS:
                         self.bestGh = temp.copy()             #更新最好的编码
                         #更新禁忌表
                         self.ChangeTabuList(GN=GN, flag_=1)    
-                        break               
+                        break
+                    else:
+                        m = m + 1                          
                 else : #表示这个互换不在禁忌表中
-                    if fitness_sort_N[m] < self.current_fitness:
-                        self.current_fitness = fitness_sort_N[m] #更新当前的最佳适应度值
-                        self.Ghh = neighbor_sort_N[m]     #更新当前最佳编码
+                    if fitness_sort_N[0] < self.current_fitness:
+                        self.current_fitness = fitness_sort_N[0] #更新当前的最佳适应度值
+                        self.Ghh = neighbor_sort_N[0]     #更新当前最佳编码
                         self.Ghh_list.append(self.Ghh.copy())           #更新当前最佳编码体的列表
                         self.fitness_Ghh_current_list.append(self.current_fitness)  #更新当前的最佳适应度函数值列表
                         #更新禁忌表
                         self.ChangeTabuList(GN=GN, flag_=0)
                         break
                     else:
-                        self.current_fitness = fitness_sort_N[m] #更新当前的最佳适应度值
-                        self.Ghh = neighbor_sort_N[m]      #更新当前最佳编码
+                        self.current_fitness = fitness_sort_N[0] #更新当前的最佳适应度值
+                        self.Ghh = neighbor_sort_N[0]      #更新当前最佳编码
                         self.Ghh_list.append(self.Ghh.copy())           #更新当前最佳编码体的列表
                         self.fitness_Ghh_current_list.append(self.current_fitness)   #更新当前的最佳适应度函数值列表
                         #更新禁忌表
                         self.ChangeTabuList(GN=GN, flag_=0)
-                        if fitness_sort_N[m]>self.best_fitness:
-                            self.best_fitness = fitness_sort_N[m]      #更新最好的适应度函数值
+                        if fitness_sort_N[0]>self.best_fitness:
+                            self.best_fitness = fitness_sort_N[0]      #更新最好的适应度函数值
                             self.best_fitness_list.append(self.best_fitness)
-                            self.bestGh = neighbor_sort_N[m].copy()    #更新最好的编码
+                            self.bestGh = neighbor_sort_N[0].copy()    #更新最好的编码
                         break
             P_pi = 0
             for i in range(self.N):
