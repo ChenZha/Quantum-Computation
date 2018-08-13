@@ -81,7 +81,8 @@ if __name__ == '__main__':
     target = (basis(3,0)).unit()
 #    psi0 = target
     
-    D = X(tlist,args);figure();plot(tlist,D)
+    D = X(tlist,args);
+    figure();plot(tlist,D)
 
     
     result = mesolve(H,psi0,tlist,[],[],args)
