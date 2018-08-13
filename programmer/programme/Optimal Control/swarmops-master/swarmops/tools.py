@@ -23,6 +23,9 @@ _prng = np.random.RandomState()
 
 
 def new_prng(seed=None):
+    '''
+    对于每一个线程都要有一个自己的伪随机数产生器（PRNG）
+    '''
     """
     Create a new PRNG. Call this function when you start a new execution thread.
     This is necessary because the PRNG is not thread-safe so each thread must have
@@ -59,6 +62,11 @@ def rand_array(lower, upper):
 
 
 def rand_population(lower, upper, num_agents, dim):
+    '''
+    num_agents:是进行启发式算法的population的个数
+    dim:是进行计算的维度
+    可以进行算法population的初始化
+    '''
     """
     Create 2-d array with uniform random numbers between the lower and upper bounds.
 
@@ -86,6 +94,9 @@ def rand_int(lower, upper):
 
 
 def rand_choice(a, size=None, replace=True, p=None):
+    '''
+    从a中选择shape为size的一部分
+    '''
     """
     Generate a random sample from an array.
 
@@ -133,7 +144,9 @@ def bound(x, lower, upper):
     """
     Bound x between lower and upper, where x is a numpy array.
     """
-
+    '''
+    将array x中超过bound的数据全部改为对应的bound
+    '''
     # Lower bound.
     y = np.where(x < lower, lower, x)
 
@@ -147,12 +160,19 @@ def bound_scalar(x, lower, upper):
     """
     Bound x between lower and upper, where x is a scalar value.
     """
+    '''
+    如果x在范围里，则保留原值；
+    若超过范围，则取边界值
+    '''
 
     return min(upper, max(lower, x))
 
 ########################################################################
 
 def denormalize_trunc(x):
+    '''
+    如果非常接近于0，就将他截断到0
+    '''
     """
     If x is very close to zero then it is truncated to zero.
     This is done to avoid denormalized floating point values.

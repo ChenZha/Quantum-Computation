@@ -39,9 +39,10 @@ class Problem:
         Create the object instance for an optimization problem.
 
         You can implement a fitness function in either of two ways:
-
+        两种实现fitness function的方式
         1) You can sub-class this Problem-class and override the self.fitness() function.
            This is demonstrated in the benchmark problems below.
+           重载self.fitness()
 
         2) You can pass the fitness function as the func-argument to __init__.
            The arguments of the fitness function must match those of self.fitness().
@@ -49,7 +50,8 @@ class Problem:
            must not be declared inside "if __name__ == '__main__':" due to some
            peculiarities in how multiprocessing uses pickle.
            This is demonstrated in demo-optimize.py
-
+            把func作为参数传进去
+        
         :param name: Name of the optimization problem.
         :param dim: Dimensionality of the search-space.
         :param fitness_min: Minimum possible fitness value, or a reasonable lower boundary.
@@ -163,7 +165,7 @@ class Sphere(Benchmark):
                            lower_bound=-100.0, upper_bound=100.0,
                            lower_init=50.0, upper_init=100.0)
 
-    def fitness(self, x, limit=np.Infinity):
+    def fitness(self, x, limit=np.Infinity):# 进行重载
         return np.sum(x ** 2)
 
 class Rosenbrock(Benchmark):

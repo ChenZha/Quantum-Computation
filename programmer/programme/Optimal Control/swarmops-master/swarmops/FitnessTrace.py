@@ -12,6 +12,9 @@
 
 
 class FitnessTrace:
+    '''
+    记录不同iteration对应的fitness
+    '''
     """
     Trace / log the fitness at regular intervals during optimization.
     This is used for plotting the optimization progress afterwards.

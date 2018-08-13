@@ -19,6 +19,9 @@ from swarmops import tools
 ##################################################
 
 class SingleRun:
+    '''
+    进行单独线型运行的父类
+    '''
     """
     Parent-class for performing a single optimization run.
     The class provides various logistics that are common to all
@@ -158,6 +161,9 @@ class MultiRun:
     """
 
     def __init__(self, optimizer, num_runs, problem, parallel=True, *args, **kwargs):
+        '''
+        生成几个optimizer 并行运算
+        '''
         """
         Create object instance and perform multiple optimization runs.
         To retrieve the results, access the object variables afterwards.
@@ -265,6 +271,9 @@ class MultiRun:
         return self._optimize(run_number=run_number)
 
     def refine(self):
+        '''
+        找到最优解后，利用L-BFGS-B继续寻优
+        '''
         """
         Refine the best result from heuristic optimization using SciPy's L-BFGS-B method.
         This may significantly improve the results on some optimization problems,

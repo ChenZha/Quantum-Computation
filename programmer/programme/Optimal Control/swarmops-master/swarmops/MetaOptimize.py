@@ -88,6 +88,9 @@ class _ProblemRank:
 ########################################################################
 
 class _MetaFitness(Problem):
+    '''
+    哪个初始参数，才能使现在的optimizer优化的结果更好的问题
+    '''
     """
     Used for measuring the performance of an optimization method on
     several problems. This is called the meta-fitness which can
@@ -132,6 +135,9 @@ class _MetaFitness(Problem):
                          upper_bound=optimizer.parameters_upper_bound)
 
     def fitness(self, x, limit=np.Infinity):
+        '''
+        某个初始参数x下，通过optimizer得到的最优解
+        '''
         """
         Calculate the meta-fitness measure.
 
