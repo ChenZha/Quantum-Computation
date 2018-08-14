@@ -16,6 +16,7 @@ from swarmops.FitnessTrace import FitnessTrace
 from swarmops import tools
 
 
+
 ##################################################
 
 class SingleRun:
@@ -68,6 +69,7 @@ class SingleRun:
         self.best = None
         self.best_fitness = np.inf
 
+        
         # Print status at the beginning of the optimization run.
         self._start_run()
 
@@ -106,14 +108,18 @@ class SingleRun:
 
         if self.display_interval > 0 and i >= self.display_next:
             # Print the status.
-            msg = "Run: {0}, Iteration: {1}, Best Fitness: {2:.4e}"
-            print(msg.format(self.run_number, i, self.best_fitness))
+            
+            msg = "Run: {0}, Iteration: {1}, Best Fitness: {2:.4f} , Best:"
+            print(msg.format(self.run_number, i, self.best_fitness)+' '.join(['{:.5f}'.format(n) for n in self.best]))
 
             # Increment the counter for the next status-display.
             self.display_next = i + self.display_interval
 
         # Trace the fitness.
         self.fitness_trace.trace(i, self.best_fitness)
+        # save the result of the ith iteration
+        
+        
 
     def _end_run(self):
         """

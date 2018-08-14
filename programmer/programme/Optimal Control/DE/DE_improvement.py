@@ -23,7 +23,7 @@ def evolution(evaluate_func,i,g,n,S,x_all,cr_list,f_list,x_u,x_l):
         h_i = [h_i[item] if h_i[item]<x_u[item] else x_u[item] for item in range(n)] 
         h_i = [h_i[item] if h_i[item]>x_l[item] else x_l[item] for item in range(n)] 
 
-        #交叉操作，对变异后的个体，根据随机数与交叉阈值确定最后的个体
+        # 交叉操作，对变异后的个体，根据随机数与交叉阈值确定最后的个体
         # print(h_i)
         v_i = np.array([x_all[g][i][j] if (random.random() > cr_list[g] ) else h_i[j] for j in range(n) ])
         
@@ -96,7 +96,7 @@ def de(evaluate_func,n = 4, m_size = 20 , f = 0.5 , cr = 0.3 , S = 1 , iterate_t
         print('least cost function',np.min(value[g+1]))
         print('std为：',np.std(value[g+1]))
         
-        filename = './result/'+str(g)+'_'+time.strftime('%Y%m%d%X',time.localtime())+'.mat'
+        filename = './result/'+str(g)+'_'+time.strftime('%Y%m%d-%H-%M',time.localtime())+'.mat'
         sio.savemat(filename,{'x_all':x_all,'value':value,'f_list':f_list,'cr_list':cr_list,'best_para':x_all[g+1][np.argmin(value[g+1])],'min_fun':np.min(value[g+1])})
     evaluate_result = value[-1]
     best_x_i = x_all[-1][np.argmin(evaluate_result)]

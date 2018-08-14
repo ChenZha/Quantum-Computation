@@ -15,6 +15,7 @@ import swarmops.Problem as Problem
 from swarmops.Optimize import MultiRun
 from swarmops.PSO import PSO, MOL
 from swarmops.DE import DE
+from swarmops.SuSSADE import SuSSADE
 from swarmops.PS import PS
 from swarmops.LUS import LUS
 from swarmops.Timer import Timer
@@ -42,10 +43,10 @@ if __name__ == "__main__":
     dim = 3
 
     # Max number of fitness evaluations.
-    max_evaluations = dim * 5000
+    max_evaluations = dim * 10
 
     # Number of fitness evaluations between printing of status messages.
-    display_interval = 5000
+    display_interval = 1
 
     # Max-length of fitness trace.
     trace_len = 100
@@ -71,7 +72,7 @@ if __name__ == "__main__":
                                     lower_init=50.0, upper_init=100.0,
                                     func=sphere_func)
 
-    if True:
+    if False:
         # Use PSO as optimizer.
         optimizer = PSO
 
@@ -90,12 +91,13 @@ if __name__ == "__main__":
         #parameters = [ 274.3153726  ,  -0.80864214  , -3.86480522]
         #parameters = [ 159.98393514 ,  -0.26711631  ,  5.51016079]
         #parameters = MOL.parameters_20dim_40000eval
-    elif False:
+    elif True:
         # Use DE as optimizer.
-        optimizer = DE
+        # optimizer = DE
+        optimizer = SuSSADE
 
         # Control parameters.
-        parameters = DE.parameters_default
+        parameters = SuSSADE.parameters_default
         #parameters = [ 115.79605113  ,  0.88891246  ,  0.50018078]
         #parameters = DE.parameters_20dim_40000eval
     elif False:
@@ -126,7 +128,7 @@ if __name__ == "__main__":
 
 ########################################################################
 
-    if False:
+    if True:
         # Demonstrate the optimizer's parallel execution.
         # This has significant overhead especially on Windows
         # and should generally only be used on fitness functions
@@ -139,7 +141,10 @@ if __name__ == "__main__":
         # where the fitness is evaluated in parallel.
         result = optimizer(parallel=True, problem=problem,
                            max_evaluations=max_evaluations,
-                           display_interval=display_interval)
+                           display_interval=display_interval,
+                           trace_len=max_evaluations,
+                           StdTol = 0.01,
+                           directoryname  = 'resultDE')
 
         # Stop the timer.
         timer.stop()
@@ -152,50 +157,65 @@ if __name__ == "__main__":
         print("Best solution:")
         print(result.best)
 
+        if True:
+            print()  # Newline.
+            print("Refining using SciPy's L-BFGS-B (this may be slow on some problems) ...")
+
+            # Do the actual refinement using the L-BFGS-B optimizer.
+            refined_fitness, refined_solution = result.refine()
+
+            print("Best fitness from L-BFGS-B optimization: {0:0.4e}".format(refined_fitness))
+            print("Best solution:")
+            print(refined_solution)
+
+        # Plot the fitness trace.
+        if trace_len > 0:
+            result.plot_fitness_trace()
+
 
 ########################################################################
 
     # Start a timer.
-    timer = Timer()
+    # timer = Timer()
 
-    # Perform multiple optimization runs.
-    results = MultiRun(optimizer=optimizer, parameters=parameters,
-                       num_runs=num_runs, problem=problem,
-                       parallel=parallel,
-                       max_evaluations=max_evaluations,
-                       display_interval=display_interval, trace_len=trace_len)
+    # # Perform multiple optimization runs.
+    # results = MultiRun(optimizer=optimizer, parameters=parameters,
+    #                    num_runs=num_runs, problem=problem,
+    #                    parallel=parallel,
+    #                    max_evaluations=max_evaluations,
+    #                    display_interval=display_interval, trace_len=trace_len)
 
-    # Stop the timer.
-    timer.stop()
+    # # Stop the timer.
+    # timer.stop()
 
-    print()  # Newline.
-    print("Time-Usage: {0}".format(timer))
-    print()  # Newline.
+    # print()  # Newline.
+    # print("Time-Usage: {0}".format(timer))
+    # print()  # Newline.
 
-    # Print statistics for the optimization results.
-    results.print_statistics()
+    # # Print statistics for the optimization results.
+    # results.print_statistics()
 
-    print()  # Newline.
+    # print()  # Newline.
 
-    # Print best-found solution.
-    print("Best fitness from heuristic optimization: {0:0.4e}".format(results.best_fitness))
-    print("Best solution:")
-    print(results.best)
+    # # Print best-found solution.
+    # print("Best fitness from heuristic optimization: {0:0.4e}".format(results.best_fitness))
+    # print("Best solution:")
+    # print(results.best)
 
-    # Refine the best-found solution.
-    if True:
-        print()  # Newline.
-        print("Refining using SciPy's L-BFGS-B (this may be slow on some problems) ...")
+    # # Refine the best-found solution.
+    # if True:
+    #     print()  # Newline.
+    #     print("Refining using SciPy's L-BFGS-B (this may be slow on some problems) ...")
 
-        # Do the actual refinement using the L-BFGS-B optimizer.
-        refined_fitness, refined_solution = results.refine()
+    #     # Do the actual refinement using the L-BFGS-B optimizer.
+    #     refined_fitness, refined_solution = results.refine()
 
-        print("Best fitness from L-BFGS-B optimization: {0:0.4e}".format(refined_fitness))
-        print("Best solution:")
-        print(refined_solution)
+    #     print("Best fitness from L-BFGS-B optimization: {0:0.4e}".format(refined_fitness))
+    #     print("Best solution:")
+    #     print(refined_solution)
 
-    # Plot the fitness trace.
-    if trace_len > 0:
-        results.plot_fitness_trace()
+    # # Plot the fitness trace.
+    # if trace_len > 0:
+    #     results.plot_fitness_trace()
 
 ########################################################################

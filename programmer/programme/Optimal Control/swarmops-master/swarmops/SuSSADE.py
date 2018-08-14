@@ -1,4 +1,10 @@
 ########################################################################
+# 依照SwarmOps的结构，写的一个SuSSADE的optimizer
+# 对于SuSSADE，一定的几率是对染色体上的全部基因(whole space)进行几率交换，一定几率是对染色体上的一个基因进行几率交换
+# DE中有3个参数(num_agents, crossover_probability, differential_weight)
+# SuSSADE中有四个参数(num_agents, crossover_probability, differential_weight, wholespace_rate)
+########################################################################
+########################################################################
 # SwarmOps - Heuristic optimization for Python.
 # Copyright (C) 2003-2016 Magnus Erik Hvass Pedersen.
 # See the file README.md for instructions.
@@ -41,11 +47,11 @@ import os
 
 ##################################################
 
-class DE(SingleRun):
+class SuSSADE(SingleRun):
     """
-        Perform a single optimization run using Differential Evolution (DE).
+        Perform a single optimization run using SuSSADE.
 
-        This is the DE/Rand/1/Bin variant.
+        This is the SuSSADE/Rand/1/Bin variant.
 
         In practice, you would typically perform multiple optimization runs using
         the MultiRun-class. The reason is that DE is a heuristic optimizer so
@@ -66,22 +72,22 @@ class DE(SingleRun):
     """
 
     # Name of this optimizer.
-    name = "DE"
-    name_full = "Differential Evolution (DE/Rand/1/Bin)"
+    name = "SuSSADE"
+    name_full = "Differential Evolution (SuSSADE/Rand/1/Bin)"
 
-    # Number of control parameters for DE. Used by MetaFitness-class.
-    num_parameters = 3
+    # Number of control parameters for SuSSADE. Used by MetaFitness-class.
+    num_parameters = 4
 
-    # Lower boundaries for the control parameters of DE. Used by MetaFitness-class.
-    parameters_lower_bound = [4.0, 0.0, 0.0]
+    # Lower boundaries for the control parameters of SuSSADE. Used by MetaFitness-class.
+    parameters_lower_bound = [4.0, 0.0, 0.0, 0.0]
 
-    # Upper boundaries for the control parameters of DE. Used by MetaFitness-class.
-    parameters_upper_bound = [200.0, 1.0, 2.0]
+    # Upper boundaries for the control parameters of SuSSADE. Used by MetaFitness-class.
+    parameters_upper_bound = [200.0, 1.0, 2.0, 1.0]
 
     @staticmethod
-    def parameters_list(num_agents, crossover_probability, differential_weight):
+    def parameters_list(num_agents, crossover_probability, differential_weight, wholespace_rate):
         """
-        Create a list with DE parameters in the correct order.
+        Create a list with SuSSADE parameters in the correct order.
 
         :param num_agents:
             Number of agents in the population (aka. NP in the research literature).
@@ -96,7 +102,7 @@ class DE(SingleRun):
             List with parameters in correct order.
         """
 
-        return [num_agents, crossover_probability, differential_weight]
+        return [num_agents, crossover_probability, differential_weight, wholespace_rate]
 
     @staticmethod
     def parameters_dict(parameters):
@@ -110,59 +116,13 @@ class DE(SingleRun):
 
         return {'num_agents': parameters[0],
                 'crossover_probability': parameters[1],
-                'differential_weight': parameters[2]}
+                'differential_weight': parameters[2],
+                'wholespace_rate':parameters[3]}
 
     # Default parameters for the DE which will be used if no other parameters are specified.
     # These are a compromise of the tuned parameters below. Try this first and see if it works.
-    parameters_default = [20, 0.3, 0.5 ]
+    parameters_default = [20, 0.3, 0.9 , 0.9 ]
 
-    # Parameters tuned by hand. These are common in the older research literature on DE.
-    parameters_hand_tuned = [300.0, 0.9000, 0.5000]
-
-    # Parameters tuned for benchmark problems in 2 dimensions using 400 fitness evaluations.
-    parameters_2dim_400eval_a = [13.0, 0.7450, 0.9096]
-
-    # Parameters tuned for benchmark problems in 2 dimensions using 400 fitness evaluations.
-    parameters_2dim_400eval_b = [10.0, 0.4862, 1.1922]
-
-    # Parameters tuned for benchmark problems in 2 dimensions using 4000 fitness evaluations.
-    parameters_2dim_4000eval_a = [24.0, 0.2515, 0.8905]
-
-    # Parameters tuned for benchmark problems in 2 dimensions using 4000 fitness evaluations.
-    parameters_2dim_4000eval_b = [20.0, 0.7455, 0.9362]
-
-    # Parameters tuned for benchmark problems in 5 dimensions using 1000 fitness evaluations.
-    parameters_5dim_1000eval = [17.0, 0.7122, 0.6301]
-
-    # Parameters tuned for benchmark problems in 5 dimensions using 10000 fitness evaluations.
-    parameters_5dim_10000eval = [20.0, 0.6938, 0.9314]
-
-    # Parameters tuned for benchmark problems in 10 dimensions using 2000 fitness evaluations.
-    parameters_10dim_2000eval_a = [28.0, 0.9426, 0.6607]
-
-    # Parameters tuned for benchmark problems in 10 dimensions using 2000 fitness evaluations.
-    parameters_10dim_2000eval_b = [12.0, 0.2368, 0.6702]
-
-    # Parameters tuned for benchmark problems in 10 dimensions using 20000 fitness evaluations.
-    parameters_10dim_20000eval = [18.0, 0.5026, 0.6714]
-
-    # Parameters tuned for benchmark problems in 20 dimensions using 40000 fitness evaluations.
-    parameters_20dim_40000eval = [37.0, 0.9455, 0.6497]
-
-    # Parameters tuned for benchmark problems in 20 dimensions using 400000 fitness evaluations.
-    parameters_20dim_400000eval = [35.0, 0.4147, 0.5983]
-
-    # Parameters tuned for benchmark problems in 30 dimensions using 6000 fitness evaluations.
-    parameters_30dim_6000eval = [11.0, 0.0877, 0.6419]
-
-    # Parameters tuned for benchmark problems in 30 dimensions using 60000 fitness evaluations.
-    parameters_30dim_60000eval = [19.0, 0.1220, 0.4983]
-
-    # Parameters tuned for benchmark problems in 50 dimensions using 100000 fitness evaluations.
-    parameters_50dim_100000eval = [48.0, 0.9784, 0.6876]
-
-    # Parameters tuned for benchmark problems in 100 dimensions using 200000 fitness evaluations.
-    parameters_100dim_200000eval = [46.0, 0.9565, 0.5824]
 
     def __init__(self, problem, parameters=parameters_default, parallel=False, directoryname = 'result', StdTol = 0.001, *args, **kwargs):
         """
@@ -203,7 +163,7 @@ class DE(SingleRun):
         # tolerance of std
         self.StdTol = StdTol
         # Unpack control parameters.
-        self.num_agents, self.crossover_probability, self.differential_weight = parameters
+        self.num_agents, self.crossover_probability, self.differential_weight ,self.wholespace_rate = parameters
 
         # The number of agents must be an integer.
         self.num_agents = int(self.num_agents)
@@ -248,7 +208,8 @@ class DE(SingleRun):
             # Calculate the fitness for each new agent position and
             # update the population if the fitness is an improvement.
             self._update_fitness()
-
+            # update the parateter(自适应性)
+            self._update_parameter()
             # Call parent-class to print status etc. during optimization.
             self._iteration(i)
 
@@ -300,7 +261,9 @@ class DE(SingleRun):
             # Create a new agent (i.e. position) in the search-space from the crossover.
             # The crossover probability decides whether to use the crossover or
             # the agent's original position in the search-space.
-            new_agent = np.where(tools.rand_uniform(dim) < crossover_probability, crossover, original)
+            new_agent = original.copy()
+            if tools.rand_uniform(1) < self.wholespace_rate: # 整个dimension的crossover
+                new_agent = np.where(tools.rand_uniform(dim) < crossover_probability, crossover, original)
 
             # Ensure at least one element of the agent's new position is from the crossover.
             rand_index = tools.rand_int(lower=0, upper=dim)
@@ -366,8 +329,17 @@ class DE(SingleRun):
                 self._update_best(fitness=self.fitness[i],
                                   x=self.population[i, :])
         
-        sio.savemat(self.filename,{'fitness':self.fitness,'population':self.population,'best_fitness':self.best_fitness,'best population':self.best,'crossover_probability':self.crossover_probability,'differential_weight':self.differential_weight})
-
+        sio.savemat(self.filename,{'fitness':self.fitness,'population':self.population,'best_fitness':self.best_fitness,'best population':self.best,
+                                    'crossover_probability':self.crossover_probability,
+                                    'differential_weight':self.differential_weight,
+                                    'wholespace_rate':self.wholespace_rate
+                                    })
+    
+    
+    def _update_parameter(self):
+        # 更新SuSSADE的参数
+        self.crossover_probability = tools.rand_uniform(1) if tools.rand_uniform(1) < 0.1 else self.crossover_probability
+        self.differential_weight = 0.9+0.1*tools.rand_uniform(1) if tools.rand_uniform(1) < 0.1 else self.differential_weight
 ##################################################
     def refine(self,iter = 30):
         '''
