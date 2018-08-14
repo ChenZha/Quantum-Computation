@@ -84,7 +84,7 @@ if __name__ == '__main__':
     
 #    D = X(tlist,args);figure();plot(tlist,D)
     res = []
-    detuning = np.linspace(-0.0002,0.0002,51)*2*np.pi
+    detuning = np.linspace(-0.0002,0.0002,3)*2*np.pi
     for d in detuning:
         
         w_f = w_q+d
@@ -98,10 +98,12 @@ if __name__ == '__main__':
         
         fid = fidelity(U*result.states[-1]*result.states[-1].dag()*U.dag(), target)
         res.append(fid)
-    figure()
-    plot(detuning,res)
-    xlabel('detuning')
-    ylabel('fid')
+    fig = plt.figure(1)
+    ax = fig.add_subplot(1,1,1)
+    ax.plot(detuning,res)
+    ax.set_xlabel('detuning')
+    ax.set_ylabel('fid')
+    plt.show()
     
     
     
