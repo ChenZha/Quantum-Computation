@@ -1,0 +1,14 @@
+Run 1:  Thu Aug 02 00:11:57 2018.  sonnet9.aa.99999.
+        Em version 14.52 (64-bit Windows) on WQ-20160704LANE local.
+
+  Project:  F:\laboratory\Sync\Programme\Matlab\Î¢²¨·ÂÕæ\SonnetLab_v8.0\v8.0\Examples\Beginner Demo\Iteration_1_Seperation_16.41.son.
+
+    Frequency:  2.086 GHZ
+      Frequency completed Thu Aug 02 00:12:02 2018.
+      De-embedded S-Parameters. 50.0 Ohm Port Terminations.
+      Magnitude/Angle. Touchstone Format.
+        2.08600000 0.898697 -175.8
+        !< P1 F=2.086 Eeff=(undefined: nd) Z0=(undefined: nd) R=0.0 C=0.0 
+        !< See "De-embedding Codes" in Help for more details on the "nd" code.
+
+Analysis completed Thu Aug 02 00:12:02 2018.

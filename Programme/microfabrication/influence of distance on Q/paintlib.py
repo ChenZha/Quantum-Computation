@@ -83,7 +83,16 @@ class BasicPainter:#用于画基础图形的静态类
         polygons.append(polygon1.transformed(pya.Trans(pya.Trans.R270)))
         return pya.Region(polygons)
     @staticmethod
-    def Electrode(x,y,angle,widout=20000,widin=10000,wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000):
+    def Electrode(*args,**keys):
+        if 'brush' in keys or isinstance(args[0],CavityBrush):
+            return BasicPainter.Electrode_2(*args,**keys)
+        elif 'angle' in keys or (type(args[0]) in [int,float]):
+            return BasicPainter.Electrode_1(*args,**keys)
+        else:
+            raise TypeError('Invalid input')
+        return []
+    @staticmethod
+    def Electrode_1(x,y,angle,widout=20000,widin=10000,wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000):
         tr=pya.DCplxTrans(1,angle,False,x,y)
         pts=[]
         pts.append(pya.DPoint(0,widout/2))
@@ -101,8 +110,33 @@ class BasicPainter:#用于画基础图形的静态类
         polygon1=pya.DPolygon(pts).transformed(tr)
         return polygon1
     @staticmethod
-    def Connection(x,y,angle,mod=48):
-        tr=pya.DCplxTrans(1,angle,False,x,y)
+    def Electrode_2(brush,wid=368000,length=360000,midwid=200000,midlength=200000,narrowlength=120000):
+        widout=brush.widout
+        widin=brush.widin
+        tr=brush.DCplxTrans
+        pts=[]
+        pts.append(pya.DPoint(0,widout/2))
+        pts.append(pya.DPoint(0,widin/2))
+        pts.append(pya.DPoint(narrowlength,midwid/2))
+        pts.append(pya.DPoint(narrowlength+midlength,midwid/2))
+        pts.append(pya.DPoint(narrowlength+midlength,-midwid/2))
+        pts.append(pya.DPoint(narrowlength,-midwid/2))
+        pts.append(pya.DPoint(0,-widin/2))
+        pts.append(pya.DPoint(0,-widout/2))
+        pts.append(pya.DPoint(narrowlength,-wid/2))
+        pts.append(pya.DPoint(length,-wid/2))
+        pts.append(pya.DPoint(length,wid/2))
+        pts.append(pya.DPoint(narrowlength,wid/2))
+        polygon1=pya.DPolygon(pts).transformed(tr)
+        return polygon1
+    @staticmethod
+    def Connection(x,y=0,angle=0,mod=48):
+        if isinstance(x,CavityBrush):
+            brush=x
+            tr=brush.DCplxTrans
+            mod=brush.widout
+        else:
+            tr=pya.DCplxTrans(1,angle,False,x,y)
         pts=[]
         if mod==48:
             pts.append(pya.DPoint(0,-57000))
@@ -161,7 +195,7 @@ class Painter(object):
     pass
     
 class LinePainter(Painter):
-    def __init__(self,pointr=pya.DPoint(0,1000),pointl=pya.DPoint(0,0)):
+    def __init__(self,pointl=pya.DPoint(0,1000),pointr=pya.DPoint(0,0)):
         self.outputlist=[]        
         self.pointr=pointr
         self.pointl=pointl
@@ -169,7 +203,7 @@ class LinePainter(Painter):
         #pointdistance=IO.pointdistance
         self.centerlinepts=[]
         #沿着前进方向，右边pointr，左边pointl
-    def Setpoint(self,pointr=pya.DPoint(0,1000),pointl=pya.DPoint(0,0)):       
+    def Setpoint(self,pointl=pya.DPoint(0,1000),pointr=pya.DPoint(0,0)):       
         self.pointr=pointr
         self.pointl=pointl
         self.centerlinepts=[]
@@ -289,11 +323,11 @@ class CavityBrush(object):
             raise TypeError('Invalid input')
         if abs(self.edgeout.distance(self.edgein.p1)-self.edgeout.distance(self.edgein.p2))>10:
             raise RuntimeError('not parallel')
-    def constructors1(self,pointc=pya.DPoint(0,0),angle=0,widout=20000,widin=0,bgn_ext=0):
+    def constructors1(self,pointc=pya.DPoint(0,0),angle=0,widout=20000,widin=10000,bgn_ext=0):
         tr=pya.DCplxTrans(1,angle,False,pointc)
-        self.edgeout=pya.DEdge(0,-widout/2,0,widout/2).transformed(tr)
-        self.edgein=pya.DEdge(bgn_ext,-widin/2,bgn_ext,widin/2).transformed(tr)
-    def constructors2(self,edgeout=pya.DEdge(0,-20000/2,0,20000/2),edgein=pya.DEdge(0,0,0,0)):
+        self.edgeout=pya.DEdge(0,widout/2,0,-widout/2).transformed(tr)
+        self.edgein=pya.DEdge(bgn_ext,widin/2,bgn_ext,-widin/2).transformed(tr)
+    def constructors2(self,edgeout=pya.DEdge(0,20000/2,0,-20000/2),edgein=pya.DEdge(0,0,0,0)):
         self.edgeout=edgeout
         self.edgein=edgein
     def constructors3(self,pointoutl,pointinl,pointinr,pointoutr):
@@ -307,6 +341,14 @@ class CavityBrush(object):
         edgeout=self.edgeout.transformed(tr)
         edgein=self.edgein.transformed(tr)
         newCavityBrush = CavityBrush(edgeout,edgein)
+        return newCavityBrush
+    def reversed(self):
+        pts=[]
+        pts.append(self.edgeout.p2)
+        pts.append(self.edgein.p2)
+        pts.append(self.edgein.p1)
+        pts.append(self.edgeout.p1)
+        newCavityBrush = CavityBrush(pts)
         return newCavityBrush
     @property
     def bgn_ext(self):
@@ -375,16 +417,15 @@ class CavityPainter(Painter):
         self.regionlistin.extend(self.painterin.outputlist)
         self.painterin.outputlist=[]
         #把中心线的(点列表,宽度)成组添加
-        self.centerlineinfos.append((self.painterin.Getcenterline(),self.Getinfo()[3]))
+        self.centerlineinfos.append((self.painterin.Getcenterline(),self.brush.angle))
         return result
     def Narrow(self,widout,widin,length=6000):
         assert(self.end_ext==0)
-        centerx,centery,angle=self.Getinfo()[0:3]
-        tr=pya.DCplxTrans(1,angle,False,centerx,centery)
-        edgeout=pya.DEdge(length,-widout/2,length,widout/2).transformed(tr)
-        edgein=pya.DEdge(length,-widin/2,length,widin/2).transformed(tr)
-        self.regionlistout.append(pya.DPolygon([self.painterout.pointl,self.painterout.pointr,edgeout.p1,edgeout.p2]))
-        self.regionlistin.append(pya.DPolygon([self.painterin.pointl,self.painterin.pointr,edgein.p1,edgein.p2]))
+        tr=self.brush.DCplxTrans
+        edgeout=pya.DEdge(length,widout/2,length,-widout/2).transformed(tr)
+        edgein=pya.DEdge(length,widin/2,length,-widin/2).transformed(tr)
+        self.regionlistout.append(pya.DPolygon([self.painterout.pointl,self.painterout.pointr,edgeout.p2,edgeout.p1]))
+        self.regionlistin.append(pya.DPolygon([self.painterin.pointl,self.painterin.pointr,edgein.p2,edgein.p1]))
         self.painterout.Setpoint(edgeout.p1,edgeout.p2)
         self.painterin.Setpoint(edgein.p1,edgein.p2)        
         return length   
@@ -441,18 +482,24 @@ class TransfilePainter(Painter):
         self.outputlist=[]
         self.filename=filename
         self.insertcellname=insertcellname
-        self.airbrigedistance=100000
-    def DrawAirbrige(self,cell,centerlinelist,newcellname="Airbige"):
+        self.airbridgedistance=100000
+    def DrawAirbridge(self,cell,centerlinelist,newcellname="Airbige"):
         IO.layout.read(self.filename)
         for icell in IO.layout.top_cells():
             if (icell.name == self.insertcellname):
                 icell.name=newcellname
                 for cpts in centerlinelist:
-                    distance=self.airbrigedistance*0.25
+                    distance=0
+                    if not hasattr(self.airbridgedistance,'__call__'):
+                        distance=self.airbridgedistance*0.25
                     dt_int=0
                     for i,pt in enumerate(cpts[1:-1],1):
                         distance=distance+pt.distance(cpts[i-1])
-                        if distance//self.airbrigedistance !=dt_int:
+                        if hasattr(self.airbridgedistance,'__call__'):
+                            calt_int=self.airbridgedistance(distance)
+                        else:
+                            calt_int=distance//self.airbridgedistance
+                        if calt_int !=dt_int:
                             dx=cpts[i+1].x-cpts[i-1].x
                             dy=cpts[i+1].y-cpts[i-1].y
                             tr=pya.CplxTrans(1,atan2(dy,dx)/pi*180,False,pt.x,pt.y)
@@ -501,7 +548,7 @@ class IO:#处理输入输出的静态类
     main_window=None
     layout_view=None
     top=None
-    pointdistance=500
+    pointdistance=2000
     @staticmethod
     def Start(mod="guiopen"):
         if mod=="gds":
@@ -553,7 +600,7 @@ import pya
 import paintlib
 layout,top = paintlib.IO.Start("guiopen")#在当前的图上继续画,如果没有就创建一个新的
 layout.dbu = 0.001#设置单位长度为1nm
-paintlib.IO.pointdistance=500#设置腔的精度,转弯处相邻两点的距离
+paintlib.IO.pointdistance=2000#设置腔的精度,转弯处相邻两点的距离
 
 #画腔
 painter3=paintlib.CavityPainter(pya.DPoint(0,24000),angle=180,widout=48000,widin=16000,bgn_ext=48000,end_ext=16000)
@@ -581,8 +628,8 @@ painter3.Draw(cell2,layer1)#把画好的腔置入
 centerlinelist=[]#画腔的中心线并根据中心线画Crossover
 centerlinelist.append(painter3.Getcenterlineinfo()[0][0])
 painter4=paintlib.TransfilePainter("[Crossover48].gds","insert")
-painter4.airbrigedistance=100000#设置Crossover的间距
-painter4.DrawAirbrige(top,centerlinelist,"Crossover1")
+painter4.airbridgedistance=100000#设置Crossover的间距
+painter4.DrawAirbridge(top,centerlinelist,"Crossover1")
 
 #画电极传输线
 cell3 = layout.create_cell("TR1")#创建一个子cell
@@ -620,3 +667,4 @@ paintlib.IO.Show()#输出到屏幕上
 paintlib.IO.Write()#输出到文件中
 #
 '''
+

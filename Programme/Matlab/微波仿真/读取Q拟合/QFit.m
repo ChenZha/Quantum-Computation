@@ -2,11 +2,11 @@
 % function Q = QFit(path )
 % 先利用Qcal计算，将计算结果作为Q0，然后进行拟合 
 % 两种方式，一种nlinfit，一种fmincon 
-%%
+%% 读取数据
 
  
 % if (nargin<1)
-        path = 'readout.s2p';
+        path = 'w0.s2p';
 % end
 
 ckt=read(rfdata.data, path);

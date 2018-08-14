@@ -297,7 +297,13 @@ if __name__=='__main__':
     eta_q=  np.array([-0.230 , -0.216]) * 2 * np.pi
 
     th = initial_wave()
-    
+    plt.figure(figsize=(30,30),linewidth = 10)
+    line = plt.plot(th,linewidth = 10);
+    plt.xlabel('t',fontsize=90)
+    plt.ylabel('Amplitude',fontsize=90)
+    plt.xticks(fontsize=50)
+    plt.yticks(fontsize=50)
+    plt.savefig(r'waveform.png')
 
     sm = np.array([tensor(destroy(3),qeye(3)) , tensor(qeye(3),destroy(3))])
     E_uc = np.array([tensor(basis(3,2)*basis(3,2).dag(),qeye(3)) , tensor(qeye(3), basis(3,2)*basis(3,2).dag())])
@@ -309,9 +315,9 @@ if __name__=='__main__':
     sz = np.array([E_g[0] - E_e[0] , E_g[1] - E_e[1]])
     
     #delta0,delta1,xita0,xita1,compen0_1,compen0_2,compen1_1,compen1_2
-    x_l = np.array([0*2*np.pi , -0.7*2*np.pi , -np.pi , -np.pi , -0.04*2*np.pi , -0.04*2*np.pi , -0.04*2*np.pi , -0.04*2*np.pi])
-    x_u = np.array([0.7*2*np.pi , 0*2*np.pi , np.pi , np.pi , 0.04*2*np.pi , 0.04*2*np.pi , 0.04*2*np.pi , 0.04*2*np.pi])
-    de(CNOT,n = 8,m_size = 28,f = 0.9 , cr = 0.5 ,S = 1 , iterate_time = 400,x_l = x_l,x_u = x_u,inputfile = None)
+    # x_l = np.array([0*2*np.pi , -0.7*2*np.pi , -np.pi , -np.pi , -0.04*2*np.pi , -0.04*2*np.pi , -0.04*2*np.pi , -0.04*2*np.pi])
+    # x_u = np.array([0.7*2*np.pi , 0*2*np.pi , np.pi , np.pi , 0.04*2*np.pi , 0.04*2*np.pi , 0.04*2*np.pi , 0.04*2*np.pi])
+    # de(CNOT,n = 8,m_size = 28,f = 0.9 , cr = 0.5 ,S = 1 , iterate_time = 400,x_l = x_l,x_u = x_u,inputfile = None)
     
 #    x0 = [0.5*2*np.pi , -0.3*2*np.pi , 0 , 0]
 #    result = minimize(CNOT , x0 , method="Nelder-Mead",options={'disp': True})

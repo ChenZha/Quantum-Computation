@@ -1,0 +1,119 @@
+-------------------------------------------------------------
+7.6 Change Log
+-------------------------------------------------------------
+    - Added support for auto height vias
+    - Added support for Ortho Mode
+    - Added support for Multi-level co-calibrated ports
+    - Added support for Multi-level component
+    - Added support for Sonnet Frequency List
+        - Added class SonnetFrequencyList
+        - Added method SonnetProject.addFrequencyListSweep
+    - Added support for RLGC Elements
+        - Added method SonnetProject.addRLGCElement
+
+-------------------------------------------------------------
+7.5 Change Log
+-------------------------------------------------------------
+    - Fixed HeatFluxConfiguration Bug
+    - Fixed JXYRead bug (no longer reading YCoordinates as current data)
+    - Fixed Parameterized Project Bug
+
+-------------------------------------------------------------
+7.4 Change Log
+-------------------------------------------------------------
+    - Added 'JXY Current Vector Demo'
+    - Fixed JXYRead Bug
+
+-------------------------------------------------------------
+7.3 Change Log
+-------------------------------------------------------------
+    - Added support for tech layer names with spaces.     
+    - Updated the default version of Sonnet to '14.54'
+
+-------------------------------------------------------------
+7.2 Change Log
+-------------------------------------------------------------
+    - Updated JXYPlot
+    - Fixed JXYRead Error
+
+-------------------------------------------------------------
+7.0 Change Log
+-------------------------------------------------------------
+    - Added Function SonnetGeometryPolygon.addTechLayer
+    - Added Property SonnetGeometryPolygon.BoundingBox
+    - Added Function SonnetGeometryBlock.getAllPolygonsBySize
+    - Added Function SonnetGeometryBlock.getAllPolygonsByLevel
+    - Added Function SonnetProject.addMetalTechLayer
+    - Added Function SonnetProject.addViaTechLayer
+    - Added Function SonnetProject.addTechLayer
+    - Added Function SonnetProject.addBrickTechLayer
+    - Changed SonnetGeometryParameter.NominalValue. The user can now
+      override the (calculated) NominalValue.
+    - Added SonnetSpectreRLGCReader class
+    - Changed AutoDelete default value to false.
+    - Added addINDModel function to SonnetProject
+    - Added Inductor Model keyword to the Sonnet Project Format
+    - Added Resistivity and Sheet Resistance Units to the Dimension Block    
+    - Added Tech Layers to the Geometry Block
+
+-------------------------------------------------------------
+6.0 Change Log
+-------------------------------------------------------------
+	- New Sonnet project decompiler introduced
+	- Linux / Unix Support introduced
+	- New Touchstone parser tool simplifies reading touchstone files
+	- New Examples available: 
+		- Branchline Coupler (Project Decompiler)
+		- Interdigitated Filter (Project Decompiler)
+		- Yield Analysis
+		- Circular Spiral Builder
+		- Rectangular Spiral Builder
+	- Fixed bug which resulted in a project being simulated many times
+	- The example "JXY Beginner Demo" has been updated to include a heat flux case
+	- Improved algorithm for geometry component drawing box size computation
+	- Added support in current export tools for exporting heat flux information
+	- Modified method SonnetProject.saveAs to allow users to not clear preexisting simulation data
+	- Modified method SonnetProject.exportCurrents to allow grid cell size values to be empty values
+	- Modified method SonnetProject.addResistorComponent to support more than two ports
+   	- Modified method SonnetProject.addCapacitorComponent to support more than two ports
+    	- Modified method SonnetProject.addInductorComponent to support more than two ports
+    	- Modified method SonnetProject.addDataFileComponent to support more than two ports
+    	- Added method SonnetProject.addPortOnlyComponent
+    	- Added method SonnetProject.deleteNetworkElement
+    	- Added method SonnetProject.deleteAllElements (for netlist projects)
+    	- Added method SonnetProject.addDimensionLabel
+    	- Added method SonnetProject.addComment
+	- Added method SonnetProject.changeMeshToCoarseWithEdgeMesh
+	- Added method SonnetProject.changeMeshToCoarseWithNoEdgeMesh
+	- Added method SonnetProject.changeMeshToFineWithEdgeMesh
+	- Added method SonnetProject.activateVariableSweepParameter
+	- Added method SonnetProject.addNCoupledLineOutput
+	- Added method SonnetProject.addPiModel
+	- Added method SonnetProject.addPortOnlyComponent
+	- Added method SonnetProject.addReferencePlaneToPortGroup
+	- Added method SonnetProject.changeVariableSweepParameterState
+	- Added method SonnetProject.deactivateVariableSweepParameter
+	- Added method SonnetProject.deleteDuplicatePoints
+	- Added method SonnetProject.symmetryOff
+	- Added method SonnetProject.symmetryOn
+	- Added method SonnetProject.getComponent
+	- Added method SonnetProject.getLayerIndexes
+
+-------------------------------------------------------------
+5.0 Change Log
+-------------------------------------------------------------
+	- Added method SonnetProject.drawLayer
+	- Added method SonnetProject.draw2d
+	- Added method SonnetProject.draw3d
+	- Added method SonnetProject.addVariableSweep
+	- Added method SonnetProject.addVariableSweepParameter
+	- Removed method SonnetProject.addVariableSweepSimple (replaced with above methods)
+	- Added method SonnetProject.changeTopCover
+	- Added method SonnetProject.changeBottomCover
+	- Added pattern SonnetProject.exportPattern
+	- Added pattern export/read/plot functions
+	- Added SonnetProjectCopy function
+	- Added SonnetProjectCompare function
+	- Added Antenna Array tutorial
+	- Support Sonnet 13 style rough metal type syntax
+	- Support Sonnet 13 style JXYexport syntax

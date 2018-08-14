@@ -1,0 +1,110 @@
+Run 1:  Tue Apr 01 15:18:04 2014.  sonnet9.2.99999.
+        Em version 14.54 (64-bit Windows) on VIPER local.
+
+  Project:  E:\SonnetLab\SonnetLab_v7.3\CurrentVisualization\SixTenths_nH_Oct.son.
+
+    Frequency:  17 GHZ
+      Subsectioning at 17 GHz with Eeff of 7.8.
+      Subsectioning time:  0.151 seconds.
+      De-embedding information for left box wall port(s):
+        Left SOC Electric Wall: 70 microns length, 1309 subsections, 21 MB.
+        Left SOC Magnetic Wall: 140 microns length, 1254 subsections, 20 MB.
+      Em license feature:  emhighperformance.
+      Circuit requires 4709 subsections (174753 CM Cells) and 185 MB of memory.
+
+      Subsections by level and type:
+      Level 2:
+        Staircase:  15
+        Conformal:  353
+      Level 3:
+        Staircase:  15
+        Conformal:  435
+        Via:        5
+      Level 4:
+        Staircase:  8
+        Via:        8
+      Level 5:
+        Staircase:  12
+        Conformal:  22
+        Via:        8
+      Level 6:
+        Staircase:  12
+        Conformal:  27
+        Via:        5
+      Level 22:
+        Staircase:  3784
+
+      Required memory by type:
+        System matrix:            169 MB
+        Elemental subsections:
+          Primary structure:      5 MB
+          Left standard:          3 MB
+        Fourier transform:        1 MB
+        Waveguide mode:           5 MB
+        Adaptive band synthesis:  0 MB
+        Miscellaneous:            1 MB
+        TOTAL REQUIRED MEMORY:    185 MB
+
+      Matrix solver:  internal 64-bit SSE with loss.
+      Simulation mode:  local machine.
+      Threads:  using 4 thread(s), 4 core(s) available.
+      Waveguide mode time:  0.189 seconds.
+      Fourier transform time:  2 seconds.
+      Coupling time:  9 seconds.
+      Loss time:  0.145 seconds.
+      Matrix fill time:  12 seconds.
+      Matrix solve time:  6 seconds.
+      De-embedding time for left box wall:
+        SOC Electric Wall Std: 1 second.
+        SOC Magnetic Wall Std: 1 second.
+        Total:                 3 seconds.
+      Frequency completed Tue Apr 01 15:18:27 2014.
+      De-embedded S-Parameters. 50.0 Ohm Port Terminations.
+      Magnitude/Angle. Touchstone Format. (S11 S21 S12 S22).
+        17.0000000 0.483907 51.871 0.825384 -34.56 0.825384 -34.56 0.484167 52.861
+        !< P1 F=17.0 Eeff=(undefined: mp) Z0=(undefined: mp) R=0.0 C=0.0 
+        !< P2 F=17.0 Eeff=(undefined: mp) Z0=(undefined: mp) R=0.0 C=0.0 
+        !< See "De-embedding Codes" in Help for more details on the "mp" code.
+      Total time per frequency:  23 seconds.
+
+    Post-Analysis:
+      Total time for 1 frequency:  23 seconds.
+      Errors detected: 0    Warnings detected: 0.
+
+Analysis completed Tue Apr 01 15:18:27 2014.
+
+
+Run 2:  Tue Apr 01 15:35:05 2014.  sonnet9.2.99999.
+        Em version 14.54 (64-bit Windows) on VIPER local.
+
+  Project:  E:\SonnetLab\SonnetLab_v7.3\CurrentVisualization\SixTenths_nH.son.
+
+    Post-Analysis:
+      Total time for 0 frequencies:  0 seconds.
+      Errors detected: 0    Warnings detected: 0.
+
+Analysis completed Tue Apr 01 15:35:05 2014.
+
+
+Run 2:  Wed Apr 02 11:05:54 2014.  sonnet9.2.99999.
+        Em version 14.54 (64-bit Windows) on AMARI local.
+
+  Project:  C:\Users\rroach.SONNETSOFTWARE\Documents\MATLAB\SonnetLab7\v7.0\Examples\JXY Current Vector Demo\SixTenths_nH.son.
+
+    Post-Analysis:
+      Total time for 0 frequencies:  0 seconds.
+      Errors detected: 0    Warnings detected: 0.
+
+Analysis completed Wed Apr 02 11:05:54 2014.
+
+
+Run 2:  Wed Apr 02 11:09:32 2014.  sonnet9.2.99999.
+        Em version 14.54 (64-bit Windows) on AMARI local.
+
+  Project:  C:\Users\rroach.SONNETSOFTWARE\Documents\MATLAB\SonnetLab7\v7.0\Examples\JXY Current Vector Demo\SixTenths_nH.son.
+
+    Post-Analysis:
+      Total time for 0 frequencies:  0 seconds.
+      Errors detected: 0    Warnings detected: 0.
+
+Analysis completed Wed Apr 02 11:09:32 2014.

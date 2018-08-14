@@ -1,0 +1,14 @@
+! ***Warning: This file is intended for Sonnet internal use only
+! and is only for use by the Sonnet application programs.
+! If you wish to use your Sonnet results as input for other vendor's applications
+! please refer to the online Help topic "How do I create a file of my analysis results?"
+! for more information on creating data output files.
+SIDATA 13
+PARAMS
+END PARAMS
+HDATE 04/01/2014 14:17:23
+MDATE 04/01/2014 14:17:23
+PORTS 2
+1.700000000000000e10 0.298783844329313320 0.380650123354383920 0.679746835656093280 -0.46819084175479786 0.679746835656094390 -0.46819084175479647 0.292315949853040880 0.385965024534589200
+P 1 UNDEF: mp 0.0 0.0
+P 2 UNDEF: mp 0.0 0.0

@@ -1,0 +1,42 @@
+Run 1:  Thu Aug 02 00:11:57 2018.  sonnet9.aa.99999.
+        Em version 14.52 (64-bit Windows) on WQ-20160704LANE local.
+
+  Project:  F:\laboratory\Sync\Programme\Matlab\Î¢²¨·ÂÕæ\SonnetLab_v8.0\v8.0\Examples\Beginner Demo\Iteration_1_Seperation_16.41.son.
+
+    Frequency:  2.086 GHZ
+      Subsectioning at 2.086 GHz with Eeff of 1.97.
+      Subsectioning time:  0.045 seconds.
+      Em license feature:  emhighperformance.
+      Circuit requires 2199 subsections and 51 MB of memory.
+
+      Subsections by level and type:
+      Level 0:
+        Staircase:  2190
+      Ground Plane:
+        Via:        9
+
+      Required memory by type:
+        System matrix:            37 MB
+        Elemental subsections:
+          Primary structure:      1 MB
+        Fourier transform:        8 MB
+        Waveguide mode:           3 MB
+        Adaptive band synthesis:  0 MB
+        Miscellaneous:            1 MB
+        TOTAL REQUIRED MEMORY:    51 MB
+
+      Matrix solver:  internal 64-bit SSE with loss.
+      Simulation mode:  local machine.
+      Threads:  using 4 thread(s), 4 core(s) available.
+      Waveguide mode time:  0.075 seconds.
+      Fourier transform time:  1 second.
+      Coupling time:  1 second.
+      Loss time:  0 seconds.
+      Matrix fill time:  3 seconds.
+      Matrix solve time:  1 second.
+      Total time per frequency:  4 seconds.
+
+    Post-Analysis:
+      Total time for 1 frequency:  5 seconds.
+
+Analysis completed Thu Aug 02 00:12:02 2018.
