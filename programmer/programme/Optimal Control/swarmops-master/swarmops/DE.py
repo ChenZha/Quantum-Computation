@@ -234,12 +234,14 @@ class DE(SingleRun):
         """
 
         # Calculate fitness for the initial agent positions.
+        i = 0
+        self._savefile(i)
         self._update_fitness()
 
         # Optimization iterations.
         # The counting starts with num_agents because the fitness has
         # already been calculated once for each agent during initialization.
-        i = 0
+        i = i+1
         while i < self.max_evaluations and np.std(self.fitness) > self.StdTol:
             # 达到最大代数或者std小于某个定值时，结束寻优循环
             # Calculate the new agent positions but don't update the old yet.
@@ -318,7 +320,7 @@ class DE(SingleRun):
         '''
         生成第i代的结果保存文件
         '''
-        self.filename = './'+self.directoryname+'/'+str(i)+'th_'+str(self.run_number)+'_'+time.strftime('%Y%m%d-%H-%M',time.localtime())+'.mat'
+        self.filename = './'+self.directoryname+'/DE'+str(i)+'th_'+str(self.run_number)+'_'+time.strftime('%Y%m%d-%H-%M',time.localtime())+'.mat'
 
 
     def _fitness(self, i):

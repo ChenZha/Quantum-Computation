@@ -6,6 +6,8 @@
 # SwarmOps on the internet: http://www.Hvass-Labs.org/
 ########################################################################
 
+# 只记录当前找到的全局最优点位置，值；每个particle的全局最优点，值；每个particle的当前位置，不记录值
+
 ########################################################################
 # Particle Swarm Optimization (PSO).
 #
@@ -54,12 +56,15 @@
 import numpy as np
 from swarmops.Optimize import SingleRun
 from swarmops import tools
+import time
+import scipy.io as sio
+import os
 
 
 ##################################################
 
 class Base(SingleRun):
-    def __init__(self, problem, parallel=False, *args, **kwargs):
+    def __init__(self, problem, parallel=False, directoryname = 'result' ,StdTol = 0.001,*args, **kwargs):
         """
         Create object instance and perform a single optimization run using PSO.
 
@@ -89,6 +94,13 @@ class Base(SingleRun):
                                               num_agents=self.num_particles,
                                               dim=problem.dim)
 
+        self.directoryname = directoryname
+        self.StdTol = StdTol
+        if os.path.exists(self.directoryname):
+            pass
+        else:
+            os.mkdir(self.directoryname)
+        
         # Initialize best-known positions for the particles to their starting positions.
         # A copy is made because the particle positions will change during optimization
         # regardless of improvement to the particle's fitness.
@@ -96,6 +108,8 @@ class Base(SingleRun):
 
         # Initialize fitness of best-known particle positions to infinity.
         self.particle_best_fitness = np.repeat(np.inf, self.num_particles)
+
+        
 
         # Boundaries for the velocity. These are set to the range of the search-space.
         bound_range = np.abs(problem.upper_bound - problem.lower_bound)
@@ -118,20 +132,27 @@ class Base(SingleRun):
         """
 
         # Calculate fitness for the initial particle positions.
+        i = 0
+        self._savefile(i)
         self._update_fitness()
 
         # Optimization iterations.
         # The counting starts with num_particles because the fitness has
         # already been calculated once for each particle during initialization.
-        for i in range(self.num_particles, self.max_evaluations, self.num_particles):
+        i = i+1
+        while i < self.max_evaluations and np.std(self.particle_best_fitness) > self.StdTol:
+            # 达到最大代数或者std小于某个定值时，结束寻优循环
+
             # Update the particle velocities and positions.
             self._update_particles()
-
+            self._savefile(i)
             # Update the fitness for each particle.
             self._update_fitness()
 
             # Call parent-class to print status etc. during optimization.
             self._iteration(i)
+
+            i=i+1
 
     def _fitness(self, i):
         """
@@ -139,7 +160,14 @@ class Base(SingleRun):
         """
 
         return self.problem.fitness(self.particle[i, :], limit=self.particle_best_fitness[i])
+    
 
+    def _savefile(self,i):
+        '''
+        生成第i代的结果保存文件
+        '''
+        self.filename = './'+self.directoryname+'/PSO'+str(i)+'th_'+str(self.run_number)+'_'+time.strftime('%Y%m%d-%H-%M',time.localtime())+'.mat'
+    
     def _update_fitness(self):
         """
         Calculate and update the fitness for each particle. Also updates the particle's
@@ -175,9 +203,97 @@ class Base(SingleRun):
                 self._update_best(fitness=new_fitness[i],
                                   x=self.particle_best[i, :])
 
+        sio.savemat(self.filename,{'velocity':self.velocity,'particle':self.particle,'particle_best_fitness':self.particle_best_fitness,'particle_best':self.particle_best,'best_fitness':self.best_fitness,'best':self.best,'parameters':self.parameters})
+######################################################################
+    def refine(self,iter = 30):
+        '''
+        找到最优解后，利用L-BFGS-B继续寻优
+        '''
+        """
+        iter:最大迭代次数
 
-##################################################
+        Refine the best result from heuristic optimization using SciPy's L-BFGS-B method.
+        This may significantly improve the results on some optimization problems,
+        but it is sometimes very slow to execute.
 
+        NOTE: This function imports SciPy, which should make it possible
+        to use the rest of this source-code library even if SciPy is not installed.
+        SciPy should first be loaded when calling this function.
+
+        :return:
+            A tuple with:
+            -   The best fitness found.
+            -   The best solution found.
+        """
+
+        # SciPy requires bounds in another format.
+        bounds = list(zip(self.problem.lower_bound, self.problem.upper_bound))
+
+        # Start SciPy optimization at best found solution.
+        import scipy.optimize
+        res = scipy.optimize.minimize(fun=self.problem.fitness,
+                                      x0=self.best,
+                                      method="L-BFGS-B",
+                                      bounds=bounds,
+                                      options = {'maxiter': iter,'disp':1})
+
+        # Get best fitness and parameters.
+        refined_fitness = res.fun
+        refined_solution = res.x
+
+        return refined_fitness, refined_solution
+
+    def plot_fitness_trace(self, y_log_scale=True, filename=None):
+        """
+        Plot the fitness traces.
+
+        NOTE: This function imports matplotlib, which should make it possible
+        to use the rest of this source-code library even if it is not installed.
+        matplotlib should first be loaded when calling this function.
+
+        :param y_log_scale: Use log-scale for y-axis.
+        :param filename: Output filename e.g. "foo.svg". If None then plot to screen.
+        :return: Nothing.
+        """
+
+        import matplotlib.pyplot as plt
+
+        # Setup plotting.
+        plt.grid()
+
+        # Axis labels.
+        plt.xlabel("Iteration")
+        plt.ylabel("Fitness (Lower is better)")
+
+        # Title.
+        title = "{0} - Optimized by {1}".format(self.problem.name_full, self.name)
+        plt.title(title)
+
+        # Use log-scale for Y-axis.
+        if y_log_scale:
+            plt.yscale("log", nonposy="clip")
+
+        # Plot the fitness-trace .
+        # Array with iteration counter .
+        iteration = self.fitness_trace.iteration
+
+        # Array with fitness-trace .
+        fitness_trace = self.fitness_trace.fitness
+
+        # Plot the fitness-trace.
+        plt.plot(iteration, fitness_trace, 'r-', color='black', alpha=0.25)
+
+        # Plot to screen or file.
+        if filename is None:
+            # Plot to screen.
+            plt.show()
+        else:
+            # Plot to file.
+            plt.savefig(filename, bbox_inches='tight')
+            plt.close()
+
+
+############################################################################################
 class PSO(Base):
     """
         Perform a single optimization run using Particle Swarm Optimization (PSO).
@@ -319,6 +435,8 @@ class PSO(Base):
         # The number of particles must be an integer.
         self.num_particles = int(self.num_particles)
 
+        self.parameters = parameters
+
         # Initialize parent-class which also starts the optimization run.
         Base.__init__(self, *args, **kwargs)
 
@@ -350,6 +468,8 @@ class PSO(Base):
 
         # Bound particle position to search-space.
         self.particle = tools.bound(self.particle, self.problem.lower_bound, self.problem.upper_bound)
+
+        
 
 
 ##################################################
@@ -479,7 +599,7 @@ class MOL(Base):
 
         # The number of particles must be an integer.
         self.num_particles = int(self.num_particles)
-
+        self.parameters = parameters
         # Initialize parent-class which also starts the optimization run.
         Base.__init__(self, *args, **kwargs)
 

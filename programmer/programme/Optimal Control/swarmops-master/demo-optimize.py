@@ -91,7 +91,7 @@ if __name__ == "__main__":
         #parameters = [ 274.3153726  ,  -0.80864214  , -3.86480522]
         #parameters = [ 159.98393514 ,  -0.26711631  ,  5.51016079]
         #parameters = MOL.parameters_20dim_40000eval
-    elif True:
+    elif False:
         # Use DE as optimizer.
         # optimizer = DE
         optimizer = SuSSADE
@@ -128,7 +128,7 @@ if __name__ == "__main__":
 
 ########################################################################
 
-    if True:
+    if False:
         # Demonstrate the optimizer's parallel execution.
         # This has significant overhead especially on Windows
         # and should generally only be used on fitness functions
@@ -144,7 +144,7 @@ if __name__ == "__main__":
                            display_interval=display_interval,
                            trace_len=max_evaluations,
                            StdTol = 0.01,
-                           directoryname  = 'resultDE')
+                           directoryname  = 'result')
 
         # Stop the timer.
         timer.stop()
@@ -176,46 +176,46 @@ if __name__ == "__main__":
 ########################################################################
 
     # Start a timer.
-    # timer = Timer()
+    timer = Timer()
 
-    # # Perform multiple optimization runs.
-    # results = MultiRun(optimizer=optimizer, parameters=parameters,
-    #                    num_runs=num_runs, problem=problem,
-    #                    parallel=parallel,
-    #                    max_evaluations=max_evaluations,
-    #                    display_interval=display_interval, trace_len=trace_len)
+    # Perform multiple optimization runs.
+    results = MultiRun(optimizer=optimizer, parameters=parameters,
+                       num_runs=num_runs, problem=problem,
+                       parallel=parallel,
+                       max_evaluations=max_evaluations,
+                       display_interval=display_interval, trace_len=trace_len)
 
-    # # Stop the timer.
-    # timer.stop()
+    # Stop the timer.
+    timer.stop()
 
-    # print()  # Newline.
-    # print("Time-Usage: {0}".format(timer))
-    # print()  # Newline.
+    print()  # Newline.
+    print("Time-Usage: {0}".format(timer))
+    print()  # Newline.
 
-    # # Print statistics for the optimization results.
-    # results.print_statistics()
+    # Print statistics for the optimization results.
+    results.print_statistics()
 
-    # print()  # Newline.
+    print()  # Newline.
 
-    # # Print best-found solution.
-    # print("Best fitness from heuristic optimization: {0:0.4e}".format(results.best_fitness))
-    # print("Best solution:")
-    # print(results.best)
+    # Print best-found solution.
+    print("Best fitness from heuristic optimization: {0:0.4e}".format(results.best_fitness))
+    print("Best solution:")
+    print(results.best)
 
-    # # Refine the best-found solution.
-    # if True:
-    #     print()  # Newline.
-    #     print("Refining using SciPy's L-BFGS-B (this may be slow on some problems) ...")
+    # Refine the best-found solution.
+    if True:
+        print()  # Newline.
+        print("Refining using SciPy's L-BFGS-B (this may be slow on some problems) ...")
 
-    #     # Do the actual refinement using the L-BFGS-B optimizer.
-    #     refined_fitness, refined_solution = results.refine()
+        # Do the actual refinement using the L-BFGS-B optimizer.
+        refined_fitness, refined_solution = results.refine()
 
-    #     print("Best fitness from L-BFGS-B optimization: {0:0.4e}".format(refined_fitness))
-    #     print("Best solution:")
-    #     print(refined_solution)
+        print("Best fitness from L-BFGS-B optimization: {0:0.4e}".format(refined_fitness))
+        print("Best solution:")
+        print(refined_solution)
 
-    # # Plot the fitness trace.
-    # if trace_len > 0:
-    #     results.plot_fitness_trace()
+    # Plot the fitness trace.
+    if trace_len > 0:
+        results.plot_fitness_trace()
 
 ########################################################################

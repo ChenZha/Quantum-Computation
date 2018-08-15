@@ -27,6 +27,9 @@
 
 from swarmops.Optimize import SingleRun
 from swarmops import tools
+import time
+import scipy.io as sio
+import os
 
 
 ########################################################################
@@ -65,7 +68,7 @@ class PS(SingleRun):
 
         return []
 
-    def __init__(self, problem, parameters=None, parallel=False, *args, **kwargs):
+    def __init__(self, problem, parameters=None, parallel=False, directoryname = 'result', *args, **kwargs):
         """
         Create object instance and perform a single optimization run using PS.
 
@@ -84,6 +87,12 @@ class PS(SingleRun):
 
         # Copy arguments to instance variables.
         self.problem = problem
+
+        self.directoryname = directoryname
+        if os.path.exists(self.directoryname):
+            pass
+        else:
+            os.mkdir(self.directoryname)
 
         # Initialize parent-class which also starts the optimization run.
         SingleRun.__init__(self, *args, **kwargs)
@@ -113,7 +122,11 @@ class PS(SingleRun):
         x = tools.rand_array(lower=lower_init, upper=upper_init)
 
         # Compute fitness of initial position.
+        evaluations = 0
         fitness = f(x)
+
+        filename = './'+self.directoryname+'/PS'+str(evaluations)+'th_'+str(self.run_number)+'_'+time.strftime('%Y%m%d-%H-%M',time.localtime())+'.mat'
+        sio.savemat(filename,{'fitness':fitness,'x':x,'d':d,})
 
         # Update the best-known fitness and position.
         # The parent-class is used for this.
@@ -159,7 +172,95 @@ class PS(SingleRun):
             # Call parent-class to print status etc. during optimization.
             self._iteration(evaluations)
 
+            filename = './'+self.directoryname+'/PS'+str(evaluations)+'th_'+str(self.run_number)+'_'+time.strftime('%Y%m%d-%H-%M',time.localtime())+'.mat'
+            sio.savemat(filename,{'fitness':fitness,'x':x,'d':d,})
             # Increment counter.
             evaluations += 1
 
 ########################################################################
+    def refine(self,iter = 30):
+        '''
+        找到最优解后，利用L-BFGS-B继续寻优
+        '''
+        """
+        iter:最大迭代次数
+
+        Refine the best result from heuristic optimization using SciPy's L-BFGS-B method.
+        This may significantly improve the results on some optimization problems,
+        but it is sometimes very slow to execute.
+
+        NOTE: This function imports SciPy, which should make it possible
+        to use the rest of this source-code library even if SciPy is not installed.
+        SciPy should first be loaded when calling this function.
+
+        :return:
+            A tuple with:
+            -   The best fitness found.
+            -   The best solution found.
+        """
+
+        # SciPy requires bounds in another format.
+        bounds = list(zip(self.problem.lower_bound, self.problem.upper_bound))
+
+        # Start SciPy optimization at best found solution.
+        import scipy.optimize
+        res = scipy.optimize.minimize(fun=self.problem.fitness,
+                                      x0=self.best,
+                                      method="L-BFGS-B",
+                                      bounds=bounds,
+                                      options = {'maxiter': iter,'disp':1})
+
+        # Get best fitness and parameters.
+        refined_fitness = res.fun
+        refined_solution = res.x
+
+        return refined_fitness, refined_solution
+
+    def plot_fitness_trace(self, y_log_scale=True, filename=None):
+        """
+        Plot the fitness traces.
+
+        NOTE: This function imports matplotlib, which should make it possible
+        to use the rest of this source-code library even if it is not installed.
+        matplotlib should first be loaded when calling this function.
+
+        :param y_log_scale: Use log-scale for y-axis.
+        :param filename: Output filename e.g. "foo.svg". If None then plot to screen.
+        :return: Nothing.
+        """
+
+        import matplotlib.pyplot as plt
+
+        # Setup plotting.
+        plt.grid()
+
+        # Axis labels.
+        plt.xlabel("Iteration")
+        plt.ylabel("Fitness (Lower is better)")
+
+        # Title.
+        title = "{0} - Optimized by {1}".format(self.problem.name_full, self.name)
+        plt.title(title)
+
+        # Use log-scale for Y-axis.
+        if y_log_scale:
+            plt.yscale("log", nonposy="clip")
+
+        # Plot the fitness-trace .
+        # Array with iteration counter .
+        iteration = self.fitness_trace.iteration
+
+        # Array with fitness-trace .
+        fitness_trace = self.fitness_trace.fitness
+
+        # Plot the fitness-trace.
+        plt.plot(iteration, fitness_trace, 'r-', color='black', alpha=0.25)
+
+        # Plot to screen or file.
+        if filename is None:
+            # Plot to screen.
+            plt.show()
+        else:
+            # Plot to file.
+            plt.savefig(filename, bbox_inches='tight')
+            plt.close()
