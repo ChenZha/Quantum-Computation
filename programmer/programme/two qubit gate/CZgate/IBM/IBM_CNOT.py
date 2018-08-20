@@ -178,8 +178,8 @@ def CNOT(P):
     w2 = '(0.03332*2*np.pi*(np.exp(-(t-30-tp)**2/2.0/6**2)*np.cos(t*f2)+(t-30-tp)/2/6**2/'+str(eta_q[0])+'*np.exp(-(t-30-tp)**2/2.0/6**2)*np.cos(t*f2-np.pi/2)))*((10+tp)<t<=50+tp)'
 
     w3 = 'omega/2*((erf((t-tp-60-8)/ramp)-erf((t-tp-60-tp+8)/ramp))*(np.cos(f1*t+np.pi))+D*(2*np.exp(-(t-tp-60-8)**2/ramp**2)/np.sqrt(np.pi)/ramp-2*np.exp(-(t-tp-60-tp+8)**2/ramp**2)/np.sqrt(np.pi)/ramp)/'+str(eta_q[0])+'*(np.cos(f1*t+np.pi-np.pi/2)))*(tp+60<t<=2*tp+60)'
-#    w3 = 'omega/2*(erf((t-tp-60-8)/ramp)-erf((t-tp-60-tp+8)/ramp))*(np.cos(f1*t+np.pi))*(tp+60<t<=2*tp+60)'
-#    w3 = 'omega*(np.exp(-(t-tp-75)**2/2/5**2)*(tp+60<t<=tp+75)+1*(tp+75<t<=2*tp+45)+np.exp(-(t-2*tp-45)**2/2/5**2)*((2*tp+45)<t<=2*tp+60))*(np.cos(f1*t+np.pi))'
+#    w3 = 'omega/2*(er f((t-tp-60-8)/ramp)-erf((t-tp-60-tp+8)/ramp))*(np.cos(f1*t+np.pi))*(tp+60<t<=2*tp+60)'
+#    w3 = 'omega*(np.exp(-(t-tp-75)**2/2/5**2)*(t                                                                                                                                p+60<t<=tp+75)+1*(tp+75<t<=2*tp+45)+np.exp(-(t-2*tp-45)**2/2/5**2)*((2*tp+45)<t<=2*tp+60))*(np.cos(f1*t+np.pi))'
 
     w4 = '(0.03332*2*np.pi*(np.exp(-(t-90-2*tp)**2/2.0/6**2)*np.cos(t*f2)+(t-90-2*tp)/2/6**2/'+str(eta_q[0])+'*np.exp(-(t-90-2*tp)**2/2.0/6**2)*np.cos(t*f2-np.pi/2)))*((2*tp+70)<t<=2*tp+110)'
     

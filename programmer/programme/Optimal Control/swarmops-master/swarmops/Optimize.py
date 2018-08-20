@@ -109,8 +109,8 @@ class SingleRun:
         if self.display_interval > 0 and i >= self.display_next:
             # Print the status.
             
-            msg = "Run: {0}, Iteration: {1}, Best Fitness: {2:.4f} , Best:"
-            print(msg.format(self.run_number, i, self.best_fitness)+' '.join(['{:.5f}'.format(n) for n in self.best]))
+            msg = "Run: {0}, Iteration: {1}, Std: {2} , Best Fitness: {3:.4f} , Best:"
+            print(msg.format(self.run_number, i, np.std(self.fitness) , self.best_fitness)+' '.join(['{:.5f}'.format(n) for n in self.best]))
 
             # Increment the counter for the next status-display.
             self.display_next = i + self.display_interval
