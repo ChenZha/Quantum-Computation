@@ -63,21 +63,25 @@ def CR_drive_2(t,args):
 def getfid(P , parallel = False , limit = np.Infinity):
     
 
-    delta = 0.15 # 频率
-    g = 0.0038 #频率
-    D_cr = -0.5
-    t_cr = P[0]
-    omega_cr = P[1] * 2 * np.pi
-    wf_cr = P[2] * 2 * np.pi
+    delta = P[0] # 频率
+    g = P[1] #频率
+    
+    t_cr = P[2]
+    omega_cr = P[3] * 2 * np.pi
+    wf_cr = P[4] * 2 * np.pi
    
-    xita0 = P[3]
-    xita1 = P[4]
+    xita0 = P[5]
+    xita1 = P[6]
+
+    D_cr = -0.5
 
     frequency = np.array([5.2 , 5.2-delta])*2*np.pi
     coupling = np.array([g])*2*np.pi
     eta_q=  np.array([-0.250 , -0.250]) * 2 * np.pi
     parameter = [frequency,coupling,eta_q]
     QBE = Qubits(qubits_parameter = parameter)
+
+    ZZ = QBE.E_eig[QBE._findstate('11')]-QBE.E_eig[QBE._findstate('01')]-QBE.E_eig[QBE._findstate('10')]+QBE.E_eig[QBE._findstate('00')]
 
     args = {'T_P':70+2*t_cr,'T_copies':1001 , 'wf_x':QBE.frequency[0] , 'eta_q':QBE.eta_q , 
             't_cr': t_cr , 'wf_cr':wf_cr , 'omega_cr':omega_cr , 'D_cr':D_cr}
@@ -88,18 +92,24 @@ def getfid(P , parallel = False , limit = np.Infinity):
     H4 = [QBE.sm[0] + QBE.sm[0].dag() , X_drive_2]
     Hdrive = [H1,H2,H3,H4]
 
-    # final = QBE.evolution(drive = Hdrive , psi = tensor(basis(3,0),basis(3,0)) ,  track_plot = True ,argument = args)
-    # fid = fidelity(final, tensor(basis(3,0),basis(3,0)))
-    # print(fid)
+
 
     final = QBE.process(drive = Hdrive,process_plot = False , parallel = parallel , argument = args)
     final = QBE.phase_comp(final , [xita0 , xita1])
     targetprocess = 1/np.sqrt(2)*np.array([[1,1j,0,0],[1j,1,0,0],[0,0,1,-1j],[0,0,-1j,1]])
 
     Ufidelity = np.abs(np.trace(np.dot(np.conjugate(np.transpose(targetprocess)),final)))/(2**QBE.num_qubits)
-    # print(P , Ufidelity)
 
-    return(1-Ufidelity)
+
+    N_gate = 1/ZZ/(2*t_cr+70)
+    estimate = 0
+    for index , II in np.linspace(0.8,0.99,20):
+        estimate += (Ufidelity>II)*N_gate*0.0.04 if index !=0 else (Ufidelity>0.8)*N_gate*0.1
+    for j in range(20):
+        estimate += (Ufidelity>(0.99+j/2000.0))*N_gate*(0.13) if j !=0 else (Ufidelity>(0.99))*N_gate*(1)
+
+
+    return(-estimate)
 
 def refine(function , initial_x0  , bound):
     
@@ -121,23 +131,18 @@ if __name__ == '__main__':
 
     
 
-    # P = [80 , 0.1*2*np.pi , (5.2-0.15)*2*np.pi , -0.5 , 0 , 0]
-    # getfid(P)
 
-    # NM算法
-    # result = minimize(getfid, P, method="Nelder-Mead",options={'disp': True})
-    # print(result)
 
 
     # swarmops
     func = partial(getfid , parallel = False , limit = np.Infinity)
 
-    lower_bound = [40 , 0.02 , (5.2-0.152) ,  -np.pi , -np.pi]
-    upper_bound = [160 , 0.15 , (5.2-0.148) ,   np.pi , np.pi]
-    lower_init=[40 , 0.02 , (5.2-0.152) ,  -np.pi , -np.pi]
-    upper_init=[160 , 0.15 , (5.2-0.148) ,   np.pi , np.pi]
+    lower_bound = [0.03 , 0.0001 , 20 , 0.02 , 5.0 ,  -np.pi , -np.pi]
+    upper_bound = [0.2 , 0.008 , 150 , 0.22 , 5.17 ,   np.pi , np.pi]
+    lower_init=[0.03 , 0.0001 , 20 , 0.02 , 5.0 ,  -np.pi , -np.pi]
+    upper_init=[0.2 , 0.008 , 150 , 0.22 , 5.17 ,   np.pi , np.pi]
 
-    problem = Problem(name="CNOT_OPT", dim=5, fitness_min=0.0,
+    problem = Problem(name="CNOT_OPT", dim=7, fitness_min=-np.Inf,
                                     lower_bound=lower_bound, 
                                     upper_bound=upper_bound,
                                     lower_init=lower_init, 
@@ -146,7 +151,7 @@ if __name__ == '__main__':
     
     print('start')
     optimizer = SuSSADE
-    parameters = [20, 0.3, 0.9 , 0.9 ]
+    parameters = [24, 0.3, 0.9 , 0.9 ]
 
     # Start a timer.
     timer = Timer()

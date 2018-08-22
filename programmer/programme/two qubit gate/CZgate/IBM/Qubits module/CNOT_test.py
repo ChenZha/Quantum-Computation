@@ -62,7 +62,7 @@ def getfid(P , limit = np.Infinity):
     
 
     delta = 0.15
-    g = 0.0038*2*np.pi
+    g = 0.0038
     t_cr = P[0]
     omega_cr = P[1]
     wf_cr = P[2]
@@ -88,7 +88,7 @@ def getfid(P , limit = np.Infinity):
 
 
     final = QBE.evolution(drive = Hdrive , psi = tensor(basis(3,0),basis(3,0)) ,  track_plot = True ,argument = args)
-    fid = fidelity(final, tensor(basis(3,0),(basis(3,0)+1j*basis(3,1)).unit()))
+    fid = fidelity(final, tensor(basis(3,0),(basis(3,0)+1j*np.exp(-1j*xita1)*basis(3,1)).unit()))
     print(fid)
 
     # final = QBE.process(drive = Hdrive,process_plot = False , parallel = False , argument = args)
@@ -96,7 +96,7 @@ def getfid(P , limit = np.Infinity):
     # targetprocess = 1/np.sqrt(2)*np.array([[1,1j,0,0],[1j,1,0,0],[0,0,1,-1j],[0,0,-1j,1]])
 
     # Ufidelity = np.abs(np.trace(np.dot(np.conjugate(np.transpose(targetprocess)),final)))/(2**QBE.num_qubits)
-    # # print(P , Ufidelity)
+    # print(P , Ufidelity)
 
     # return(1-Ufidelity)
 
@@ -106,6 +106,6 @@ if __name__ == '__main__':
 
     
 
-    P = [66.15 , 0.04*2*np.pi , (5.2-0.15)*2*np.pi , -0.5 , 0 , 0]
+    P = [65.12967 , 0.03481*2*np.pi , 5.04959*2*np.pi , -0.5 , -0.13533 , 0.31998]
     getfid(P)
 
