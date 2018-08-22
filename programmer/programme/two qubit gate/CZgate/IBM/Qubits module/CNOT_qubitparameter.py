@@ -103,8 +103,8 @@ def getfid(P , parallel = False , limit = np.Infinity):
 
     N_gate = 1/ZZ/(2*t_cr+70)
     estimate = 0
-    for index , II in np.linspace(0.8,0.99,20):
-        estimate += (Ufidelity>II)*N_gate*0.0.04 if index !=0 else (Ufidelity>0.8)*N_gate*0.1
+    for index , II in enumerate(np.linspace(0.8,0.99,20)):
+        estimate += (Ufidelity>II)*N_gate*0.04 if index !=0 else (Ufidelity>0.8)*N_gate*0.1
     for j in range(20):
         estimate += (Ufidelity>(0.99+j/2000.0))*N_gate*(0.13) if j !=0 else (Ufidelity>(0.99))*N_gate*(1)
 
