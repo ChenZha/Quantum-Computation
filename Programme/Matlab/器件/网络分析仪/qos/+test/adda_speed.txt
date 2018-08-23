@@ -1,0 +1,3 @@
+5kHz repetetion time, 1000 sampling points
+da-ad send wave, get data: 0.4sec.
+software demodulation: 0.05sec per demod frequency.

@@ -92,6 +92,9 @@ def getfid(P ,  QB , parallel = False , limit = np.Infinity):
 
     return(1-Ufidelity)
 
+    # fid = Ufidelity*(1-(70+2*t_cr)/40000.0)
+    # return(1-fid)
+
 
 
 
@@ -119,10 +122,10 @@ if __name__ == '__main__':
         # swarmops
         func = partial(getfid , QB = QB , parallel = False , limit = np.Infinity)
 
-        lower_bound = [40 , 0.02 , (5.2-0.152) ,  -np.pi , -np.pi]
-        upper_bound = [190 , 0.15 , (5.2-0.148) ,   np.pi , np.pi]
-        lower_init=[40 , 0.02 , (5.2-0.152) ,  -np.pi , -np.pi]
-        upper_init=[190 , 0.15 , (5.2-0.148) ,   np.pi , np.pi]
+        lower_bound = [20 , 0.02 , (5.2-0.152) ,  -np.pi , -np.pi]
+        upper_bound = [150 , 0.40 , (5.2-0.148) ,   np.pi , np.pi]
+        lower_init=[20 , 0.02 , (5.2-0.152) ,  -np.pi , -np.pi]
+        upper_init=[150 , 0.40 , (5.2-0.148) ,   np.pi , np.pi]
 
         problem = Problem(name="CNOT_OPT_"+str(index), dim=5, fitness_min=0.0,
                                         lower_bound=lower_bound, 

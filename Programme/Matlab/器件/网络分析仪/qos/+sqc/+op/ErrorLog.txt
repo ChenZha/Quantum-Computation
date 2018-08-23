@@ -1,0 +1,10 @@
+13-Jul-2018 23:52:11 USTCDAC:CheckStatus:D08 Error code:-1543503871 --> USTCDACDRIVER API failed: The task(s) timeout.
+14-Jul-2018 04:43:41 USTCDAC:CheckStatus:D08 Error code:-1543503871 --> USTCDACDRIVER API failed: The task(s) timeout.
+14-Jul-2018 04:47:41 USTCDAC:CheckStatus:D08 Error code:-1543503871 --> USTCDACDRIVER API failed: The task(s) timeout.
+14-Jul-2018 05:57:39 USTCDAC:CheckStatus:D05 Error code:-1543503871 --> USTCDACDRIVER API failed: The task(s) timeout.
+14-Jul-2018 06:32:51 USTCDAC:CheckStatus:D08 Error code:-1543503871 --> USTCDACDRIVER API failed: The task(s) timeout.
+14-Jul-2018 07:15:03 USTCDAC:CheckStatus:D08 Error code:-1543503871 --> USTCDACDRIVER API failed: The task(s) timeout.
+14-Jul-2018 22:19:11 USTCDAC:CheckStatus:D05 Error code:-1543503871 --> USTCDACDRIVER API failed: The task(s) timeout.
+15-Jul-2018 08:37:06 USTCDAC:CheckStatus:D08 Error code:-1543503871 --> USTCDACDRIVER API failed: The task(s) timeout.
+15-Jul-2018 13:08:16 USTCDAC:CheckStatus:D08 Error code:-1543503871 --> USTCDACDRIVER API failed: The task(s) timeout.
+16-Jul-2018 14:34:47 USTCDAC:CheckStatus:D08 Error code:-1543503871 --> USTCDACDRIVER API failed: The task(s) timeout.
