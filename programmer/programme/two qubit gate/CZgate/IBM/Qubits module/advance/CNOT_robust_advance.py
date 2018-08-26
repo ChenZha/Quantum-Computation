@@ -60,15 +60,13 @@ def CR_drive_2(t,args):
 def getfid(P , parallel = False , limit = np.Infinity):
     
 
-    delta = 0.15 # 频率
-    g = 0.0038 #频率
+    delta = 0.20 # 频率
+    g = 0.00015 #频率
     D_cr = -0.5
     t_cr = P[0]
     omega_cr = P[1] * 2 * np.pi
     wf_cr = P[2] * 2 * np.pi
    
-    xita0 = P[3]
-    xita1 = P[4]
 
     frequency = np.array([5.2 , 5.2-delta])*2*np.pi
     coupling = np.array([g])*2*np.pi
@@ -88,12 +86,16 @@ def getfid(P , parallel = False , limit = np.Infinity):
 
 
     final = QBE.process(drive = Hdrive,process_plot = False , parallel = parallel , argument = args)
+    xita0 = -np.angle(final[2][2])
+    xita1 = -np.angle(final[1][1])
     final = QBE.phase_comp(final , [xita0 , xita1])
     targetprocess = 1/np.sqrt(2)*np.array([[1,1j,0,0],[1j,1,0,0],[0,0,1,-1j],[0,0,-1j,1]])
 
     Ufidelity = np.abs(np.trace(np.dot(np.conjugate(np.transpose(targetprocess)),final)))/(2**QBE.num_qubits)
 
-    return(Ufidelity)
+    fid = Ufidelity*np.exp(-(70+2*t_cr)/20000.0)
+
+    return(Ufidelity , fid)
 
 
 
@@ -104,19 +106,23 @@ if __name__ == '__main__':
 
     func = partial(getfid , parallel = False , limit = np.Infinity)
 
-    best = [65.12955 , 0.034855 , 5.049587 , -0.135331 , 0.319984]
+    best = [150.00000 , 0.21581 , 5.00000]
     candidate_size = 20
     candidate = np.array([best for i in range(candidate_size)])
-    fig , ax = plt.subplots(len(best) , 1)
+    fig , ax = plt.subplots(len(best) , 2)
     p = mp.Pool()
     for i in range(len(best)):
         best_parameter = best[i]
         test_parameter = np.linspace(0.95*best_parameter , 1.05*best_parameter , candidate_size)#测试参数从最优值的0.95变化到1.05
         parameter = copy.copy(candidate)
         parameter[:,i] = test_parameter
-        fid_list = p.map(func, parameter)
-        ax[i].plot(test_parameter , fid_list)
-
+        A = p.map(func, parameter)
+        Ufidelity_list = [x[0] for x in A]
+        fid_list = [x[1] for x in A]
+        ax[i][0].plot(test_parameter , Ufidelity_list)
+        ax[i][1].plot(test_parameter , fid_list)
+    plt.show()
+    plt.savefig('robust_advance.png')
     p.close()
     p.join()
 

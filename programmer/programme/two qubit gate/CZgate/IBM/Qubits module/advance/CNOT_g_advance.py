@@ -69,8 +69,7 @@ def getfid(P ,  QB , parallel = False , limit = np.Infinity):
     omega_cr = P[1] * 2 * np.pi
     wf_cr = P[2] * 2 * np.pi
    
-    xita0 = P[3]
-    xita1 = P[4]
+
 
     QBE = copy.copy(QB)
 
@@ -85,12 +84,17 @@ def getfid(P ,  QB , parallel = False , limit = np.Infinity):
 
 
     final = QBE.process(drive = Hdrive,process_plot = False , parallel = parallel , argument = args)
+    xita0 = -np.angle(final[2][2])
+    xita1 = -np.angle(final[1][1])
     final = QBE.phase_comp(final , [xita0 , xita1])
     targetprocess = 1/np.sqrt(2)*np.array([[1,1j,0,0],[1j,1,0,0],[0,0,1,-1j],[0,0,-1j,1]])
 
     Ufidelity = np.abs(np.trace(np.dot(np.conjugate(np.transpose(targetprocess)),final)))/(2**QBE.num_qubits)
 
-    return(1-Ufidelity)
+#    return(1-Ufidelity)
+
+    fid = Ufidelity*np.exp(-(70+2*t_cr)/20000.0)
+    return(1-fid)
 
 
 
@@ -103,6 +107,7 @@ if __name__ == '__main__':
 
     fid_list = []
     t_list = []
+    omega_list = []
     N_list = []
     estimate_list = []
     ZZ_list = []
@@ -119,12 +124,12 @@ if __name__ == '__main__':
         # swarmops
         func = partial(getfid , QB = QB , parallel = False , limit = np.Infinity)
 
-        lower_bound = [20 , 0.02 , (5.2-0.152) ,  -np.pi , -np.pi]
-        upper_bound = [150 , 0.40 , (5.2-0.148) ,   np.pi , np.pi]
-        lower_init=[20 , 0.02 , (5.2-0.152) ,  -np.pi , -np.pi]
-        upper_init=[150 , 0.40 , (5.2-0.148) ,   np.pi , np.pi]
+        lower_bound = [20 , 0.02 , (5.2-0.152) ]
+        upper_bound = [150 , 0.40 , (5.2-0.148) ]
+        lower_init=[20 , 0.1 , (5.2-0.152) ]
+        upper_init=[90 , 0.2 , (5.2-0.148) ]
 
-        problem = Problem(name="CNOT_OPT_"+str(index), dim=5, fitness_min=0.0,
+        problem = Problem(name="CNOT_OPT_"+str(index), dim=3, fitness_min=0.0,
                                         lower_bound=lower_bound, 
                                         upper_bound=upper_bound,
                                         lower_init=lower_init, 
@@ -144,7 +149,7 @@ if __name__ == '__main__':
                             max_evaluations=500,
                             display_interval=1,
                             trace_len=500,
-                            StdTol = 0.00001,
+                            StdTol = 0.0001,
                             directoryname  = 'resultSuSSADE_'+str(g))
 
         # Stop the timer.
@@ -162,6 +167,7 @@ if __name__ == '__main__':
         fid = 1-result.best_fitness
         fid_list.append(fid)
         t_list.append(result.best[0])
+        omega_list.append(result.best[1])
         N_gate = 1/ZZ/(2*result.best[0]+70)
         N_list.append(N_gate)
         ZZ_list.append(ZZ)
@@ -174,20 +180,22 @@ if __name__ == '__main__':
 
     fid_list = np.array(fid_list)
     t_list = np.array(t_list)
+    omega_list = np.array(omega_list)
     N_list = np.array(N_list)
     estimate_list = np.array(estimate_list)
     ZZ_list = np.array(ZZ_list)
 
-    sio.savemat('CNOT_g.mat',{'fid_list':fid_list,'t_list':t_list,
+    sio.savemat('CNOT_g.mat',{'fid_list':fid_list,'t_list':t_list,'omega_list':omega_list
                 'N_list':N_list,'estimate_list':estimate_list,'glist':glist,'ZZ_list':ZZ_list})
 
 
-    fig,axes = plt.subplots(5,1)
-    axes[0].plot(glist,fid_list);axes[0].set_xlabel('g');axes[0].set_ylabel('fid');
-    axes[1].plot(glist,t_list);axes[1].set_xlabel('g');axes[1].set_ylabel('t');
-    axes[2].plot(glist,N_list);axes[2].set_xlabel('g');axes[2].set_ylabel('Ngate');
-    axes[3].plot(glist,estimate_list);axes[3].set_xlabel('g');axes[3].set_ylabel('estimate');
-    axes[4].plot(glist,ZZ_list);axes[4].set_xlabel('g');axes[4].set_ylabel('ZZ');
+    fig,axes = plt.subplots(3,2)
+    axes[0][0].plot(glist,fid_list);axes[0][0].set_xlabel('g');axes[0][0].set_ylabel('fid');
+    axes[0][1].plot(glist,t_list);axes[0][1].set_xlabel('g');axes[0][1].set_ylabel('t');
+    axes[1][0].plot(glist,omega_list);axes[1][0].set_xlabel('g');axes[1][0].set_ylabel('omega');
+    axes[1][1].plot(glist,N_list);axes[1][1].set_xlabel('g');axes[1][1].set_ylabel('Ngate');
+    axes[2][0].plot(glist,estimate_list);axes[2][0].set_xlabel('g');axes[2][0].set_ylabel('estimate');
+    axes[2][1].plot(glist,ZZ_list);axes[2][1].set_xlabel('g');axes[2][1].set_ylabel('ZZ');
     plt.savefig('CNOT_g.png')
     plt.show()
     
