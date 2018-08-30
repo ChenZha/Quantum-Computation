@@ -57,11 +57,11 @@ def CR_drive_2(t,args):
     else:
         w = omega*((1-np.cos(2*np.pi/t_cr*(t-t_cr-40)))*np.cos(wf*t+np.pi)+D*(2*np.pi/t_cr)*np.sin(2*np.pi/t_cr*(t-t_cr-40))/(eta_q[0])*np.cos(t*wf+np.pi-np.pi/2))
     return(w)
-def getfid(P , parallel = False , limit = np.Infinity):
+def getfid(P , g = 0.001 , parallel = False , limit = np.Infinity):
     
 
     delta = 0.15 # 频率
-    g = 0.0038 #频率
+    g = g #频率
     D_cr = -0.5
     t_cr = P[0]
     omega_cr = P[1] * 2 * np.pi
@@ -102,23 +102,43 @@ if __name__ == '__main__':
     输入最优参数，得到参数各个分量的鲁棒性
     '''
 
-    func = partial(getfid , parallel = False , limit = np.Infinity)
+    
 
-    best = [65.12955 , 0.034855 , 5.049587 , -0.135331 , 0.319984]
-    candidate_size = 20
-    candidate = np.array([best for i in range(candidate_size)])
-    fig , ax = plt.subplots(len(best) , 1)
+    g_list = np.array([0.0007 , 0.0008 , 0.001 , 0.0015 , 0.002 ,0.0025, 0.003 , 0.0038 , 0.004])
+    best = np.array([[159.22016 , 0.13718 , 5.04998 , -0.00852 , 0.03262],
+            [149.4317 , 0.1163 , 5.0500 , -0.0086  , 0.0336],
+            [135.8088 , 0.081505 , 5.04996 , -0.01365 , 0.03407],
+            [138.8987 , 0.0421896 , 5.04993 , -0.0333 ,   0.0988],
+            [108.5679 , 0.040119 , 5.04988 , -0.051965 ,   0.1373512],
+            [118.593505 , 0.027979 , 5.04983 , -0.08623 ,   0.214487],
+            [105.0448 ,  0.026228 ,  5.04975 , -0.1160 ,  0.282950],
+            [65.12955 ,  0.034855 ,  5.049587 , -0.135331 , 0.319984],
+            [61.0430 ,  0.035389 ,  5.049540 , -0.148813 , 0.3377750]
+            ])
+    delta = np.array([
+            [-5 , 5],
+            [-0.003 , 0.003],
+            [-0.003 , 0.003]
+            ])
+    candidate_size = 41
     p = mp.Pool()
-    for i in range(len(best)):
-        best_parameter = best[i]
-        test_parameter = np.linspace(0.95*best_parameter , 1.05*best_parameter , candidate_size)#测试参数从最优值的0.95变化到1.05
-        parameter = copy.copy(candidate)
-        parameter[:,i] = test_parameter
-        fid_list = p.map(func, parameter)
-        ax[i].plot(test_parameter , fid_list)
+    for index in range(len(g_list)):
+        func = partial(getfid , g = g_list[index] ,  parallel = False , limit = np.Infinity)
+        candidate = np.array([best[index] for i in range(candidate_size)])
+        fig , ax = plt.subplots(len(best[index])-2 , 1)
+        for i in range(len(best[index])-2):
+            best_parameter = best[index][i]
+            test_parameter = np.linspace(best_parameter+delta[i][0] , best_parameter+delta[i][1] , candidate_size)#测试参数从最优值的0.95变化到1.05
+            parameter = copy.copy(candidate)
+            parameter[:,i] = test_parameter
+            fid_list = p.map(func, parameter)
+            ax[i].plot(test_parameter , fid_list)
+        plt.tight_layout()
+        plt.savefig('robust_'+str(g_list[index])+'.png')
 
     p.close()
     p.join()
+    plt.show()
 
 
     

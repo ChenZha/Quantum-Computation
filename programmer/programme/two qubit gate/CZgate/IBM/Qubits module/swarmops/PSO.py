@@ -140,7 +140,7 @@ class Base(SingleRun):
         # The counting starts with num_particles because the fitness has
         # already been calculated once for each particle during initialization.
         i = i+1
-        while i < self.max_evaluations and np.std(self.particle_best_fitness) > self.StdTol:
+        while i < self.max_evaluations and np.sum(np.std(self.population , 0))/np.size(np.std(self.population , 0)) > self.StdTol:
             # 达到最大代数或者std小于某个定值时，结束寻优循环
 
             # Update the particle velocities and positions.

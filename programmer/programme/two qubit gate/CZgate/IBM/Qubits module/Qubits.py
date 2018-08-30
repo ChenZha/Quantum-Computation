@@ -206,6 +206,7 @@ class Qubits():
         nx = np.zeros([self.num_qubits,len(self.tlist)])
         ny = np.zeros([self.num_qubits,len(self.tlist)])
         nz = np.zeros([self.num_qubits,len(self.tlist)])
+        leakage = np.zeros([self.num_qubits,len(self.tlist)])
         # 各个时间点，各个比特在X,Y,Z轴上投影
         for t_index in range(len(self.tlist)):
             UF_t =  self._RF_Generation(self.tlist[t_index])
@@ -216,6 +217,7 @@ class Qubits():
                 nx[q_index,t_index] = expect(opx,self.result.states[t_index])
                 ny[q_index,t_index] = expect(opy,self.result.states[t_index])
                 nz[q_index,t_index] = expect(opz,self.result.states[t_index])
+                leakage[q_index,t_index] = expect(self.sm[q_index].dag()*self.sm[q_index] , self.result.states[t_index])
         
         # 画图
         fig,axes = plt.subplots(self.num_qubits,1)
@@ -224,14 +226,18 @@ class Qubits():
                 axes[q_index].plot(self.tlist,nx[q_index],label = 'x'+str(q_index))
                 axes[q_index].plot(self.tlist,ny[q_index],label = 'y'+str(q_index))
                 axes[q_index].plot(self.tlist,nz[q_index],label = 'z'+str(q_index))
+                axes[q_index].plot(self.tlist,leakage[q_index],label = 'leakage'+str(q_index))
                 axes[q_index].set_xlabel('t');axes[q_index].set_ylabel('population of qubit'+str(q_index));
                 axes[q_index].legend(loc = 'upper left')
+                plt.tight_layout()
             else:
                 axes.plot(self.tlist,nx[q_index],label = 'x'+str(q_index))
                 axes.plot(self.tlist,ny[q_index],label = 'y'+str(q_index))
                 axes.plot(self.tlist,nz[q_index],label = 'z'+str(q_index))
+                axes[q_index].plot(self.tlist,leakage[q_index],label = 'leakage'+str(q_index))
                 axes.set_xlabel('t');axes.set_ylabel('population of qubit'+str(q_index));
                 axes.legend(loc = 'upper left')
+                plt.tight_layout()
 
             sphere = Bloch()
             sphere.add_points([nx[q_index] , ny[q_index] , nz[q_index]])

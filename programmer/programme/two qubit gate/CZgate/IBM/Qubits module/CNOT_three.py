@@ -65,8 +65,8 @@ def getfid(P , parallel = False , limit = np.Infinity):
     three qubits
     '''
 
-    delta0 = 0.15 # 频率
-    delta2 = 0.17
+    delta0 = 0.150 # 频率
+    delta2 = 0.080
     g = 0.0038 #频率
     D_cr = -0.5
     t_cr = P[0]

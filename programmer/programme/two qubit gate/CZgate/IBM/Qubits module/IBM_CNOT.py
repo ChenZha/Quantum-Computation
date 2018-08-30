@@ -8,6 +8,7 @@ from qutip import *
 from swarmops.Timer import Timer
 from swarmops.Problem import Problem
 from swarmops.SuSSADE import SuSSADE
+from CMAES.CMAES import CovMatAdapt
 
 def X_drive_1(t,args):
     tx = 20
@@ -64,7 +65,7 @@ def getfid(P , parallel = False , limit = np.Infinity):
     
 
     delta = 0.15 # 频率
-    g = 0.0038 #频率
+    g = 0.0098 #频率
     D_cr = -0.5
     t_cr = P[0]
     omega_cr = P[1] * 2 * np.pi
@@ -107,7 +108,7 @@ def refine(function , initial_x0  , bound):
                     x0=initial_x0,
                     method="L-BFGS-B",
                     bounds=bound,
-                    options = {'maxiter': iter,'disp':1})
+                    options = {'maxiter': 30,'disp':1})
 
     # Get best fitness and parameters.
     refined_fitness = res.fun
@@ -128,62 +129,75 @@ if __name__ == '__main__':
     # result = minimize(getfid, P, method="Nelder-Mead",options={'disp': True})
     # print(result)
 
+    # CMAES
+    func = partial(getfid , parallel = False , limit = np.Infinity)
+    lower_bound = [40 , 0.02 , (5.2-0.151) ,  -np.pi , -np.pi]
+    upper_bound = [160 , 0.2 , (5.2-0.149) ,   np.pi , np.pi]
+    initial_vec = np.array([80 , 0.10 , 5.05 , 0 , 0])
+    step_size = np.array([30 , 0.05 , 0.0005 , np.pi/2 , np.pi/2])
+
+    optimizer = CovMatAdapt(func = func, mean_vec = initial_vec, step_size = step_size, 
+                            lower_bound = lower_bound , upper_bound = upper_bound,
+                            pop_size  = 20, directoryname='result_CMAES'
+                            )
+    result = optimizer.minimize()
+    print(result)
 
     # swarmops
-    func = partial(getfid , parallel = False , limit = np.Infinity)
+    # func = partial(getfid , parallel = False , limit = np.Infinity)
 
-    lower_bound = [40 , 0.02 , (5.2-0.152) ,  -np.pi , -np.pi]
-    upper_bound = [160 , 0.15 , (5.2-0.148) ,   np.pi , np.pi]
-    lower_init=[40 , 0.02 , (5.2-0.152) ,  -np.pi , -np.pi]
-    upper_init=[160 , 0.15 , (5.2-0.148) ,   np.pi , np.pi]
+    # lower_bound = [40 , 0.02 , (5.2-0.151) ,  -np.pi , -np.pi]
+    # upper_bound = [160 , 0.2 , (5.2-0.149) ,   np.pi , np.pi]
+    # lower_init=[40 , 0.02 , (5.2-0.151) ,  -np.pi , -np.pi]
+    # upper_init=[160 , 0.2 , (5.2-0.149) ,   np.pi , np.pi]
 
-    problem = Problem(name="CNOT_OPT", dim=5, fitness_min=0.0,
-                                    lower_bound=lower_bound, 
-                                    upper_bound=upper_bound,
-                                    lower_init=lower_init, 
-                                    upper_init=upper_init,
-                                    func=func)
+    # problem = Problem(name="CNOT_OPT", dim=5, fitness_min=0.0,
+    #                                 lower_bound=lower_bound, 
+    #                                 upper_bound=upper_bound,
+    #                                 lower_init=lower_init, 
+    #                                 upper_init=upper_init,
+    #                                 func=func)
     
-    print('start')
-    optimizer = SuSSADE
-    parameters = [20, 0.3, 0.9 , 0.9 ]
+    # print('start')
+    # optimizer = SuSSADE
+    # parameters = [20, 0.3, 0.9 , 0.9 ]
 
-    # Start a timer.
-    timer = Timer()
+    # # Start a timer.
+    # timer = Timer()
 
-    # Perform a single optimization run using the optimizer
-    # where the fitness is evaluated in parallel.
-    result = optimizer(parallel=True, problem=problem,
-                        max_evaluations=400,
-                        display_interval=1,
-                        trace_len=400,
-                        StdTol = 0.00001,
-                        directoryname  = 'resultSuSSADE')
+    # # Perform a single optimization run using the optimizer
+    # # where the fitness is evaluated in parallel.
+    # result = optimizer(parallel=True, problem=problem,
+    #                     max_evaluations=400,
+    #                     display_interval=1,
+    #                     trace_len=400,
+    #                     StdTol = 0.00001,
+    #                     directoryname  = 'resultSuSSADE')
 
-    # Stop the timer.
-    timer.stop()
+    # # Stop the timer.
+    # timer.stop()
 
-    print()  # Newline.
-    print("Time-Usage: {0}".format(timer))
-    print()  # Newline.
+    # print()  # Newline.
+    # print("Time-Usage: {0}".format(timer))
+    # print()  # Newline.
 
-    print("Best fitness from heuristic optimization: {0:0.5e}".format(result.best_fitness))
-    print("Best solution:")
-    print(result.best)
+    # print("Best fitness from heuristic optimization: {0:0.5e}".format(result.best_fitness))
+    # print("Best solution:")
+    # print(result.best)
 
-    if True:
-        print()  # Newline.
-        print("Refining using SciPy's L-BFGS-B (this may be slow on some problems) ...")
+    # if True:
+    #     print()  # Newline.
+    #     print("Refining using SciPy's L-BFGS-B (this may be slow on some problems) ...")
 
-        # Do the actual refinement using the L-BFGS-B optimizer.
-        bound = list(zip(lower_bound, upper_bound))
-        func = partial(getfid , parallel = True , limit = np.Infinity)
-        refined_fitness, refined_solution = refine(func , result.best , bound)
+    #     # Do the actual refinement using the L-BFGS-B optimizer.
+    #     bound = list(zip(lower_bound, upper_bound))
+    #     func = partial(getfid , parallel = True , limit = np.Infinity)
+    #     refined_fitness, refined_solution = refine(func , result.best , bound)
 
-        print("Best fitness from L-BFGS-B optimization: {0:0.4e}".format(refined_fitness))
-        print("Best solution:")
-        print(refined_solution)
+    #     print("Best fitness from L-BFGS-B optimization: {0:0.4e}".format(refined_fitness))
+    #     print("Best solution:")
+    #     print(refined_solution)
 
-    # Plot the fitness trace.
-    if True > 0:
-        result.plot_fitness_trace()
+    # # Plot the fitness trace.
+    # if True > 0:
+    #     result.plot_fitness_trace()
