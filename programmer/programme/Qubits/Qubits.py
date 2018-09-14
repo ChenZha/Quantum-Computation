@@ -217,7 +217,7 @@ class Qubits():
                 nx[q_index,t_index] = expect(opx,self.result.states[t_index])
                 ny[q_index,t_index] = expect(opy,self.result.states[t_index])
                 nz[q_index,t_index] = expect(opz,self.result.states[t_index])
-                leakage[q_index,t_index] = expect(self.sm[q_index].dag()*self.sm[q_index] , self.result.states[t_index])
+                leakage[q_index,t_index] = expect(self.E_uc[q_index] , self.result.states[t_index])
         
         # 画图
         fig,axes = plt.subplots(self.num_qubits,1)

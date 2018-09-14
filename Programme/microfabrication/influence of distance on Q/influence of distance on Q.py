@@ -79,7 +79,7 @@ painter1.Run(lambda painter:painter.Straight(250000))
 curpos = pya.DPoint(painter1.brush.centerx , painter1.brush.centery)
 electrode2=paintlib.BasicPainter.Electrode(curpos.x,curpos.y,90)#electrode
 
-
+print(painter1)
 painter1.Draw(cell1,layer1)
 paintlib.BasicPainter.Draw(cell1,layer1,electrode1)
 paintlib.BasicPainter.Draw(cell1,layer1,electrode2)
