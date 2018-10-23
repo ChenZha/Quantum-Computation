@@ -74,7 +74,7 @@ def getfid(P ,  QB , parallel = False , limit = np.Infinity):
 
     QBE = copy.copy(QB)
 
-    args = {'T_P':70+2*t_cr,'T_copies':1001 , 'wf_x':QBE.frequency[0] , 'eta_q':QBE.eta_q , 
+    args = {'T_P':70+2*t_cr,'T_copies':1001 , 'wf_x':QBE.E_eig[QBE.first_excited[0]] , 'eta_q':QBE.eta_q , 
             't_cr': t_cr , 'wf_cr':wf_cr , 'omega_cr':omega_cr , 'D_cr':D_cr}
 
     H1 = [QBE.sm[0] + QBE.sm[0].dag() , CR_drive_1]

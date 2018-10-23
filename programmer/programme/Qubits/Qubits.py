@@ -229,7 +229,6 @@ class Qubits():
                 axes[q_index].plot(self.tlist,leakage[q_index],label = 'leakage'+str(q_index))
                 axes[q_index].set_xlabel('t');axes[q_index].set_ylabel('population of qubit'+str(q_index));
                 axes[q_index].legend(loc = 'upper left')
-                plt.tight_layout()
             else:
                 axes.plot(self.tlist,nx[q_index],label = 'x'+str(q_index))
                 axes.plot(self.tlist,ny[q_index],label = 'y'+str(q_index))
@@ -237,7 +236,7 @@ class Qubits():
                 axes[q_index].plot(self.tlist,leakage[q_index],label = 'leakage'+str(q_index))
                 axes.set_xlabel('t');axes.set_ylabel('population of qubit'+str(q_index));
                 axes.legend(loc = 'upper left')
-                plt.tight_layout()
+
 
             sphere = Bloch()
             sphere.add_points([nx[q_index] , ny[q_index] , nz[q_index]])

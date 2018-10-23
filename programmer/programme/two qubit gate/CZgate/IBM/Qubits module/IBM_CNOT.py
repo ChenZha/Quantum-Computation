@@ -64,8 +64,7 @@ def CR_drive_2(t,args):
 def getfid(P , parallel = False , limit = np.Infinity):
     
 
-    delta = 0.15 # 频率
-    g = 0.0098 #频率
+
     D_cr = -0.5
     t_cr = P[0]
     omega_cr = P[1] * 2 * np.pi
@@ -74,13 +73,13 @@ def getfid(P , parallel = False , limit = np.Infinity):
     xita0 = P[3]
     xita1 = P[4]
 
-    frequency = np.array([5.2 , 5.2-delta])*2*np.pi
-    coupling = np.array([g])*2*np.pi
+    frequency = np.array([5.26 , 5.11])*2*np.pi
+    coupling = np.array([0.0035])*2*np.pi
     eta_q=  np.array([-0.250 , -0.250]) * 2 * np.pi
     parameter = [frequency,coupling,eta_q]
     QBE = Qubits(qubits_parameter = parameter)
 
-    args = {'T_P':70+2*t_cr,'T_copies':1001 , 'wf_x':QBE.frequency[0] , 'eta_q':QBE.eta_q , 
+    args = {'T_P':70+2*t_cr,'T_copies':1001 , 'wf_x':QBE.E_eig[QBE.first_excited[0]] , 'eta_q':QBE.eta_q , 
             't_cr': t_cr , 'wf_cr':wf_cr , 'omega_cr':omega_cr , 'D_cr':D_cr}
 
     H1 = [QBE.sm[0] + QBE.sm[0].dag() , CR_drive_1]
@@ -90,8 +89,8 @@ def getfid(P , parallel = False , limit = np.Infinity):
     Hdrive = [H1,H2,H3,H4]
 
     # final = QBE.evolution(drive = Hdrive , psi = tensor(basis(3,0),basis(3,0)) ,  track_plot = True ,argument = args)
-    # fid = fidelity(final, tensor(basis(3,0),basis(3,0)))
-    # print(fid)
+    # print(fidelity(final , tensor(basis(3,0),(basis(3,0)+1j*basis(3,1)).unit())))
+
 
     final = QBE.process(drive = Hdrive,process_plot = False , parallel = parallel , argument = args)
     final = QBE.phase_comp(final , [xita0 , xita1])
@@ -122,7 +121,7 @@ if __name__ == '__main__':
 
     
 
-    # P = [80 , 0.1*2*np.pi , (5.2-0.15)*2*np.pi , -0.5 , 0 , 0]
+    # P = [57.51147 ,  0.04682  , 5.10900  , -0.10800  , 0.64611]
     # getfid(P)
 
     # NM算法
@@ -130,74 +129,74 @@ if __name__ == '__main__':
     # print(result)
 
     # CMAES
-    func = partial(getfid , parallel = False , limit = np.Infinity)
-    lower_bound = [40 , 0.02 , (5.2-0.151) ,  -np.pi , -np.pi]
-    upper_bound = [160 , 0.2 , (5.2-0.149) ,   np.pi , np.pi]
-    initial_vec = np.array([80 , 0.10 , 5.05 , 0 , 0])
-    step_size = np.array([30 , 0.05 , 0.0005 , np.pi/2 , np.pi/2])
-
-    optimizer = CovMatAdapt(func = func, mean_vec = initial_vec, step_size = step_size, 
-                            lower_bound = lower_bound , upper_bound = upper_bound,
-                            pop_size  = 20, directoryname='result_CMAES'
-                            )
-    result = optimizer.minimize()
-    print(result)
-
-    # swarmops
     # func = partial(getfid , parallel = False , limit = np.Infinity)
-
     # lower_bound = [40 , 0.02 , (5.2-0.151) ,  -np.pi , -np.pi]
     # upper_bound = [160 , 0.2 , (5.2-0.149) ,   np.pi , np.pi]
-    # lower_init=[40 , 0.02 , (5.2-0.151) ,  -np.pi , -np.pi]
-    # upper_init=[160 , 0.2 , (5.2-0.149) ,   np.pi , np.pi]
+    # initial_vec = np.array([80 , 0.10 , 5.05 , 0 , 0])
+    # step_size = np.array([30 , 0.05 , 0.0005 , np.pi/2 , np.pi/2])
 
-    # problem = Problem(name="CNOT_OPT", dim=5, fitness_min=0.0,
-    #                                 lower_bound=lower_bound, 
-    #                                 upper_bound=upper_bound,
-    #                                 lower_init=lower_init, 
-    #                                 upper_init=upper_init,
-    #                                 func=func)
+    # optimizer = CovMatAdapt(func = func, mean_vec = initial_vec, step_size = step_size, 
+    #                         lower_bound = lower_bound , upper_bound = upper_bound,
+    #                         pop_size  = 20, directoryname='result_CMAES'
+    #                         )
+    # result = optimizer.minimize()
+    # print(result)
+
+    # swarmops
+    func = partial(getfid , parallel = False , limit = np.Infinity)
+
+    lower_bound = [40 , 0.02 , (5.11-0.0015) ,  -np.pi , -np.pi]
+    upper_bound = [160 , 0.2 , (5.11+0.0015) ,   np.pi , np.pi]
+    lower_init=[40 , 0.02 , (5.11-0.0015) ,  -np.pi , -np.pi]
+    upper_init=[160 , 0.2 , (5.11+0.0015) ,   np.pi , np.pi]
+
+    problem = Problem(name="CNOT_OPT", dim=5, fitness_min=0.0,
+                                    lower_bound=lower_bound, 
+                                    upper_bound=upper_bound,
+                                    lower_init=lower_init, 
+                                    upper_init=upper_init,
+                                    func=func)
     
-    # print('start')
-    # optimizer = SuSSADE
-    # parameters = [20, 0.3, 0.9 , 0.9 ]
+    print('start')
+    optimizer = SuSSADE
+    parameters = [20, 0.3, 0.9 , 0.9 ]
 
-    # # Start a timer.
-    # timer = Timer()
+    # Start a timer.
+    timer = Timer()
 
-    # # Perform a single optimization run using the optimizer
-    # # where the fitness is evaluated in parallel.
-    # result = optimizer(parallel=True, problem=problem,
-    #                     max_evaluations=400,
-    #                     display_interval=1,
-    #                     trace_len=400,
-    #                     StdTol = 0.00001,
-    #                     directoryname  = 'resultSuSSADE')
+    # Perform a single optimization run using the optimizer
+    # where the fitness is evaluated in parallel.
+    result = optimizer(parallel=True, problem=problem,
+                        max_evaluations=400,
+                        display_interval=1,
+                        trace_len=400,
+                        StdTol = 0.00001,
+                        directoryname  = 'SuSSADE_near')
 
-    # # Stop the timer.
-    # timer.stop()
+    # Stop the timer.
+    timer.stop()
 
-    # print()  # Newline.
-    # print("Time-Usage: {0}".format(timer))
-    # print()  # Newline.
+    print()  # Newline.
+    print("Time-Usage: {0}".format(timer))
+    print()  # Newline.
 
-    # print("Best fitness from heuristic optimization: {0:0.5e}".format(result.best_fitness))
-    # print("Best solution:")
-    # print(result.best)
+    print("Best fitness from heuristic optimization: {0:0.5e}".format(result.best_fitness))
+    print("Best solution:")
+    print(result.best)
 
-    # if True:
-    #     print()  # Newline.
-    #     print("Refining using SciPy's L-BFGS-B (this may be slow on some problems) ...")
+    if True:
+        print()  # Newline.
+        print("Refining using SciPy's L-BFGS-B (this may be slow on some problems) ...")
 
-    #     # Do the actual refinement using the L-BFGS-B optimizer.
-    #     bound = list(zip(lower_bound, upper_bound))
-    #     func = partial(getfid , parallel = True , limit = np.Infinity)
-    #     refined_fitness, refined_solution = refine(func , result.best , bound)
+        # Do the actual refinement using the L-BFGS-B optimizer.
+        bound = list(zip(lower_bound, upper_bound))
+        func = partial(getfid , parallel = True , limit = np.Infinity)
+        refined_fitness, refined_solution = refine(func , result.best , bound)
 
-    #     print("Best fitness from L-BFGS-B optimization: {0:0.4e}".format(refined_fitness))
-    #     print("Best solution:")
-    #     print(refined_solution)
+        print("Best fitness from L-BFGS-B optimization: {0:0.4e}".format(refined_fitness))
+        print("Best solution:")
+        print(refined_solution)
 
-    # # Plot the fitness trace.
-    # if True > 0:
-    #     result.plot_fitness_trace()
+    # Plot the fitness trace.
+    if True > 0:
+        result.plot_fitness_trace()

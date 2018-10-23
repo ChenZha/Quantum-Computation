@@ -1,8 +1,8 @@
 %% 计算耦合腔的频率
 g1 = 40;% 第一个耦合强度（MHz）
 g2 = 40;% 第二个耦合强度（MHz）
-g = 0.68;% 需求的等效耦合强度(MHz)
-w1 = 5580;% Frequency of qubit 1(MHz)
+g = 1.5;% 需求的等效耦合强度(MHz)
+w1 = 5560;% Frequency of qubit 1(MHz)
 w2 = 5410;% Frequency of qubit 2(MHz)
 
 fun = @(x)0.5*g1*g2*(1/(x-w1)+1/(x-w2))-g;
