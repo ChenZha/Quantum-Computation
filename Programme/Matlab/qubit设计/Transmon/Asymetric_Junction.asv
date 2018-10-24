@@ -1,38 +1,34 @@
-%% 
-% 计算不同a下的电阻波动导致频率波动，以及调节磁通可以达到的频率范围
-
-% C= 86e-15;
-% R = 7800;
-% delta_R = 800;
-% 
-% a_list = 1:0.5:15;
-% fluc_list = [];
-% scope_list = [];
-% gap_list = [];
-% 
-% [Ex,~] = E_asym(C_E(C),R_E(R-delta_R),1,0,50);
-% w_max_f = Ex(2)-Ex(1);
-% [Ex,~] = E_asym(C_E(C),R_E(R-delta_R),1,0.5,50);
-% w_min_f = Ex(2)-Ex(1);
-% scope = w_max_f-w_min_f;
-% 
-% for a = a_list
-%     [fluc,scope] = gap_fluc_scope(C,R,delta_R,a);
-%     fluc_list(end+1) = fluc;
-%     scope_list(end+1) = scope;
-%     gap_list(end+1) = fluc-scope;
-% end
-%     figure();
-%     plot(a_list,fluc_list,'*',a_list,scope_list,'+',a_list,gap_list,'o');hold on;
-%     legend('fluctuation' , 'scope' , 'gap');
-%%
-% 给定并联电阻R，以及比例a，求出两个电阻R1 = a*R2
+%% 计算不同a下的电阻波动导致频率波动，以及调节磁通可以达到的频率范围
+C= 86e-15;
 R = 7800;
-a = 3;
-R2 = R*(1+a)/a;
-R1 = a*R2;
-disp(['R1=',num2str(R1)]);
-disp(['R2=',num2str(R2)]);
+delta_R = 800;
+
+a_list = 1:0.5:15;
+fluc_list = [];
+scope_list = [];
+gap_list = [];
+
+[Ex,~] = E_asym(C_E(C),R_E(R-delta_R),1,0,50);
+w_max_f = Ex(2)-Ex(1);
+[Ex,~] = E_asym(C_E(C),R_E(R-delta_R),1,0.5,50);
+w_min_f = Ex(2)-Ex(1);
+scope = w_max_f-w_min_f;
+
+for a = a_list
+    [fluc,scope] = gap_fluc_scope(C,R,delta_R,a);
+    fluc_list(end+1) = fluc;
+    scope_list(end+1) = scope;
+    gap_list(end+1) = fluc-scope;
+end
+    figure();
+    plot(a_list,fluc_list,'*',a_list,scope_list,'+',a_list,gap_list,'o');hold on;
+    legend('fluctuation' , 'scope' , 'gap');
+%% 给定并联电阻R，以及比例a，求出两个电阻
+R = 7800;
+a = 9;
+
+%%
+    
 
 
 %%
