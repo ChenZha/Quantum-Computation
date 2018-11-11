@@ -1,1 +1,0 @@
-physical quantum operations, logical quantum operations properties are inherited

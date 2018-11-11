@@ -1,2 +1,0 @@
-mtwisted is a humble Matlab incanation of Twisted by Yulin Wu, University of Science and Technology of China.
-Twisted is an event-driven networking engine written in Python developed by Twisted Matrix Las http://twistedmatrix.com

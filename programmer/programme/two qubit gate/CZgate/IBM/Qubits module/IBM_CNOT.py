@@ -125,8 +125,8 @@ if __name__ == '__main__':
     # getfid(P)
 
     # NM算法
-    # result = minimize(getfid, P, method="Nelder-Mead",options={'disp': True})
-    # print(result)
+    result = minimize(getfid, P, method="Nelder-Mead",options={'disp': True})
+    print(result)
 
     # CMAES
     # func = partial(getfid , parallel = False , limit = np.Infinity)
