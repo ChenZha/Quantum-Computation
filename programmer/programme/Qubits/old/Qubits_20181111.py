@@ -28,10 +28,11 @@ class Qubits():
 
 
     def __init__(self , qubits_parameter , *args , **kwargs):
-        # qubits_parameter结构:frequency(频率);coupling(耦合强度);eta_q(非简谐性);N_level(涉及的能级)
-        self.frequency , self.coupling , self.eta_q , self.N_level= qubits_parameter
+        # qubits_parameter结构:frequency(频率);coupling(耦合强度);eta_q(非简谐性)
+        self.frequency , self.coupling , self.eta_q= qubits_parameter
         assert len(self.frequency) == len(self.coupling)+1 == len(self.eta_q)
         self.num_qubits = int(len(self.frequency)) #比特数目
+        self.N_level = 3 # 能级数
 
         # 生成基本的operator
         self.sm,self.E_uc,self.E_e,self.E_g = self._BasicOperator()
@@ -44,13 +45,6 @@ class Qubits():
 
         #找到基态，以及各个比特的第一激发态的位置
         self.first_excited = self._FirstExcite()
-        # 确定演化的Rotation Wave Frame
-        '''
-        'NoRWF':No RWF
-        'UnCpRWF':Uncoupling RWF
-        'CpRWF':coupling RWF
-        '''
-        self.RWF = 'CpRWF'
 
     def _BasicOperator(self):
         '''
@@ -150,7 +144,7 @@ class Qubits():
     
             
 
-    def evolution(self , drive = None , psi = basis(3,0) , collapse = [] , track_plot = False , RWF = 'CpRWF' , argument = {'T_p':100,'T_copies':201} , options = default_options):
+    def evolution(self , drive = None , psi = basis(3,0) , collapse = [] , track_plot = False,argument = {'T_p':100,'T_copies':201} , options = default_options):
         '''
         计算当前比特在psi初态，经drive驱动，最终得到的末态final_state
         参数：
@@ -181,16 +175,18 @@ class Qubits():
 
         # evolution
         self.result = mesolve(self.H , self.psi , self.tlist , c_ops = self.collapse , e_ops = [] , args = argument , options = options)
-        
-        # RWF
-        self.RWF = RWF
+
         # Rotation Frame of final state
         UF = self._RF_Generation(self.tlist[-1])
+
         # Final State in Rotation Frame(pure state)
         final_state = UF*self.result.states[-1]
 
+
         if track_plot:
             self._track_plot()
+
+
 
         return(final_state)
 
@@ -200,14 +196,7 @@ class Qubits():
         '''
         U = []
         for index in range(self.num_qubits):
-            if self.RWF=='CpRWF':
-                U.append(basis(self.N_level,0)*basis(self.N_level,0).dag()+np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]])*select_time)*basis(self.N_level,1)*basis(self.N_level,1).dag())
-            elif self.RWF=='UnCpRWF':
-                U.append(basis(self.N_level,0)*basis(self.N_level,0).dag()+np.exp(1j*(self.frequency[index])*select_time)*basis(self.N_level,1)*basis(self.N_level,1).dag())
-            elif self.RWF=='NoRWF':
-                U.append(qeye(self.N_level))
-            else:
-                error('RWF ERROR')
+            U.append(basis(self.N_level,0)*basis(self.N_level,0).dag()+np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]])*select_time)*basis(self.N_level,1)*basis(self.N_level,1).dag())
         UF = tensor(*U)
         return(UF)
     def _track_plot(self):
@@ -219,7 +208,6 @@ class Qubits():
         nz = np.zeros([self.num_qubits,len(self.tlist)])
         leakage = np.zeros([self.num_qubits,len(self.tlist)])
         # 各个时间点，各个比特在X,Y,Z轴上投影
-        
         for t_index in range(len(self.tlist)):
             UF_t =  self._RF_Generation(self.tlist[t_index])
             for q_index in range(self.num_qubits):
@@ -258,7 +246,7 @@ class Qubits():
 
         plt.show()
 
-    def process(self , drive = None , process_plot  = False , RWF = 'CpRWF' , parallel = False , argument = {'T_p':100,'T_copies':201} , options = default_options):
+    def process(self , drive = None , process_plot  = False , parallel = False , argument = {'T_p':100,'T_copies':201} , options = default_options):
         '''
         对当前比特施加驱动drive，表征整个state space的演化过程(只取每个比特二能级的部分)
         参数：
@@ -277,13 +265,13 @@ class Qubits():
             p = Pool()
             result_final = []
             for i in range(len(basic)):
-                result_final.append(p.apply_async(self.evolution,(drive , basic[i] , [] , False , RWF, argument , options)))
+                result_final.append(p.apply_async(self.evolution,(drive , basic[i] , [] , False , argument , options)))
             final_state = [result_final[i].get() for i in range(len(result_final))]
             p.close()
             p.join()
         else:
             for Phi in basic:
-                final_state.append(self.evolution(drive , Phi , [] , False , RWF ,argument , options))
+                final_state.append(self.evolution(drive , Phi , [] , False , argument , options))
 
         process = np.column_stack([final_state[i].data.toarray() for i in range(len(final_state))])[loc,:] #只取演化矩阵中二能级部分
         angle = np.angle(process[0][0])
