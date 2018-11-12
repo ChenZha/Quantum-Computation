@@ -3,6 +3,11 @@ from Qubits import Qubits
 from qutip import *
 import matplotlib.pyplot as plt
 
+import threading
+def runnow(func):
+    out = threading.Thread(target=func)
+    out.start()
+    return lambda:out
 
 def InitialState(Num_qubits,excite_location):
     '''
@@ -42,7 +47,7 @@ def dmToentropy(dm,alpha):
     for ii in range(alpha-1):
         temp = temp*dm
     dmdata = temp.data.toarray()
-    SA = np.log(np.trace(dmdata))/(1-alpha)
+    SA = np.log2(np.trace(dmdata))/(1-alpha)
     return(SA)
 def EntropyEvolution(QBC,traceplot = False):
     QB = QBC
@@ -52,20 +57,25 @@ def EntropyEvolution(QBC,traceplot = False):
         for jj in range(len(tlist)):
             entropylist[ii,jj] = dmToentropy(ptrace(QB.result.states[jj],ii),2)
     
+    whole_entropy = np.sum(entropylist,0)/(QB.num_qubits)
+    
     if traceplot:
-        fig,axes = plt.subplots(QB.num_qubits,1)
+
+        fig,axes = plt.subplots(QB.num_qubits+1,1)
         for ii in range(QB.num_qubits):
             axes[ii].plot(tlist,entropylist[ii])
             axes[ii].set_xlabel('t(ns)');axes[ii].set_ylabel('entropy of Q'+str(ii))
+        axes[QB.num_qubits].plot(tlist,whole_entropy)
+        axes[QB.num_qubits].set_xlabel('t(ns)');axes[QB.num_qubits].set_ylabel('entropy of system')
         plt.show()
+            
 
-    whole_entropy = entropylist[:,-1]
-    return([entropylist,sum(whole_entropy)])
+    return([entropylist,whole_entropy])
 
 
 if __name__ == '__main__':
 
-    Num_qubits = 6
+    Num_qubits = 5
     frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
     coupling = np.ones(Num_qubits-1) * 0.012 * 2*np.pi
     eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
@@ -73,10 +83,11 @@ if __name__ == '__main__':
     parameter = [frequency,coupling,eta_q,N_level]
     QBC = Qubits(qubits_parameter = parameter) 
 
-    inistate = InitialState(Num_qubits,[3])
-    t_total = 100
+    inistate = InitialState(Num_qubits,[0,2,4])
+    t_total = 200
 
     QBC = StateEvolution(QBC , inistate , t_total)
   
     entropy,sumentropy = EntropyEvolution(QBC,traceplot=True)
     print(sumentropy)
+
