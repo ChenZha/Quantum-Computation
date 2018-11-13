@@ -68,11 +68,12 @@ def dmToentropy(dm,alpha):
 def EntropyEvolution(QBC , subsystem = [0] , traceplot = False):
     QB = QBC
     tlist = QB.tlist
-    subsystem = np.array(subsystem)
     entropylist = np.zeros([QB.num_qubits,len(tlist)])
+    if type(subsystem)==np.ndarray:
+        subsystem = subsystem.tolist()
     for ii,subsys in enumerate(subsystem):
         for jj in range(len(tlist)):
-            entropylist[ii,jj] = dmToentropy(ptrace(QB.result.states[jj],np.array(subsys)),2)
+            entropylist[ii,jj] = dmToentropy(ptrace(QB.result.states[jj],subsys),2)
     
     whole_entropy = np.sum(entropylist,0)/(len(subsystem))
     
@@ -82,7 +83,7 @@ def EntropyEvolution(QBC , subsystem = [0] , traceplot = False):
             axes[ii].plot(tlist,entropylist[ii])
             axes[ii].set_xlabel('t(ns)');axes[ii].set_ylabel('entropy of Q'+str(subsystem[ii]))
         axes[len(subsystem)].plot(tlist,whole_entropy)
-        axes[len(subsystem)].set_xlabel('t(ns)');axes[QB.num_qubits].set_ylabel('entropy of system')
+        axes[len(subsystem)].set_xlabel('t(ns)');axes[len(subsystem)].set_ylabel('entropy of system')
         plt.show()
             
 
@@ -99,11 +100,12 @@ if __name__ == '__main__':
     parameter = [frequency,coupling,eta_q,N_level]
     QBC = Qubits(qubits_parameter = parameter)
 
-    inistate = InitialState(Num_qubits,['1','0','+','-','+i','-i'])
+    inistate = InitialState(Num_qubits,['+','+','+','+'])
     t_total = 200
 
     QBC = StateEvolution(QBC , inistate , t_total)
-  
-    entropy,sumentropy = EntropyEvolution(QBC,np.arange(Num_qubits),traceplot=True)
+    subsystem = [i for i in range(Num_qubits)]
+    # subsystem = [[1],[2,3],[0],[0,1,2,3]]
+    entropy,sumentropy = EntropyEvolution(QBC,subsystem,traceplot=True)
     print(sumentropy)
 
