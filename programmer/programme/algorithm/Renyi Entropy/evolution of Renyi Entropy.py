@@ -9,22 +9,39 @@ def runnow(func):
     out.start()
     return lambda:out
 
-def InitialState(Num_qubits,excite_location):
+import time
+timezero=time.time()
+import sys  
+
+
+
+def InitialState(Num_qubits,state_qubits):
     '''
     generate initial state
+    '1','0'
+    '+','-'
+    '+i','-i'
     '''
-    assert max(excite_location) < Num_qubits 
+    assert len(state_qubits) == Num_qubits 
 
     state = []
     for ii in range(Num_qubits):
-        if ii in excite_location:
+        if state_qubits[ii] == '1':
             state.append(basis(3,1))
-        else:
+        elif state_qubits[ii] == '0':
             state.append(basis(3,0))
+        elif state_qubits[ii] == '+':
+            state.append((basis(3,0)+basis(3,1)).unit())
+        elif state_qubits[ii] == '-':
+            state.append((basis(3,0)-basis(3,1)).unit())
+        elif state_qubits[ii] == '+i':
+            state.append((basis(3,0)+1j*basis(3,1)).unit())
+        elif state_qubits[ii] == '-i':
+            state.append((basis(3,0)-1j*basis(3,1)).unit())
+        else:
+            print('there is no such an error')
     inistate = tensor(*state)
     return(inistate)
-
-
 
 
 def StateEvolution(qubit_chain,inistate,t_total):
@@ -43,15 +60,15 @@ def dmToentropy(dm,alpha):
     calculate Renyi Entropy through density matrix
     '''
     alpha = int(alpha)
-    temp = dm
-    for ii in range(alpha-1):
-        temp = temp*dm
+    temp = dm**alpha
     dmdata = temp.data.toarray()
     SA = np.log2(np.trace(dmdata))/(1-alpha)
     return(SA)
-def EntropyEvolution(QBC,traceplot = False):
+
+def EntropyEvolution(QBC , subsystem = [0] , traceplot = False):
     QB = QBC
     tlist = QB.tlist
+    subsystem = np.array(subsystem)
     entropylist = np.zeros([QB.num_qubits,len(tlist)])
     for ii in range(QB.num_qubits):
         for jj in range(len(tlist)):
@@ -75,15 +92,15 @@ def EntropyEvolution(QBC,traceplot = False):
 
 if __name__ == '__main__':
 
-    Num_qubits = 5
+    Num_qubits = 6
     frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
     coupling = np.ones(Num_qubits-1) * 0.012 * 2*np.pi
     eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
     N_level= 3
     parameter = [frequency,coupling,eta_q,N_level]
-    QBC = Qubits(qubits_parameter = parameter) 
+    QBC = Qubits(qubits_parameter = parameter)
 
-    inistate = InitialState(Num_qubits,[0,2,4])
+    inistate = InitialState(Num_qubits,['1','0','+','-','+i','-i'])
     t_total = 200
 
     QBC = StateEvolution(QBC , inistate , t_total)
