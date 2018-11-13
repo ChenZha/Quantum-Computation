@@ -110,26 +110,48 @@ class Qubits():
             for index in range(self.num_qubits-1):# 添加耦合
                 H0 += self.coupling[index]*(self.sm[index]+self.sm[index].dag())*(self.sm[index+1]+self.sm[index+1].dag())
         return(H0)
-    def _findstate(self,state):
+    def _strTostate(self,state):
+        qustate = []
+        for ii in range(len(state)):
+            qulevel = int(eval(state[ii]))
+            qustate.append(basis(self.N_level,qulevel))
+        qustate = tensor(*qustate)
+        return(qustate)
+    def _findstate(self,state,search_space='full'):
         '''
         在self.state中找到各个态对应的位置
         '''
         index_level = None
         assert int(len(state)) == self.num_qubits
-        e = np.zeros(self.num_qubits,dtype = 'int') #记录寻找的态对应每个比特上的能级
-        s = np.zeros(self.num_qubits) #记录某个本征态的每个比特上相应能级的信息
-        for i in range(self.num_qubits):
-            e[i] = int(eval(state[i]))
-        for index in range(len(self.State_eig)):
-            for i in range(self.num_qubits):
-                s[i] = np.abs(ptrace(self.State_eig[index],i)[e[i]][0][e[i]])
-            if all(s>=0.5):
-                index_level = index
-        if index_level == None:
-            print('No State')
-            return(None)
+
+        # e = np.zeros(self.num_qubits,dtype = 'int') #记录寻找的态对应每个比特上的能级
+        # s = np.zeros(self.num_qubits) #记录某个本征态的每个比特上相应能级的信息
+        # for i in range(self.num_qubits):
+        #     e[i] = int(eval(state[i]))
+
+        if search_space == 'full':
+            search_len=len(self.State_eig)
+        elif search_space == 'brev':
+            search_len=min(3*self.num_qubits,len(self.State_eig))
         else:
-            return(index_level)
+            print('search space error')
+
+        qustate = self._strTostate(state)
+        for index in range(search_len):
+            exp = expect(ket2dm(self.State_eig[index]),qustate)
+            if exp>0.5:
+                index_level = index
+                return(index_level)
+
+            # for i in range(self.num_qubits):
+            #     s[i] = np.abs(ptrace(self.State_eig[index],i)[e[i]][0][e[i]])
+            # if all(s>=0.5):
+            #     index_level = index
+            #     return(index_level)
+
+        print('No State')
+        return(None)
+        
     def _FirstExcite(self):
         '''
         找到基态，以及各个比特的第一激发态的位置
@@ -143,8 +165,8 @@ class Qubits():
                     state_label+='1'
                 else:
                     state_label+='0'
-            first_excited.append(self._findstate(state_label))
-        first_excited.append(self._findstate('0'*self.num_qubits)) #基态的位置
+            first_excited.append(self._findstate(state_label,search_space='brev'))
+        first_excited.append(self._findstate('0'*self.num_qubits,search_space='brev')) #基态的位置
 
         return(first_excited)
     
@@ -307,7 +329,7 @@ class Qubits():
                 number = np.int(np.mod(II,2))
                 code += str(number)
                 state.insert(0,basis(self.N_level , number))
-                l += number*3**JJ
+                l += number*self.N_level**JJ
                 II = np.int(np.floor(II/2))
             assert len(code) == len(state) == self.num_qubits    
 
