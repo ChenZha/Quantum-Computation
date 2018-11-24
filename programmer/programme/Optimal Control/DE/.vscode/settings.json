@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "E:\\Anaconda3\\envs\\qutip-env\\python.exe"
+    "python.pythonPath": "C:\\Users\\qmeas\\AppData\\Local\\conda\\conda\\envs\\qutip-env\\python.exe",
+    "python.linting.pylintEnabled": false
 }
