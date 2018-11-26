@@ -23,7 +23,8 @@ def InitialState(Num_qubits,state_qubits,N_level):
     '+','-'
     '+i','-i'
     '''
-    assert len(state_qubits) == Num_qubits 
+    if len(state_qubits) != Num_qubits:
+        print('number of qubits error')
 
     state = []
     for ii in range(Num_qubits):
@@ -52,6 +53,14 @@ def generate_subsys(Num_qubits):
     subsys = []
     for jj in range(Num_qubits-1):
         subsys.extend(list(itertools.combinations(system,jj+1)))
+    def funcfilter(x,xmap={}):
+        subx = tuple([ii for ii in system if ii not in x])
+        xstr = [str(x),str(subx)]
+        boolin = xstr[0] in xmap or xstr[1] in xmap
+        xmap[xstr[0]]=1
+        xmap[xstr[1]]=1
+        return (not boolin)
+    subsys=list(filter(funcfilter,subsys))
     return(subsys)
 
 
@@ -60,11 +69,11 @@ def StateEvolution(qubit_chain,inistate,t_total):
     '''
     the evolution of state
     '''
-    args = {'T_P':t_total,'T_copies':6*t_total+1 }
+    args = {'T_P':t_total,'T_copies':3*t_total+1 }
     psi = inistate
     QB = qubit_chain
 
-    fianlstate = QB.evolution(drive = None , psi = psi , track_plot = True , RWF = 'UnCpRWF',argument = args )
+    fianlstate = QB.evolution(drive = None , psi = psi , track_plot = False , RWF = 'UnCpRWF',argument = args )
 
     return(QB)
 def dmToentropy(dm,alpha):
@@ -113,9 +122,10 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
             max_entrpy_list[ii] = len(subsys)
             GHZ_entrpy_list[ii] = dmToentropy(ptrace(GHZ_entrpy_state,subsys),2)
         for jj in range(len(tlist)):
-            entropylist[ii,jj] = dmToentropy(ptrace(QB.result.states[jj],subsys),2)
-        # print("line %s time %s"%(sys._getframe().f_lineno,time.time()-timezero))
-    
+            sub_desitymatrix = ptrace(QB.result.states[jj],subsys)
+            entropylist[ii,jj] = dmToentropy(sub_desitymatrix,2)
+        print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
+    print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
     global_entropy = np.sum(entropylist,0)
     if traceplot:
         max_entrpy = np.ones_like(global_entropy)*np.sum(max_entrpy_list)
@@ -208,21 +218,22 @@ def get_max_entropy(Num_qubits):
 
 
 if __name__ == '__main__':
+    
 
-    Num_qubits = 2
+    Num_qubits = 6
     frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
     # frequency = np.array([1,1.25]) * 5.0 * 2*np.pi
-    coupling = np.ones(Num_qubits-1) * 0.024 * 2*np.pi
+    coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
     eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
     N_level= 3
     parameter = [frequency,coupling,eta_q,N_level]
     QBC = Qubits(qubits_parameter = parameter)
 
-    inistate_label = ['+','+']
+    inistate_label = ['+','+','+','+','+','+']
     t_total = 100
 
     subsystem = generate_subsys(Num_qubits)
-    global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
+    global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True);print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
     print(global_entropy)
 
     
