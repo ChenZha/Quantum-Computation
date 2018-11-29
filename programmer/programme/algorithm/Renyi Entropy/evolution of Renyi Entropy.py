@@ -147,7 +147,7 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
         plt.legend(handles,labels)
         maxloc = np.argmax(global_entropy)
         plt.title(str(inistate_label)+',entropy='+str(global_entropy[maxloc])[0:6]+',time='+str(QB.tlist[maxloc])[0:6])
-        plt.savefig('./simulation/'+str(inistate_label))
+        plt.savefig('./simulation_2/'+str(inistate_label))
         # plt.show()
     print(str(inistate_label)+'evolution end')
     return(np.max(global_entropy))
@@ -250,7 +250,7 @@ if __name__ == '__main__':
             # frequency = np.array([1,1.25]) * 5.0 * 2*np.pi
             coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
             eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
-            N_level= 3
+            N_level= 2
             parameter = [frequency,coupling,eta_q,N_level]
             QBC = Qubits(qubits_parameter = parameter)
 

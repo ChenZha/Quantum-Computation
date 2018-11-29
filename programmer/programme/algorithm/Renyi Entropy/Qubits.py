@@ -71,7 +71,11 @@ class Qubits():
             cmdstr=''
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    cmdstr+='basis(self.N_level,2)*basis(self.N_level,2).dag(),'
+                    if self.N_level>2:
+                        cmdstr+='basis(self.N_level,2)*basis(self.N_level,2).dag(),'
+                    else:
+                        cmdstr+='Qobj(np.zeros([self.N_level,self.N_level])),'
+
                 else:
                     cmdstr+='qeye(self.N_level),'
             E_uc.append(eval('tensor('+cmdstr+')'))
