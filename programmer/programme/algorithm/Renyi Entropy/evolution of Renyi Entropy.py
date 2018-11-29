@@ -3,6 +3,7 @@ from Qubits import Qubits
 from qutip import *
 import matplotlib.pyplot as plt
 from multiprocessing import Pool
+import os
 
 import threading
 def runnow(func):
@@ -69,7 +70,7 @@ def StateEvolution(qubit_chain,inistate,t_total):
     '''
     the evolution of state
     '''
-    args = {'T_P':t_total,'T_copies':3*t_total+1 }
+    args = {'T_P':t_total,'T_copies':1.5*t_total+1 }
     psi = inistate
     QB = qubit_chain
 
@@ -124,8 +125,8 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
         for jj in range(len(tlist)):
             sub_desitymatrix = ptrace(QB.result.states[jj],subsys)
             entropylist[ii,jj] = dmToentropy(sub_desitymatrix,2)
-        print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
-    print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
+        # print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
+    # print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
     global_entropy = np.sum(entropylist,0)
     if traceplot:
         max_entrpy = np.ones_like(global_entropy)*np.sum(max_entrpy_list)
@@ -144,8 +145,11 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
         axes.set_xlabel('t(ns)');axes.set_ylabel('entropy of system')
         handles, labels = plt.gca().get_legend_handles_labels()
         plt.legend(handles,labels)
-        plt.show()
-
+        maxloc = np.argmax(global_entropy)
+        plt.title(str(inistate_label)+',entropy='+str(global_entropy[maxloc])[0:6]+',time='+str(QB.tlist[maxloc])[0:6])
+        plt.savefig('./simulation/'+str(inistate_label))
+        # plt.show()
+    print(str(inistate_label)+'evolution end')
     return(np.max(global_entropy))
     # return([entropylist,global_entropy])
 def generate_all_state(Num_qubits):
@@ -192,14 +196,14 @@ def generate_all_state(Num_qubits):
 def get_max_entropy(Num_qubits):
     
     frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
-    coupling = np.ones(Num_qubits-1) * 0.012 * 2*np.pi
+    coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
     eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
     N_level= 3
     parameter = [frequency,coupling,eta_q,N_level]
     QBC = Qubits(qubits_parameter = parameter)
 
     all_ini_state = generate_all_state(Num_qubits)
-    t_total = 200
+    t_total = 150
 
     subsystem = generate_subsys(Num_qubits)
 
@@ -220,24 +224,44 @@ def get_max_entropy(Num_qubits):
 if __name__ == '__main__':
     
 
-    Num_qubits = 6
-    frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
-    # frequency = np.array([1,1.25]) * 5.0 * 2*np.pi
-    coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
-    eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
-    N_level= 3
-    parameter = [frequency,coupling,eta_q,N_level]
-    QBC = Qubits(qubits_parameter = parameter)
+    # Num_qubits = 3
+    # frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
+    # # frequency = np.array([1,1.25]) * 5.0 * 2*np.pi
+    # coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
+    # eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
+    # N_level= 3
+    # parameter = [frequency,coupling,eta_q,N_level]
+    # QBC = Qubits(qubits_parameter = parameter)
 
-    inistate_label = ['+','+','+','+','+','+']
-    t_total = 100
+    # inistate_label = ['+', '-', '+']
+    # t_total = 150
 
-    subsystem = generate_subsys(Num_qubits)
-    global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True);print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
-    print(global_entropy)
+    # subsystem = generate_subsys(Num_qubits)
+    # global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
+    # print(global_entropy)
+
+
+    for root, dirs, files in os.walk('simulation'):
+        for file in files:  
+            inistate_label = eval(os.path.splitext(file)[0])
+            Num_qubits = len(inistate_label)
+        
+            frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
+            # frequency = np.array([1,1.25]) * 5.0 * 2*np.pi
+            coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
+            eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
+            N_level= 3
+            parameter = [frequency,coupling,eta_q,N_level]
+            QBC = Qubits(qubits_parameter = parameter)
+
+            t_total = 150
+
+            subsystem = generate_subsys(Num_qubits)
+            global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
+            print(global_entropy)
 
     
-    # max_num = 4
+    # max_num = 6
     # max_state = []
     # max_entropy = []
     # for ii in range(2,max_num+1):

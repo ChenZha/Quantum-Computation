@@ -1,4 +1,6 @@
-2 qubits,	 max entropy=2.000007,	 state=['+', '+'],	 time:5.033239841461182 
-3 qubits,	 max entropy=6.037291,	 state=['+', '-', '+'],	 time:27.319120407104492 
-2 qubits,	 max entropy=2.000009,	 state=['+i', '+i'],	 time:8.147088766098022 
-3 qubits,	 max entropy=6.040048,	 state=['+i', '-i', '+i'],	 time:86.19108843803406 
+
+2 qubits,	 max entropy=1.000000,	 state=['1', '0'],	 time:3.523949384689331 
+3 qubits,	 max entropy=3.018991,	 state=['+', '-', '+'],	 time:6.028043985366821 
+4 qubits,	 max entropy=8.712738,	 state=['+', '+', '+', '-'],	 time:27.044631719589233 
+5 qubits,	 max entropy=23.428632,	 state=['+', '-', '-', '-', '+'],	 time:516.117903470993 
+6 qubits,	 max entropy=57.672420,	 state=['-', '+', '-', '-', '-', '-'],	 time:46269.71394753456 
