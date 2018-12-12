@@ -224,41 +224,41 @@ def get_max_entropy(Num_qubits):
 if __name__ == '__main__':
     
 
-    # Num_qubits = 3
-    # frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
-    # # frequency = np.array([1,1.25]) * 5.0 * 2*np.pi
-    # coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
-    # eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
-    # N_level= 3
-    # parameter = [frequency,coupling,eta_q,N_level]
-    # QBC = Qubits(qubits_parameter = parameter)
+    Num_qubits = 3
+    frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
+    # frequency = np.array([1,1.25]) * 5.0 * 2*np.pi
+    coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
+    eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
+    N_level= 3
+    parameter = [frequency,coupling,eta_q,N_level]
+    QBC = Qubits(qubits_parameter = parameter)
 
-    # inistate_label = ['+', '-', '+']
-    # t_total = 150
+    inistate_label = ['+', '-', '+']
+    t_total = 150
 
-    # subsystem = generate_subsys(Num_qubits)
-    # global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
-    # print(global_entropy)
+    subsystem = generate_subsys(Num_qubits)
+    global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
+    print(global_entropy)
 
 
-    for root, dirs, files in os.walk('simulation'):
-        for file in files:  
-            inistate_label = eval(os.path.splitext(file)[0])
-            Num_qubits = len(inistate_label)
+    # for root, dirs, files in os.walk('simulation'):
+    #     for file in files:  
+    #         inistate_label = eval(os.path.splitext(file)[0])
+    #         Num_qubits = len(inistate_label)
         
-            frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
-            # frequency = np.array([1,1.25]) * 5.0 * 2*np.pi
-            coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
-            eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
-            N_level= 2
-            parameter = [frequency,coupling,eta_q,N_level]
-            QBC = Qubits(qubits_parameter = parameter)
+    #         frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
+    #         # frequency = np.array([1,1.25]) * 5.0 * 2*np.pi
+    #         coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
+    #         eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
+    #         N_level= 2
+    #         parameter = [frequency,coupling,eta_q,N_level]
+    #         QBC = Qubits(qubits_parameter = parameter)
 
-            t_total = 150
+    #         t_total = 150
 
-            subsystem = generate_subsys(Num_qubits)
-            global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
-            print(global_entropy)
+    #         subsystem = generate_subsys(Num_qubits)
+    #         global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
+    #         print(global_entropy)
 
     
     # max_num = 6
