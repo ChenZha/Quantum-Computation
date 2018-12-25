@@ -3,20 +3,20 @@
 
 % C= 86e-15;
 % R = 7400;
-% delta_R = 370;
-
-
+% delta_R = 0.15*R;
+% 
+% 
 % 
 % a_list = 1:0.5:15;
 % fluc_list = [];
 % scope_list = [];
 % gap_list = [];
 % 
-% [Ex,~] = E_asym(C_E(C),R_E(R-delta_R),1,0,50);
-% w_max_f = Ex(2)-Ex(1);
-% [Ex,~] = E_asym(C_E(C),R_E(R-delta_R),1,0.5,50);
-% w_min_f = Ex(2)-Ex(1);
-% scope = w_max_f-w_min_f;
+% % [Ex,~] = E_asym(C_E(C),R_E(R-delta_R),1,0,50);
+% % w_max_f = Ex(2)-Ex(1);
+% % [Ex,~] = E_asym(C_E(C),R_E(R-delta_R),1,0.5,50);
+% % w_min_f = Ex(2)-Ex(1);
+% % scope = w_max_f-w_min_f;
 % 
 % for a = a_list
 %     [fluc,scope] = gap_fluc_scope(C,R,delta_R,a);
@@ -29,42 +29,42 @@
 %     legend('fluctuation' , 'scope' , 'gap');
 %%
 % 给定并联电阻R，以及比例a，求出两个电阻R1 = a*R2
-R = 7200;
-a = 4;
+R = 7600;
+a = 6;
 R2 = R*(1+a)/a;
 R1 = a*R2;
-disp(['R1=',num2str(R1)]);
-disp(['R2=',num2str(R2)]);
+disp(['R1=',num2str(R1),',R2=',num2str(R2),',a=',num2str(a)]);
+
 
 %%
 % 计算不同比例a下的dephasing rateΓφ和T2随施加磁通的变化,以及dephasing rate随斜率变化的关系
-% hbar=1.054560652926899e-034;h = hbar*2*pi;e = 1.60217662e-19;phi0 = h/2/e;
-% C= 86e-15;
-% R = 7400;
-% a = 3;
-% 
-% A = (1.4*10^(-6))^2;% 磁通噪音强度
-% backround = 0.05;% 背底(flux-independent noise)导致的dephasing rate
-% 
-% 
-% f = -0.8:0.001:0.8;
-% rate = [];
-% T2 =  [];
-% Df = [];
-% freq = [];
-% for i = f
-% temp = dephsing_rate(C,R,a,A,i,backround);
-% rate(end+1) = temp;
-% T2(end+1) = 1/temp;
-% 
-% Df(end+1) = freq_f_slope(C,R,a,i);
-% [Ex,~] = E_asym(C_E(C),R_E(R),a,i,50);
-% freq(end+1) = Ex(2)-Ex(1);
-% end
-% % figure();plot(f,rate);title(['dephasing rate,a=',num2str(a)]);xlabel('\Phi/\Phi0');ylabel('\Gamma(\mus^{-1})')% dephasing rate 随flux 变化
-% figure();plot(f,T2);title(['T2,a=',num2str(a)]);xlabel('\Phi/\Phi0');ylabel('T2(\mus)')% T2随flux变化
-% % figure();plot(Df,rate,'*');title(['dephasing rate,a=',num2str(a)]);xlabel('D_\Phi(GHz/Phi_0)');ylabel('\Gamma(\mus^{-1})')% dephasing rate 随slope 变化
-% figure();plot(f,freq);title(['Freq,a=',num2str(a)]);xlabel('\Phi/\Phi0');ylabel('freq(GHz)')% T2随flux变化
+hbar=1.054560652926899e-034;h = hbar*2*pi;e = 1.60217662e-19;phi0 = h/2/e;
+C= 86e-15;
+R = 7400;
+a = 6;
+
+A = (1.4*10^(-6))^2;% 磁通噪音强度
+backround = 0.05;% 背底(flux-independent noise)导致的dephasing rate
+
+
+f = -0.8:0.001:0.8;
+rate = [];
+T2 =  [];
+Df = [];
+freq = [];
+for i = f
+temp = dephsing_rate(C,R,a,A,i,backround);
+rate(end+1) = temp;
+T2(end+1) = 1/temp;
+
+Df(end+1) = freq_f_slope(C,R,a,i);
+[Ex,~] = E_asym(C_E(C),R_E(R),a,i,50);
+freq(end+1) = Ex(2)-Ex(1);
+end
+% figure();plot(f,rate);title(['dephasing rate,a=',num2str(a)]);xlabel('\Phi/\Phi0');ylabel('\Gamma(\mus^{-1})')% dephasing rate 随flux 变化
+figure();plot(f,T2);title(['T2,a=',num2str(a)]);xlabel('\Phi/\Phi0');ylabel('T2(\mus)')% T2随flux变化
+% figure();plot(Df,rate,'*');title(['dephasing rate,a=',num2str(a)]);xlabel('D_\Phi(GHz/Phi_0)');ylabel('\Gamma(\mus^{-1})')% dephasing rate 随slope 变化
+figure();plot(f,freq);title(['Freq,a=',num2str(a)]);xlabel('\Phi/\Phi0');ylabel('freq(GHz)')% T2随flux变化
 
 
 %%
@@ -102,11 +102,12 @@ w_min_R = Ex(2)-Ex(1);
 
 [Ex,~] = E_asym(C_E(C),R_E(R-delta_R),a,0,50);
 w_max_R = Ex(2)-Ex(1);
+
 fluc = w_max_R-w_min_R;
 
-[Ex,~] = E_asym(C_E(C),R_E(R-delta_R),a,0,50);
+[Ex,~] = E_asym(C_E(C),R_E(R),a,0,50);
 w_max_f = Ex(2)-Ex(1);
-[Ex,~] = E_asym(C_E(C),R_E(R-delta_R),a,0.5,50);
+[Ex,~] = E_asym(C_E(C),R_E(R),a,0.5,50);
 w_min_f = Ex(2)-Ex(1);
 scope = w_max_f-w_min_f;
 end
