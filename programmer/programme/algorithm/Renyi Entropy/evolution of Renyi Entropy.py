@@ -74,7 +74,7 @@ def StateEvolution(qubit_chain,inistate,t_total):
     psi = inistate
     QB = qubit_chain
 
-    fianlstate = QB.evolution(drive = None , psi = psi , track_plot = False , RWF = 'UnCpRWF',argument = args )
+    fianlstate = QB.evolution(drive = None , psi = psi ,  track_plot = False , RWF = 'UnCpRWF',argument = args )
 
     return(QB)
 def dmToentropy(dm,alpha):
@@ -147,8 +147,8 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
         plt.legend(handles,labels)
         maxloc = np.argmax(global_entropy)
         plt.title(str(inistate_label)+',entropy='+str(global_entropy[maxloc])[0:6]+',time='+str(QB.tlist[maxloc])[0:6])
-        plt.savefig('./simulation_2/'+str(inistate_label))
-        # plt.show()
+        # plt.savefig('./simulation_2/'+str(inistate_label))
+        plt.show()
     print(str(inistate_label)+'evolution end')
     return(np.max(global_entropy))
     # return([entropylist,global_entropy])

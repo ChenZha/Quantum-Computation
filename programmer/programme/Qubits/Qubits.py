@@ -71,7 +71,11 @@ class Qubits():
             cmdstr=''
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    cmdstr+='basis(self.N_level,2)*basis(self.N_level,2).dag(),'
+                    if self.N_level>2:
+                        cmdstr+='basis(self.N_level,2)*basis(self.N_level,2).dag(),'
+                    else:
+                        cmdstr+='Qobj(np.zeros([self.N_level,self.N_level])),'
+
                 else:
                     cmdstr+='qeye(self.N_level),'
             E_uc.append(eval('tensor('+cmdstr+')'))
@@ -209,8 +213,13 @@ class Qubits():
         # Rotation Frame of final state
         UF = self._RF_Generation(self.tlist[-1])
         # Final State in Rotation Frame(pure state)
-        final_state = UF*self.result.states[-1]
-
+        statetype = self.result.states[-1].type
+        if statetype == 'ket':
+            final_state = UF*self.result.states[-1]
+        elif statetype == 'oper':
+            final_state = UF*self.result.states[-1]*UF.dag()
+        else:
+            print('statetype error')
         if track_plot:
             self._track_plot()
 
