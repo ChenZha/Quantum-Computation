@@ -227,29 +227,29 @@ def CNOT(P):
     
 
 
-#    p = Pool(4)
-#   
-#    A = p.map(getfid,T)
-#    fid = [x[0] for x in A]
-#    leakage = [x[1] for x in A]
-#    outputstate = [x[2] for x in A]
-#    # fid = np.array(fid)
-#    # leakage = np.array(leakage)
-#
-#        
-#    p.close()
-#    p.join()
-
-    for phi in T:
-        A = getfid(phi)
-        fid.append(A[0])
-        leakage0.append(A[1][0])
-        leakage1.append(A[1][1])
-        outputstate.append(A[2])
+    p = Pool(4)
+   
+    A = p.map(getfid,T)
+    fid = [x[0] for x in A]
+    leakage = [x[1] for x in A]
+    outputstate = [x[2] for x in A]
     fid = np.array(fid)
-    leakage0 = np.array(leakage0)
-    leakage1 = np.array(leakage1)
-    outputstate = np.array(outputstate)
+    leakage = np.array(leakage)
+
+       
+    p.close()
+    p.join()
+
+    # for phi in T:
+    #     A = getfid(phi)
+    #     fid.append(A[0])
+    #     leakage0.append(A[1][0])
+    #     leakage1.append(A[1][1])
+    #     outputstate.append(A[2])
+    # fid = np.array(fid)
+    # leakage0 = np.array(leakage0)
+    # leakage1 = np.array(leakage1)
+    # outputstate = np.array(outputstate)
 
     gc.collect()
 
@@ -275,7 +275,8 @@ def CNOT(P):
 #    Operator_View(process,'U_Simulation')
 
 
-    print(P[0]/2/np.pi,P[1]/2/np.pi,P[2],P[3],np.mean(fid),Ufidelity)
+    # print(P[0]/2/np.pi,P[1]/2/np.pi,P[2],P[3],np.mean(fid),Ufidelity)
+    print(P,np.mean(fid),Ufidelity)
     return(-Ufidelity)
 
 
@@ -297,13 +298,13 @@ if __name__=='__main__':
     eta_q=  np.array([-0.230 , -0.216]) * 2 * np.pi
 
     th = initial_wave()
-    plt.figure(figsize=(30,30),linewidth = 10)
-    line = plt.plot(th,linewidth = 10);
-    plt.xlabel('t',fontsize=90)
-    plt.ylabel('Amplitude',fontsize=90)
-    plt.xticks(fontsize=50)
-    plt.yticks(fontsize=50)
-    plt.savefig(r'waveform.png')
+    # plt.figure(figsize=(30,30),linewidth = 10)
+    # line = plt.plot(th,linewidth = 10);
+    # plt.xlabel('t',fontsize=90)
+    # plt.ylabel('Amplitude',fontsize=90)
+    # plt.xticks(fontsize=50)
+    # plt.yticks(fontsize=50)
+    # plt.savefig(r'waveform.png')
 
     sm = np.array([tensor(destroy(3),qeye(3)) , tensor(qeye(3),destroy(3))])
     E_uc = np.array([tensor(basis(3,2)*basis(3,2).dag(),qeye(3)) , tensor(qeye(3), basis(3,2)*basis(3,2).dag())])
@@ -323,7 +324,7 @@ if __name__=='__main__':
 #    result = minimize(CNOT , x0 , method="Nelder-Mead",options={'disp': True})
 #    print(result)
 
-#    process = CNOT([ 0.    ,     -4.19191124, -2.84685197, -0.47814543])
+    process = CNOT([ 3.28223493,-0.87506933,2.98331095,1.829626,-0.14838399,0.10973198, -0.14125958,0.15415665])
 
 
     endtime  = time.time()
