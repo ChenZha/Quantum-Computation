@@ -38,21 +38,12 @@ R1 = a*R2;
 disp(['R1=',num2str(R1),',R2=',num2str(R2),',a=',num2str(a)]);
 
 %%
-hbar=1.054560652926899e-034;h = hbar*2*pi;e = 1.60217662e-19;phi0 = h/2/e;
-C= 86e-15;
-R = 7400;
-
 alpha = [1,3,5,7];
-h = figure();
 for a = alpha
     freq = [];
     slope = [];
     f = 0:0.005:0.25;
     for i = f
-        [Ex,~] = func.E_asym(func.C_E(C),func.R_E(R),a,i,50);
-        freq(end+1) = Ex(2)-Ex(1);
-        slope(end+1) = func.freq_f_slope(C,R,a,i);
-    end
 end
 %%
 % 计算不同比例a下的dephasing rateΓφ和T2随施加磁通的变化,以及dephasing rate随斜率变化的关系
