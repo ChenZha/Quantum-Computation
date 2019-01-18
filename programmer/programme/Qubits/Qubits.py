@@ -29,7 +29,7 @@ class Qubits():
 
     def __init__(self , qubits_parameter , *args , **kwargs):
         # qubits_parameter结构:frequency(频率);coupling(耦合强度);eta_q(非简谐性);N_level(涉及的能级)
-        self.frequency , self.coupling , self.eta_q , self.N_level= qubits_parameter
+        self.frequency , self.coupling , self.eta_q , self.N_level = qubits_parameter
         assert len(self.frequency) == len(self.coupling)+1 == len(self.eta_q)
         self.num_qubits = int(len(self.frequency)) #比特数目
 
@@ -241,6 +241,16 @@ class Qubits():
                 error('RWF ERROR')
         UF = tensor(*U)
         return(UF)
+    def expect_evolution(self, operator):
+        '''
+        得到某个operator的随时间演化序列
+        '''
+        evolution_list = np.zeros(len(self.tlist))
+        for t_index in range(len(self.tlist)):
+            UF_t =  self._RF_Generation(self.tlist[t_index])
+            op = UF_t.dag()*(operator)*UF_t
+            evolution_list[t_index] = expect(op,self.result.states[t_index])
+        return(evolution_list)
     def _track_plot(self):
         '''
         画出各个比特状态在Bloch球中的轨迹
@@ -251,16 +261,26 @@ class Qubits():
         leakage = np.zeros([self.num_qubits,len(self.tlist)])
         # 各个时间点，各个比特在X,Y,Z轴上投影
         
-        for t_index in range(len(self.tlist)):
-            UF_t =  self._RF_Generation(self.tlist[t_index])
-            for q_index in range(self.num_qubits):
-                opx = UF_t.dag()*(self.sm[q_index].dag()+self.sm[q_index])*UF_t
-                opy = UF_t.dag()*(1j*self.sm[q_index].dag()-1j*self.sm[q_index])*UF_t
-                opz = UF_t.dag()*((self.E_g[q_index]+self.E_e[q_index]+self.E_uc[q_index])-2*self.sm[q_index].dag()*self.sm[q_index])*UF_t
-                nx[q_index,t_index] = expect(opx,self.result.states[t_index])
-                ny[q_index,t_index] = expect(opy,self.result.states[t_index])
-                nz[q_index,t_index] = expect(opz,self.result.states[t_index])
-                leakage[q_index,t_index] = expect(self.E_uc[q_index] , self.result.states[t_index])
+        # for t_index in range(len(self.tlist)):
+        #     UF_t =  self._RF_Generation(self.tlist[t_index])
+        #     for q_index in range(self.num_qubits):
+        #         opx = UF_t.dag()*(self.sm[q_index].dag()+self.sm[q_index])*UF_t
+        #         opy = UF_t.dag()*(1j*self.sm[q_index].dag()-1j*self.sm[q_index])*UF_t
+        #         opz = UF_t.dag()*((self.E_g[q_index]+self.E_e[q_index]+self.E_uc[q_index])-2*self.sm[q_index].dag()*self.sm[q_index])*UF_t
+        #         nx[q_index,t_index] = expect(opx,self.result.states[t_index])
+        #         ny[q_index,t_index] = expect(opy,self.result.states[t_index])
+        #         nz[q_index,t_index] = expect(opz,self.result.states[t_index])
+        #         leakage[q_index,t_index] = expect(self.E_uc[q_index] , self.result.states[t_index])
+
+        for q_index in range(self.num_qubits):
+            opx = self.sm[q_index].dag()+self.sm[q_index]
+            opy = 1j*self.sm[q_index].dag()-1j*self.sm[q_index]
+            opz = (self.E_g[q_index]+self.E_e[q_index]+self.E_uc[q_index])-2*self.sm[q_index].dag()*self.sm[q_index]
+            nx[q_index] = self.expect_evolution(opx)
+            ny[q_index] = self.expect_evolution(opy)
+            nz[q_index] = self.expect_evolution(opz)
+            leakage[q_index] = self.expect_evolution(self.E_uc[q_index])
+        
         
         # 画图
         fig,axes = plt.subplots(self.num_qubits,1)

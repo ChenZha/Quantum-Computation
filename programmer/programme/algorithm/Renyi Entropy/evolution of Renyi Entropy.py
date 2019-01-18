@@ -150,20 +150,23 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
         # plt.savefig('./simulation_2/'+str(inistate_label))
         plt.show()
     print(str(inistate_label)+'evolution end')
-    return(np.max(global_entropy))
+    return([global_entropy,tlist])
+    # return(np.max(global_entropy))
     # return([entropylist,global_entropy])
 def generate_all_state(Num_qubits):
+    '''
+    从0,1,+,-,+i,-i中选择,组成各种初始态,镜像的算一种态
+    '''
 
     all_inistate = []
     Num_qubits = int(Num_qubits)
-    num_inistate_start = 4**(Num_qubits-1)
-    num_inistate_end = 4**Num_qubits
+    number_basis= 6
 
-    for ii in range(num_inistate_start,num_inistate_end):
+    for ii in range(number_basis**Num_qubits):
         state_ii = []
         index = ii
-        while index != 0:
-            codenum = np.int(np.mod(index,4))
+        for jj in range(Num_qubits):
+            codenum = np.int(np.mod(index,number_basis))
             if codenum == 0:
                 state_ii.insert(0,'0')
             elif codenum == 1:
@@ -172,13 +175,13 @@ def generate_all_state(Num_qubits):
                 state_ii.insert(0,'+')
             elif codenum == 3: 
                 state_ii.insert(0,'-')
-            # elif codenum == 4: 
-            #     state_ii.insert(0,'+i')
-            # elif codenum == 5: 
-            #     state_ii.insert(0,'-i')
+            elif codenum == 4: 
+                state_ii.insert(0,'+i')
+            elif codenum == 5: 
+                state_ii.insert(0,'-i')
             else:   
                 print('no such state')
-            index = np.int(np.floor(index/4))
+            index = np.int(np.floor(index/number_basis))
         all_inistate.append(state_ii)
 
     def funcfilter(x,xmap={}):
@@ -220,25 +223,57 @@ def get_max_entropy(Num_qubits):
 
     return(all_ini_state[loc],max_list[loc])
 
-
-if __name__ == '__main__':
+def get_all_evolution(Num_qubits):
     
-
-    Num_qubits = 3
     frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
-    # frequency = np.array([1,1.25]) * 5.0 * 2*np.pi
     coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
     eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
     N_level= 3
     parameter = [frequency,coupling,eta_q,N_level]
     QBC = Qubits(qubits_parameter = parameter)
 
-    inistate_label = ['+', '-', '+']
+    all_ini_state = generate_all_state(Num_qubits)
     t_total = 150
 
     subsystem = generate_subsys(Num_qubits)
-    global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
-    print(global_entropy)
+
+    ##
+    p = Pool()
+    result = []
+    for i in range(len(all_ini_state)):
+        result.append(p.apply_async(EntropyEvolution,(QBC , all_ini_state[i] , t_total , subsystem , False,)))
+    evo_list = np.array([result[i].get()[0] for i in range(len(result))])
+    tlist = result[0].get()[1]
+    p.close()
+    p.join()
+    ##
+    evo_list = evo_list.transpose()
+    plt.figure()
+    # plt.pcolor(np.r_[np.arange(len(all_ini_state)),3], np.r_[tlist,3],evo_list)
+    plt.pcolor(np.r_[np.arange(len(all_ini_state)),len(all_ini_state)], tlist,evo_list)
+    plt.colorbar()
+    plt.show()
+    return([evo_list,all_ini_state])
+
+if __name__ == '__main__':
+    
+    evo_list,all_ini_state = get_all_evolution(5)
+    # print(evo_list)
+    # Num_qubits = 3
+    # frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
+    # # frequency = np.array([1,1.25]) * 5.0 * 2*np.pi
+    # coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
+    # eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
+    # N_level= 3
+    # parameter = [frequency,coupling,eta_q,N_level]
+    # QBC = Qubits(qubits_parameter = parameter)
+
+    # inistate_label = ['+', '-', '+']
+    # t_total = 150
+
+    # subsystem = generate_subsys(Num_qubits)
+    # global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
+    # print(global_entropy)
 
 
     # for root, dirs, files in os.walk('simulation'):

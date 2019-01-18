@@ -1,6 +1,12 @@
 %% 
 func = CalFun();
 %%
+C = (89.19+9.8)*10^(-15);
+R= 7600;
+[Ex,~] = func.E_asym(func.C_E(C),func.R_E(R),8,0,50);
+w_max_f = Ex(2)-Ex(1);
+disp(['freq=',num2str(w_max_f)]);
+%%
 % 计算不同a下的电阻波动导致频率波动，以及调节磁通可以达到的频率范围
 
 C= 86e-15;
@@ -38,12 +44,13 @@ R1 = a*R2;
 disp(['R1=',num2str(R1),',R2=',num2str(R2),',a=',num2str(a)]);
 
 %%
+% 在某个a下,不同频率下,斜率的变化
 hbar=1.054560652926899e-034;h = hbar*2*pi;e = 1.60217662e-19;phi0 = h/2/e;
 C= 86e-15;
 R = 7400;
 
 alpha = [1,3,5,7];
-h = figure();
+h = figure();ax = axes(h);
 for a = alpha
     freq = [];
     slope = [];
@@ -53,7 +60,11 @@ for a = alpha
         freq(end+1) = Ex(2)-Ex(1);
         slope(end+1) = func.freq_f_slope(C,R,a,i);
     end
+    plot(ax,freq,slope,'DisplayName',num2str(a));hold on;
+    
 end
+legend('show');
+xlabel('Frequency');ylabel('slope')
 %%
 % 计算不同比例a下的dephasing rateΓφ和T2随施加磁通的变化,以及dephasing rate随斜率变化的关系
 hbar=1.054560652926899e-034;h = hbar*2*pi;e = 1.60217662e-19;phi0 = h/2/e;
