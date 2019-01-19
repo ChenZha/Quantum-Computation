@@ -174,7 +174,7 @@ class Qubits():
 
         return(first_excited)
     
-            
+    
 
     def evolution(self , drive = None , psi = basis(3,0) , collapse = [] , track_plot = False , RWF = 'CpRWF' , argument = {'T_p':100,'T_copies':201} , options = default_options):
         '''
@@ -428,7 +428,6 @@ class Qubits():
                 II = np.int(np.floor(II/2))
 
         return(process)
-            
 
 
 

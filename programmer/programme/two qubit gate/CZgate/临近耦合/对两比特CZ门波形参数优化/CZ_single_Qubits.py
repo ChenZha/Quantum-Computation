@@ -61,7 +61,6 @@ def CZ0(t,args):
         w = w(t)
     else:
         w = 0
-            
     return(w) 
 def CZ1(t,args):
     tp = args['T_P']
@@ -131,9 +130,8 @@ def CNOT(P):
 
     final = QBE.process(drive = Hdrive,process_plot = False , parallel = True , argument = args)
     final = QBE.phase_comp(final , [xita0 , xita1])
-    # targetprocess = np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,-1]])
-
-    # Ufidelity = np.abs(np.trace(np.dot(np.conjugate(np.transpose(targetprocess)),final)))/(2**QBE.num_qubits)
+    targetprocess = np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,-1]])
+    Ufidelity = np.abs(np.trace(np.dot(np.conjugate(np.transpose(targetprocess)),final)))/(2**QBE.num_qubits)
     # print(P , Ufidelity)
     np.savetxt('evolution _3.txt',final,fmt='%.8f',delimiter=',', newline='a',)
     return(final)
