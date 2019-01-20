@@ -54,8 +54,10 @@ class Qubits():
         'NoRWF':No RWF
         'UnCpRWF':Uncoupling RWF
         'CpRWF':coupling RWF
+        'custom_RWF':user-defined frequency of RWA
         '''
         self.RWF = 'CpRWF'
+        self.RWA_freq = 0
 
     def _BasicOperator(self):
         '''
@@ -183,13 +185,15 @@ class Qubits():
     
     
 
-    def evolution(self , drive = None , psi = basis(3,0) , collapse = [] , track_plot = False , RWF = 'CpRWF' , argument = {'T_p':100,'T_copies':201} , options = default_options):
+    def evolution(self , drive = None , psi = basis(3,0) , collapse = [] , track_plot = False , RWF = 'CpRWF' , RWA_freq = 0.0 , argument = {'T_p':100,'T_copies':201} , options = default_options):
         '''
         计算当前比特在psi初态，经drive驱动，最终得到的末态final_state
         参数：
         drive:驱动哈密顿量，形式[H1,H2,H3]
         psi：初态
         collapse:退相干算符
+        RWF:旋转坐标系的种类
+        RWA_freq:使用custom_RWF种类时,与CpRWA频率相差的频率
         argument：关于演化的参数,主要是drive中的参数，必须包含总时间T_p,时间份数T_copies
 
         返回：
@@ -217,6 +221,7 @@ class Qubits():
         
         # RWF
         self.RWF = RWF
+        self.RWA_freq = RWA_freq
         # Rotation Frame of final state
         UF = self._RF_Generation(self.tlist[-1])
         # Final State in Rotation Frame(pure state)
@@ -244,6 +249,11 @@ class Qubits():
                 U.append(basis(self.N_level[index],0)*basis(self.N_level[index],0).dag()+np.exp(1j*(self.frequency[index])*select_time)*basis(self.N_level[index],1)*basis(self.N_level[index],1).dag())
             elif self.RWF=='NoRWF':
                 U.append(qeye(self.N_level[index]))
+            elif self.RWF=='custom_RWF':
+                if type(self.RWA_freq) == float or type(self.RWA_freq) == int:
+                    self.RWA_freq = [self.RWA_freq]*self.num_qubits
+                U.append(basis(self.N_level[index],0)*basis(self.N_level[index],0).dag()+np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]]+self.RWA_freq[index])*select_time)*basis(self.N_level[index],1)*basis(self.N_level[index],1).dag())
+
             else:
                 error('RWF ERROR')
         UF = tensor(*U)
@@ -316,12 +326,14 @@ class Qubits():
 
         plt.show()
 
-    def process(self , drive = None , process_plot  = False , RWF = 'CpRWF' , parallel = False , argument = {'T_p':100,'T_copies':201} , options = default_options):
+    def process(self , drive = None , process_plot  = False , RWF = 'CpRWF' , RWA_freq = 0.0 ,parallel = False , argument = {'T_p':100,'T_copies':201} , options = default_options):
         '''
         对当前比特施加驱动drive，表征整个state space的演化过程(只取每个比特二能级的部分)
         参数：
         drive：驱动哈密顿量
         process_plot：是否画出演化矩阵(实部与虚部)
+        RWF:旋转坐标系的种类
+        RWA_freq:使用custom_RWF种类时,与CpRWA频率相差的频率
         parallel：是否进行并行计算(如果外部还需要并行计算，这里要去Flase)
         argument：关于演化的参数,主要是drive中的参数，必须包含总时间T_p,时间份数T_copies
 
@@ -335,7 +347,7 @@ class Qubits():
             p = Pool()
             result_final = []
             for i in range(len(basic)):
-                result_final.append(p.apply_async(self.evolution,(drive , basic[i] , [] , False , RWF, argument , options)))
+                result_final.append(p.apply_async(self.evolution,(drive , basic[i] , [] , False , RWF, RWA_freq,argument , options)))
             final_state = [result_final[i].get() for i in range(len(result_final))]
             p.close()
             p.join()
