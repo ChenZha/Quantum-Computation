@@ -68,6 +68,9 @@ def getfid(P , parallel = True, limit = np.Infinity):
 
     return(final)
 def spec_evolution(QBC,psi,delta,T_P,T_copies):
+    '''
+    某个delta下,比特0的P1演化过程
+    '''
     QBE = QBC
     args = {'T_P':T_P,'T_copies':T_copies , 'delta':delta}
 
@@ -82,7 +85,9 @@ def spec_evolution(QBC,psi,delta,T_P,T_copies):
         evo_list[ii] = expect(QBE.E_e[0],QBE.result.states[ii])
     return(evo_list)
 def spectrum(delta_list,psi,T_P,T_copies):
-
+    '''
+    以delta_list为横坐标,以tlist为纵坐标,比特0的P1为Z坐标,画出二维图
+    '''
     frequency = np.array([4.8 , 5.358])*2*np.pi
     coupling = np.array([0.012])*2*np.pi
     eta_q=  np.array([-0.250 , -0.250]) * 2 * np.pi
@@ -113,9 +118,7 @@ def spectrum(delta_list,psi,T_P,T_copies):
 
 if __name__ == '__main__':
 
-
-    # getfid([100,0,0])
-    
+ 
 
     psi = tensor(basis(3,0),basis(3,1))
     delta_list = np.linspace(4.7,4.9,101)*2*np.pi-5.358*2*np.pi

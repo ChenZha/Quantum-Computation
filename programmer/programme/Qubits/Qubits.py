@@ -10,6 +10,7 @@ import numpy as np
 from multiprocessing import Pool
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
+from functools import reduce
 
 class Qubits():
     # 输入比特信息，驱动哈密顿量，参数
@@ -30,7 +31,8 @@ class Qubits():
     def __init__(self , qubits_parameter , *args , **kwargs):
         # qubits_parameter结构:frequency(频率);coupling(耦合强度);eta_q(非简谐性);N_level(涉及的能级)
         self.frequency , self.coupling , self.eta_q , self.N_level = qubits_parameter
-        assert len(self.frequency) == len(self.coupling)+1 == len(self.eta_q)
+        assert len(self.frequency) == len(self.coupling)+1 == len(self.eta_q) == len(self.N_level)
+        
         self.num_qubits = int(len(self.frequency)) #比特数目
 
         # 生成基本的operator
@@ -61,9 +63,9 @@ class Qubits():
             cmdstr=''
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    cmdstr+='destroy(self.N_level),'
+                    cmdstr+='destroy(self.N_level[JJ]),'
                 else:
-                    cmdstr+='qeye(self.N_level),'
+                    cmdstr+='qeye(self.N_level[JJ]),'
             sm.append(eval('tensor('+cmdstr+')'))
 
         E_uc = []
@@ -71,13 +73,13 @@ class Qubits():
             cmdstr=''
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    if self.N_level>2:
-                        cmdstr+='basis(self.N_level,2)*basis(self.N_level,2).dag(),'
+                    if self.N_level[JJ]>2:
+                        cmdstr+='basis(self.N_level[JJ],2)*basis(self.N_level[JJ],2).dag(),'
                     else:
-                        cmdstr+='Qobj(np.zeros([self.N_level,self.N_level])),'
+                        cmdstr+='Qobj(np.zeros([self.N_level[JJ],self.N_level[JJ]])),'
 
                 else:
-                    cmdstr+='qeye(self.N_level),'
+                    cmdstr+='qeye(self.N_level[JJ]),'
             E_uc.append(eval('tensor('+cmdstr+')'))
 
         E_e=[]
@@ -85,9 +87,9 @@ class Qubits():
             cmdstr=''
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    cmdstr+='basis(self.N_level,1)*basis(self.N_level,1).dag(),'
+                    cmdstr+='basis(self.N_level[JJ],1)*basis(self.N_level[JJ],1).dag(),'
                 else:
-                    cmdstr+='qeye(self.N_level),'
+                    cmdstr+='qeye(self.N_level[JJ]),'
             E_e.append(eval('tensor('+cmdstr+')'))
         
         E_g=[]
@@ -95,15 +97,13 @@ class Qubits():
             cmdstr=''
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    cmdstr+='basis(self.N_level,0)*basis(self.N_level,0).dag(),'
+                    cmdstr+='basis(self.N_level[JJ],0)*basis(self.N_level[JJ],0).dag(),'
                 else:
-                    cmdstr+='qeye(self.N_level),'
+                    cmdstr+='qeye(self.N_level[JJ]),'
             E_g.append(eval('tensor('+cmdstr+')'))
 
         return([sm,E_uc,E_e,E_g])
     def _Generate_H0(self):
-    
-        
         '''
         根据qubit参数，生成未加驱动的基本哈密顿量
         '''
@@ -115,10 +115,13 @@ class Qubits():
                 H0 += self.coupling[index]*(self.sm[index]+self.sm[index].dag())*(self.sm[index+1]+self.sm[index+1].dag())
         return(H0)
     def _strTostate(self,state):
+        '''
+        将0,1字符串转换为量子态
+        '''
         qustate = []
         for ii in range(len(state)):
             qulevel = int(eval(state[ii]))
-            qustate.append(basis(self.N_level,qulevel))
+            qustate.append(basis(self.N_level[ii],qulevel))
         qustate = tensor(*qustate)
         return(qustate)
     def _findstate(self,state,search_space='full'):
@@ -232,11 +235,11 @@ class Qubits():
         U = []
         for index in range(self.num_qubits):
             if self.RWF=='CpRWF':
-                U.append(basis(self.N_level,0)*basis(self.N_level,0).dag()+np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]])*select_time)*basis(self.N_level,1)*basis(self.N_level,1).dag())
+                U.append(basis(self.N_level[index],0)*basis(self.N_level[index],0).dag()+np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]])*select_time)*basis(self.N_level[index],1)*basis(self.N_level[index],1).dag())
             elif self.RWF=='UnCpRWF':
-                U.append(basis(self.N_level,0)*basis(self.N_level,0).dag()+np.exp(1j*(self.frequency[index])*select_time)*basis(self.N_level,1)*basis(self.N_level,1).dag())
+                U.append(basis(self.N_level[index],0)*basis(self.N_level[index],0).dag()+np.exp(1j*(self.frequency[index])*select_time)*basis(self.N_level[index],1)*basis(self.N_level[index],1).dag())
             elif self.RWF=='NoRWF':
-                U.append(qeye(self.N_level))
+                U.append(qeye(self.N_level[index]))
             else:
                 error('RWF ERROR')
         UF = tensor(*U)
@@ -346,7 +349,7 @@ class Qubits():
         return(process)
 
     def _basic_generation(self):
-        '''生成2^n个基矢,以及各个基矢在3能级系统中的位置'''
+        '''生成2^n个基矢,以及各个基矢在多能级系统中的位置'''
         basic = []
         loc = []
         for index in range(2**self.num_qubits):
@@ -357,8 +360,13 @@ class Qubits():
             for JJ in range(self.num_qubits):
                 number = np.int(np.mod(II,2))
                 code += str(number)
-                state.insert(0,basis(self.N_level , number))
-                l += number*self.N_level**JJ
+                state.insert(0,basis(self.N_level[JJ] , number))
+                if JJ == 0:
+                    l += number
+                else:
+                    mullist = self.N_level[-1:-1-JJ:-1]
+                    mulval = reduce(lambda x,y:x*y,mullist)
+                    l += number*mulval
                 II = np.int(np.floor(II/2))
             assert len(code) == len(state) == self.num_qubits    
 
