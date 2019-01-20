@@ -31,10 +31,13 @@ class Qubits():
     def __init__(self , qubits_parameter , *args , **kwargs):
         # qubits_parameter结构:frequency(频率);coupling(耦合强度);eta_q(非简谐性);N_level(涉及的能级)
         self.frequency , self.coupling , self.eta_q , self.N_level = qubits_parameter
-        assert len(self.frequency) == len(self.coupling)+1 == len(self.eta_q) == len(self.N_level)
-        
         self.num_qubits = int(len(self.frequency)) #比特数目
-
+        if type(self.N_level) == int:
+            self.N_level = [self.N_level]*self.num_qubits
+        if not len(self.frequency) == len(self.coupling)+1 == len(self.eta_q) == len(self.N_level):
+            print('dimension error')
+            raise AssertionError()
+        
         # 生成基本的operator
         self.sm,self.E_uc,self.E_e,self.E_g = self._BasicOperator()
 
@@ -60,47 +63,48 @@ class Qubits():
         '''
         sm=[]
         for II in range(0,self.num_qubits):
-            cmdstr=''
+            cmdstr=[]
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    cmdstr+='destroy(self.N_level[JJ]),'
+                    cmdstr.append(destroy(self.N_level[JJ]))
                 else:
-                    cmdstr+='qeye(self.N_level[JJ]),'
-            sm.append(eval('tensor('+cmdstr+')'))
+                    cmdstr.append(qeye(self.N_level[JJ]))
+            sm.append(tensor(*cmdstr))
+
 
         E_uc = []
         for II in range(0,self.num_qubits):
-            cmdstr=''
+            cmdstr=[]
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
                     if self.N_level[JJ]>2:
-                        cmdstr+='basis(self.N_level[JJ],2)*basis(self.N_level[JJ],2).dag(),'
+                        cmdstr.append(basis(self.N_level[JJ],2)*basis(self.N_level[JJ],2).dag())
                     else:
-                        cmdstr+='Qobj(np.zeros([self.N_level[JJ],self.N_level[JJ]])),'
+                        cmdstr.append(Qobj(np.zeros([self.N_level[JJ],self.N_level[JJ]])))
 
                 else:
-                    cmdstr+='qeye(self.N_level[JJ]),'
-            E_uc.append(eval('tensor('+cmdstr+')'))
+                    cmdstr.append(qeye(self.N_level[JJ]))
+            E_uc.append(tensor(*cmdstr))
 
         E_e=[]
         for II in range(0,self.num_qubits):
-            cmdstr=''
+            cmdstr=[]
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    cmdstr+='basis(self.N_level[JJ],1)*basis(self.N_level[JJ],1).dag(),'
+                    cmdstr.append(basis(self.N_level[JJ],1)*basis(self.N_level[JJ],1).dag())
                 else:
-                    cmdstr+='qeye(self.N_level[JJ]),'
-            E_e.append(eval('tensor('+cmdstr+')'))
+                    cmdstr.append(qeye(self.N_level[JJ]))
+            E_e.append(tensor(*cmdstr))
         
         E_g=[]
         for II in range(0,self.num_qubits):
-            cmdstr=''
+            cmdstr=[]
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    cmdstr+='basis(self.N_level[JJ],0)*basis(self.N_level[JJ],0).dag(),'
+                    cmdstr.append(basis(self.N_level[JJ],0)*basis(self.N_level[JJ],0).dag())
                 else:
-                    cmdstr+='qeye(self.N_level[JJ]),'
-            E_g.append(eval('tensor('+cmdstr+')'))
+                    cmdstr.append(qeye(self.N_level[JJ]))
+            E_g.append(tensor(*cmdstr))
 
         return([sm,E_uc,E_e,E_g])
     def _Generate_H0(self):
