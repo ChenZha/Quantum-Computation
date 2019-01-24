@@ -109,11 +109,11 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
     inistate = InitialState(QB.num_qubits,inistate_label,QB.N_level)
     QB = StateEvolution(QB,inistate,t_total)
     tlist = QB.tlist
-    entropylist = np.zeros([len(subsystem),len(tlist)])
+    entropylist = np.zeros([len(subsystem),len(tlist)],dtype = complex)
     if traceplot:
         GHZ_entrpy_state = get_GHZ_entrpy(QB.num_qubits)
-        GHZ_entrpy_list = np.zeros(len(subsystem))
-        max_entrpy_list = np.zeros(len(subsystem))
+        GHZ_entrpy_list = np.zeros(len(subsystem),dtype = complex)
+        max_entrpy_list = np.zeros(len(subsystem),dtype = complex)
 
     if type(subsystem)==np.ndarray:
         subsystem = subsystem.tolist()
@@ -121,10 +121,10 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
     for ii,subsys in enumerate(subsystem):
         if traceplot:
             max_entrpy_list[ii] = len(subsys)
-            GHZ_entrpy_list[ii] = dmToentropy(ptrace(GHZ_entrpy_state,subsys),2)
+            GHZ_entrpy_list[ii] = np.abs(dmToentropy(ptrace(GHZ_entrpy_state,subsys),2))
         for jj in range(len(tlist)):
             sub_desitymatrix = ptrace(QB.result.states[jj],subsys)
-            entropylist[ii,jj] = dmToentropy(sub_desitymatrix,2)
+            entropylist[ii,jj] = np.abs(dmToentropy(sub_desitymatrix,2))
         # print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
     # print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
     global_entropy = np.sum(entropylist,0)
@@ -215,7 +215,7 @@ def get_max_entropy(Num_qubits):
     result = []
     for i in range(len(all_ini_state)):
         result.append(p.apply_async(EntropyEvolution,(QBC , all_ini_state[i] , t_total , subsystem , False,)))
-    max_list = np.array([result[i].get() for i in range(len(result))])
+    max_list = np.abs(np.array([result[i].get() for i in range(len(result))]))
     p.close()
     p.join()
     ##
@@ -242,7 +242,7 @@ def get_all_evolution(Num_qubits):
     result = []
     for i in range(len(all_ini_state)):
         result.append(p.apply_async(EntropyEvolution,(QBC , all_ini_state[i] , t_total , subsystem , False,)))
-    evo_list = np.array([result[i].get()[0] for i in range(len(result))])
+    evo_list = np.abs(np.array([result[i].get()[0] for i in range(len(result))]))
     tlist = result[0].get()[1]
     p.close()
     p.join()
@@ -257,23 +257,23 @@ def get_all_evolution(Num_qubits):
 
 if __name__ == '__main__':
     
-    evo_list,all_ini_state = get_all_evolution(5)
+    evo_list,all_ini_state = get_all_evolution(2)
     # print(evo_list)
-    # Num_qubits = 3
-    # frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
-    # # frequency = np.array([1,1.25]) * 5.0 * 2*np.pi
-    # coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
-    # eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
-    # N_level= 3
-    # parameter = [frequency,coupling,eta_q,N_level]
-    # QBC = Qubits(qubits_parameter = parameter)
+    Num_qubits = 3
+    frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
+    # frequency = np.array([1,1.25]) * 5.0 * 2*np.pi
+    coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
+    eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
+    N_level= 3
+    parameter = [frequency,coupling,eta_q,N_level]
+    QBC = Qubits(qubits_parameter = parameter)
 
-    # inistate_label = ['+', '-', '+']
-    # t_total = 150
+    inistate_label = ['+', '-', '+']
+    t_total = 150
 
-    # subsystem = generate_subsys(Num_qubits)
-    # global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
-    # print(global_entropy)
+    subsystem = generate_subsys(Num_qubits)
+    global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
+    print(global_entropy)
 
 
     # for root, dirs, files in os.walk('simulation'):
