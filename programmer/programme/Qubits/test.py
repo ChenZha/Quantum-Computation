@@ -33,20 +33,28 @@ def Z_pulse(t,args):
         w = 0
     return(w)
 
+def readoutwave(t,args):
+    # t_start = args['t_start']
+    # t_end = args['t_end']
+    readoutfreq = args['readoutfreq']
+    # intensity = args['intensity']
+    w = 0.1*2*np.pi*np.cos(readoutfreq*(t))
+    return(w)
+
 if __name__ == '__main__':
     Num_qubits = 2
     frequency = np.array([5.1 , 5.358])*2*np.pi
-    coupling = np.array([0.012])*2*np.pi
-    eta_q=  np.array([-0.250 , -0.250]) * 2 * np.pi
-    N_level= [2,2]
+    coupling = np.array([0.00])*2*np.pi
+    eta_q=  np.array([-0.250 , -0.25]) * 2 * np.pi
+    N_level= [3,2]
     parameter = [frequency,coupling,eta_q,N_level]
     QBE = Qubits(qubits_parameter = parameter)
     print(QBE)
 
-    args = {'T_P':100,'T_copies':101 , 'delta':0.0*2*np.pi}
-    H1 = [QBE.sm[1].dag()*QBE.sm[1],Z_pulse]
+    args = {'T_P':100,'T_copies':101 , 'readoutfreq':frequency[0]}
+    H1 = [QBE.sm[0].dag()+QBE.sm[0],readoutwave]
     Hdrive = [H1]
 
-    # final = QBE.evolution(drive = Hdrive , psi = tensor((basis(2,0)+basis(2,1)).unit(),(basis(2,0)+basis(2,1)).unit()).unit() ,  RWF = 'custom_RWF' , RWA_freq = 1,track_plot = True ,argument = args)
-
-    final = QBE.process(drive = Hdrive,process_plot = True , RWF = 'custom_RWF' , RWA_freq = 1.0 , parallel = True , argument = args)
+    final = QBE.evolution(drive = Hdrive , psi = tensor((basis(3,1)).unit(),(basis(2,0)).unit()) ,  RWF = 'CpRWF' , RWA_freq = 0,track_plot = True ,argument = args)
+    print(final)
+    # final = QBE.process(drive = Hdrive,process_plot = True , RWF = 'custom_RWF' , RWA_freq = 0.0 , parallel = True , argument = args)

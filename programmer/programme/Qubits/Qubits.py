@@ -244,15 +244,27 @@ class Qubits():
         U = []
         for index in range(self.num_qubits):
             if self.RWF=='CpRWF':
-                U.append(basis(self.N_level[index],0)*basis(self.N_level[index],0).dag()+np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]])*select_time)*basis(self.N_level[index],1)*basis(self.N_level[index],1).dag())
+                # U.append(basis(self.N_level[index],0)*basis(self.N_level[index],0).dag()+np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]])*select_time)*basis(self.N_level[index],1)*basis(self.N_level[index],1).dag())
+                mat = np.diag(np.ones(self.N_level[index],dtype = complex))
+                mat[1,1] = np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]])*select_time)
+                RW = Qobj(mat)
+                U.append(RW)
             elif self.RWF=='UnCpRWF':
-                U.append(basis(self.N_level[index],0)*basis(self.N_level[index],0).dag()+np.exp(1j*(self.frequency[index])*select_time)*basis(self.N_level[index],1)*basis(self.N_level[index],1).dag())
+                mat = np.diag(np.ones(self.N_level[index],dtype = complex))
+                mat[1,1] = np.exp(1j*(self.frequency[index])*select_time)
+                RW = Qobj(mat)
+                U.append(RW)
+                # U.append(basis(self.N_level[index],0)*basis(self.N_level[index],0).dag()+np.exp(1j*(self.frequency[index])*select_time)*basis(self.N_level[index],1)*basis(self.N_level[index],1).dag())
             elif self.RWF=='NoRWF':
                 U.append(qeye(self.N_level[index]))
             elif self.RWF=='custom_RWF':
                 if type(self.RWA_freq) == float or type(self.RWA_freq) == int:
                     self.RWA_freq = [self.RWA_freq]*self.num_qubits
-                U.append(basis(self.N_level[index],0)*basis(self.N_level[index],0).dag()+np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]]+self.RWA_freq[index])*select_time)*basis(self.N_level[index],1)*basis(self.N_level[index],1).dag())
+                # U.append(basis(self.N_level[index],0)*basis(self.N_level[index],0).dag()+np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]]+self.RWA_freq[index])*select_time)*basis(self.N_level[index],1)*basis(self.N_level[index],1).dag())
+                mat = np.diag(np.ones(self.N_level[index],dtype = complex))
+                mat[1,1] = np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]]+self.RWA_freq[index])*select_time)
+                RW = Qobj(mat)
+                U.append(RW)
 
             else:
                 error('RWF ERROR')
@@ -267,6 +279,7 @@ class Qubits():
             UF_t =  self._RF_Generation(self.tlist[t_index])
             op = UF_t.dag()*(operator)*UF_t
             evolution_list[t_index] = expect(op,self.result.states[t_index])
+        
         return(evolution_list)
     def _track_plot(self):
         '''
