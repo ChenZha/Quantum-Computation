@@ -15,11 +15,11 @@ disp(['Cc=',num2str(Cc)]);
 
 
 %% 计算比特间耦合强度
-fq1 = 4.94e9;
-fq2 = 4.94e9;
-Cq1 = 86e-15;
-Cq2 = 86e-15;
-Cc = 0.4e-15;
+fq1 = 5.0138e9;
+fq2 = 5.0138e9;
+Cq1 = 82.808e-15;
+Cq2 = 82.808e-15;
+Cc = 4.2956e-16;
 
 coupling = 0.5*Cc/sqrt((Cq1+Cc)*(Cq2+Cc))*sqrt(fq1*fq2)/10^6;
 disp(['g=',num2str(coupling)])

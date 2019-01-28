@@ -10,6 +10,7 @@ import numpy as np
 from multiprocessing import Pool
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
+from functools import reduce
 
 class Qubits():
     # 输入比特信息，驱动哈密顿量，参数
@@ -29,10 +30,14 @@ class Qubits():
 
     def __init__(self , qubits_parameter , *args , **kwargs):
         # qubits_parameter结构:frequency(频率);coupling(耦合强度);eta_q(非简谐性);N_level(涉及的能级)
-        self.frequency , self.coupling , self.eta_q , self.N_level= qubits_parameter
-        assert len(self.frequency) == len(self.coupling)+1 == len(self.eta_q)
+        self.frequency , self.coupling , self.eta_q , self.N_level = qubits_parameter
         self.num_qubits = int(len(self.frequency)) #比特数目
-
+        if type(self.N_level) == int:
+            self.N_level = [self.N_level]*self.num_qubits
+        if not len(self.frequency) == len(self.coupling)+1 == len(self.eta_q) == len(self.N_level):
+            print('dimension error')
+            raise AssertionError()
+        
         # 生成基本的operator
         self.sm,self.E_uc,self.E_e,self.E_g = self._BasicOperator()
 
@@ -49,8 +54,10 @@ class Qubits():
         'NoRWF':No RWF
         'UnCpRWF':Uncoupling RWF
         'CpRWF':coupling RWF
+        'custom_RWF':user-defined frequency of RWA
         '''
         self.RWF = 'CpRWF'
+        self.RWA_freq = 0
 
     def _BasicOperator(self):
         '''
@@ -58,52 +65,51 @@ class Qubits():
         '''
         sm=[]
         for II in range(0,self.num_qubits):
-            cmdstr=''
+            cmdstr=[]
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    cmdstr+='destroy(self.N_level),'
+                    cmdstr.append(destroy(self.N_level[JJ]))
                 else:
-                    cmdstr+='qeye(self.N_level),'
-            sm.append(eval('tensor('+cmdstr+')'))
+                    cmdstr.append(qeye(self.N_level[JJ]))
+            sm.append(tensor(*cmdstr))
+
 
         E_uc = []
         for II in range(0,self.num_qubits):
-            cmdstr=''
+            cmdstr=[]
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    if self.N_level>2:
-                        cmdstr+='basis(self.N_level,2)*basis(self.N_level,2).dag(),'
+                    if self.N_level[JJ]>2:
+                        cmdstr.append(basis(self.N_level[JJ],2)*basis(self.N_level[JJ],2).dag())
                     else:
-                        cmdstr+='Qobj(np.zeros([self.N_level,self.N_level])),'
+                        cmdstr.append(Qobj(np.zeros([self.N_level[JJ],self.N_level[JJ]])))
 
                 else:
-                    cmdstr+='qeye(self.N_level),'
-            E_uc.append(eval('tensor('+cmdstr+')'))
+                    cmdstr.append(qeye(self.N_level[JJ]))
+            E_uc.append(tensor(*cmdstr))
 
         E_e=[]
         for II in range(0,self.num_qubits):
-            cmdstr=''
+            cmdstr=[]
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    cmdstr+='basis(self.N_level,1)*basis(self.N_level,1).dag(),'
+                    cmdstr.append(basis(self.N_level[JJ],1)*basis(self.N_level[JJ],1).dag())
                 else:
-                    cmdstr+='qeye(self.N_level),'
-            E_e.append(eval('tensor('+cmdstr+')'))
+                    cmdstr.append(qeye(self.N_level[JJ]))
+            E_e.append(tensor(*cmdstr))
         
         E_g=[]
         for II in range(0,self.num_qubits):
-            cmdstr=''
+            cmdstr=[]
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    cmdstr+='basis(self.N_level,0)*basis(self.N_level,0).dag(),'
+                    cmdstr.append(basis(self.N_level[JJ],0)*basis(self.N_level[JJ],0).dag())
                 else:
-                    cmdstr+='qeye(self.N_level),'
-            E_g.append(eval('tensor('+cmdstr+')'))
+                    cmdstr.append(qeye(self.N_level[JJ]))
+            E_g.append(tensor(*cmdstr))
 
         return([sm,E_uc,E_e,E_g])
     def _Generate_H0(self):
-    
-        
         '''
         根据qubit参数，生成未加驱动的基本哈密顿量
         '''
@@ -115,10 +121,13 @@ class Qubits():
                 H0 += self.coupling[index]*(self.sm[index]+self.sm[index].dag())*(self.sm[index+1]+self.sm[index+1].dag())
         return(H0)
     def _strTostate(self,state):
+        '''
+        将0,1字符串转换为量子态
+        '''
         qustate = []
         for ii in range(len(state)):
             qulevel = int(eval(state[ii]))
-            qustate.append(basis(self.N_level,qulevel))
+            qustate.append(basis(self.N_level[ii],qulevel))
         qustate = tensor(*qustate)
         return(qustate)
     def _findstate(self,state,search_space='full'):
@@ -174,15 +183,17 @@ class Qubits():
 
         return(first_excited)
     
-            
+    
 
-    def evolution(self , drive = None , psi = basis(3,0) , collapse = [] , track_plot = False , RWF = 'CpRWF' , argument = {'T_p':100,'T_copies':201} , options = default_options):
+    def evolution(self , drive = None , psi = basis(3,0) , collapse = [] , track_plot = False , RWF = 'CpRWF' , RWA_freq = 0.0 , argument = {'T_p':100,'T_copies':201} , options = default_options):
         '''
         计算当前比特在psi初态，经drive驱动，最终得到的末态final_state
         参数：
         drive:驱动哈密顿量，形式[H1,H2,H3]
         psi：初态
         collapse:退相干算符
+        RWF:旋转坐标系的种类
+        RWA_freq:使用custom_RWF种类时,与CpRWA频率相差的频率
         argument：关于演化的参数,主要是drive中的参数，必须包含总时间T_p,时间份数T_copies
 
         返回：
@@ -210,6 +221,7 @@ class Qubits():
         
         # RWF
         self.RWF = RWF
+        self.RWA_freq = RWA_freq
         # Rotation Frame of final state
         UF = self._RF_Generation(self.tlist[-1])
         # Final State in Rotation Frame(pure state)
@@ -232,15 +244,43 @@ class Qubits():
         U = []
         for index in range(self.num_qubits):
             if self.RWF=='CpRWF':
-                U.append(basis(self.N_level,0)*basis(self.N_level,0).dag()+np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]])*select_time)*basis(self.N_level,1)*basis(self.N_level,1).dag())
+                # U.append(basis(self.N_level[index],0)*basis(self.N_level[index],0).dag()+np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]])*select_time)*basis(self.N_level[index],1)*basis(self.N_level[index],1).dag())
+                mat = np.diag(np.ones(self.N_level[index],dtype = complex))
+                mat[1,1] = np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]])*select_time)
+                RW = Qobj(mat)
+                U.append(RW)
             elif self.RWF=='UnCpRWF':
-                U.append(basis(self.N_level,0)*basis(self.N_level,0).dag()+np.exp(1j*(self.frequency[index])*select_time)*basis(self.N_level,1)*basis(self.N_level,1).dag())
+                mat = np.diag(np.ones(self.N_level[index],dtype = complex))
+                mat[1,1] = np.exp(1j*(self.frequency[index])*select_time)
+                RW = Qobj(mat)
+                U.append(RW)
+                # U.append(basis(self.N_level[index],0)*basis(self.N_level[index],0).dag()+np.exp(1j*(self.frequency[index])*select_time)*basis(self.N_level[index],1)*basis(self.N_level[index],1).dag())
             elif self.RWF=='NoRWF':
-                U.append(qeye(self.N_level))
+                U.append(qeye(self.N_level[index]))
+            elif self.RWF=='custom_RWF':
+                if type(self.RWA_freq) == float or type(self.RWA_freq) == int:
+                    self.RWA_freq = [self.RWA_freq]*self.num_qubits
+                # U.append(basis(self.N_level[index],0)*basis(self.N_level[index],0).dag()+np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]]+self.RWA_freq[index])*select_time)*basis(self.N_level[index],1)*basis(self.N_level[index],1).dag())
+                mat = np.diag(np.ones(self.N_level[index],dtype = complex))
+                mat[1,1] = np.exp(1j*(self.E_eig[self.first_excited[index]]-self.E_eig[self.first_excited[-1]]+self.RWA_freq[index])*select_time)
+                RW = Qobj(mat)
+                U.append(RW)
+
             else:
                 error('RWF ERROR')
         UF = tensor(*U)
         return(UF)
+    def expect_evolution(self, operator):
+        '''
+        得到某个operator的随时间演化序列
+        '''
+        evolution_list = np.zeros(len(self.tlist))
+        for t_index in range(len(self.tlist)):
+            UF_t =  self._RF_Generation(self.tlist[t_index])
+            op = UF_t.dag()*(operator)*UF_t
+            evolution_list[t_index] = expect(op,self.result.states[t_index])
+        
+        return(evolution_list)
     def _track_plot(self):
         '''
         画出各个比特状态在Bloch球中的轨迹
@@ -251,16 +291,26 @@ class Qubits():
         leakage = np.zeros([self.num_qubits,len(self.tlist)])
         # 各个时间点，各个比特在X,Y,Z轴上投影
         
-        for t_index in range(len(self.tlist)):
-            UF_t =  self._RF_Generation(self.tlist[t_index])
-            for q_index in range(self.num_qubits):
-                opx = UF_t.dag()*(self.sm[q_index].dag()+self.sm[q_index])*UF_t
-                opy = UF_t.dag()*(1j*self.sm[q_index].dag()-1j*self.sm[q_index])*UF_t
-                opz = UF_t.dag()*((self.E_g[q_index]+self.E_e[q_index]+self.E_uc[q_index])-2*self.sm[q_index].dag()*self.sm[q_index])*UF_t
-                nx[q_index,t_index] = expect(opx,self.result.states[t_index])
-                ny[q_index,t_index] = expect(opy,self.result.states[t_index])
-                nz[q_index,t_index] = expect(opz,self.result.states[t_index])
-                leakage[q_index,t_index] = expect(self.E_uc[q_index] , self.result.states[t_index])
+        # for t_index in range(len(self.tlist)):
+        #     UF_t =  self._RF_Generation(self.tlist[t_index])
+        #     for q_index in range(self.num_qubits):
+        #         opx = UF_t.dag()*(self.sm[q_index].dag()+self.sm[q_index])*UF_t
+        #         opy = UF_t.dag()*(1j*self.sm[q_index].dag()-1j*self.sm[q_index])*UF_t
+        #         opz = UF_t.dag()*((self.E_g[q_index]+self.E_e[q_index]+self.E_uc[q_index])-2*self.sm[q_index].dag()*self.sm[q_index])*UF_t
+        #         nx[q_index,t_index] = expect(opx,self.result.states[t_index])
+        #         ny[q_index,t_index] = expect(opy,self.result.states[t_index])
+        #         nz[q_index,t_index] = expect(opz,self.result.states[t_index])
+        #         leakage[q_index,t_index] = expect(self.E_uc[q_index] , self.result.states[t_index])
+
+        for q_index in range(self.num_qubits):
+            opx = self.sm[q_index].dag()+self.sm[q_index]
+            opy = 1j*self.sm[q_index].dag()-1j*self.sm[q_index]
+            opz = (self.E_g[q_index]+self.E_e[q_index]+self.E_uc[q_index])-2*self.sm[q_index].dag()*self.sm[q_index]
+            nx[q_index] = self.expect_evolution(opx)
+            ny[q_index] = self.expect_evolution(opy)
+            nz[q_index] = self.expect_evolution(opz)
+            leakage[q_index] = self.expect_evolution(self.E_uc[q_index])
+        
         
         # 画图
         fig,axes = plt.subplots(self.num_qubits,1)
@@ -289,12 +339,14 @@ class Qubits():
 
         plt.show()
 
-    def process(self , drive = None , process_plot  = False , RWF = 'CpRWF' , parallel = False , argument = {'T_p':100,'T_copies':201} , options = default_options):
+    def process(self , drive = None , process_plot  = False , RWF = 'CpRWF' , RWA_freq = 0.0 ,parallel = False , argument = {'T_p':100,'T_copies':201} , options = default_options):
         '''
         对当前比特施加驱动drive，表征整个state space的演化过程(只取每个比特二能级的部分)
         参数：
         drive：驱动哈密顿量
         process_plot：是否画出演化矩阵(实部与虚部)
+        RWF:旋转坐标系的种类
+        RWA_freq:使用custom_RWF种类时,与CpRWA频率相差的频率
         parallel：是否进行并行计算(如果外部还需要并行计算，这里要去Flase)
         argument：关于演化的参数,主要是drive中的参数，必须包含总时间T_p,时间份数T_copies
 
@@ -308,7 +360,7 @@ class Qubits():
             p = Pool()
             result_final = []
             for i in range(len(basic)):
-                result_final.append(p.apply_async(self.evolution,(drive , basic[i] , [] , False , RWF, argument , options)))
+                result_final.append(p.apply_async(self.evolution,(drive , basic[i] , [] , False , RWF, RWA_freq,argument , options)))
             final_state = [result_final[i].get() for i in range(len(result_final))]
             p.close()
             p.join()
@@ -326,7 +378,7 @@ class Qubits():
         return(process)
 
     def _basic_generation(self):
-        '''生成2^n个基矢,以及各个基矢在3能级系统中的位置'''
+        '''生成2^n个基矢,以及各个基矢在多能级系统中的位置'''
         basic = []
         loc = []
         for index in range(2**self.num_qubits):
@@ -337,8 +389,13 @@ class Qubits():
             for JJ in range(self.num_qubits):
                 number = np.int(np.mod(II,2))
                 code += str(number)
-                state.insert(0,basis(self.N_level , number))
-                l += number*self.N_level**JJ
+                state.insert(0,basis(self.N_level[JJ] , number))
+                if JJ == 0:
+                    l += number
+                else:
+                    mullist = self.N_level[-1:-1-JJ:-1]
+                    mulval = reduce(lambda x,y:x*y,mullist)
+                    l += number*mulval
                 II = np.int(np.floor(II/2))
             assert len(code) == len(state) == self.num_qubits    
 
@@ -408,7 +465,6 @@ class Qubits():
                 II = np.int(np.floor(II/2))
 
         return(process)
-            
 
 
 

@@ -30,17 +30,17 @@ def InitialState(Num_qubits,state_qubits,N_level):
     state = []
     for ii in range(Num_qubits):
         if state_qubits[ii] == '1':
-            state.append(basis(N_level,1))
+            state.append(basis(N_level[ii],1))
         elif state_qubits[ii] == '0':
-            state.append(basis(N_level,0))
+            state.append(basis(N_level[ii],0))
         elif state_qubits[ii] == '+':
-            state.append((basis(N_level,0)+basis(N_level,1)).unit())
+            state.append((basis(N_level[ii],0)+basis(N_level[ii],1)).unit())
         elif state_qubits[ii] == '-':
-            state.append((basis(N_level,0)-basis(N_level,1)).unit())
+            state.append((basis(N_level[ii],0)-basis(N_level[ii],1)).unit())
         elif state_qubits[ii] == '+i':
-            state.append((basis(N_level,0)+1j*basis(N_level,1)).unit())
+            state.append((basis(N_level[ii],0)+1j*basis(N_level[ii],1)).unit())
         elif state_qubits[ii] == '-i':
-            state.append((basis(N_level,0)-1j*basis(N_level,1)).unit())
+            state.append((basis(N_level[ii],0)-1j*basis(N_level[ii],1)).unit())
         else:
             print('there is no such an error')
     inistate = tensor(*state)
@@ -70,11 +70,11 @@ def StateEvolution(qubit_chain,inistate,t_total):
     '''
     the evolution of state
     '''
-    args = {'T_P':t_total,'T_copies':1.5*t_total+1 }
+    args = {'T_P':t_total,'T_copies':10*t_total+1 }
     psi = inistate
     QB = qubit_chain
 
-    fianlstate = QB.evolution(drive = None , psi = psi ,  track_plot = False , RWF = 'UnCpRWF',argument = args )
+    finalstate = QB.evolution(drive = None , psi = psi ,  track_plot = True , RWF = 'UnCpRWF',argument = args )
 
     return(QB)
 def dmToentropy(dm,alpha):
@@ -108,6 +108,8 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
     QB = QBC
     inistate = InitialState(QB.num_qubits,inistate_label,QB.N_level)
     QB = StateEvolution(QB,inistate,t_total)
+
+    ##
     tlist = QB.tlist
     entropylist = np.zeros([len(subsystem),len(tlist)],dtype = complex)
     if traceplot:
@@ -257,23 +259,31 @@ def get_all_evolution(Num_qubits):
 
 if __name__ == '__main__':
     
-    evo_list,all_ini_state = get_all_evolution(2)
+    # evo_list,all_ini_state = get_all_evolution(2)
     # print(evo_list)
-    Num_qubits = 3
-    frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
-    # frequency = np.array([1,1.25]) * 5.0 * 2*np.pi
+    Num_qubits = 2
+    # frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
+    frequency = np.array([1,1.1]) * 5.0 * 2*np.pi
     coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
-    eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
+    eta_q=  np.ones(Num_qubits) * (-0.25) * 2*np.pi
     N_level= 3
     parameter = [frequency,coupling,eta_q,N_level]
     QBC = Qubits(qubits_parameter = parameter)
 
-    inistate_label = ['+', '-', '+']
-    t_total = 150
+    args = {'T_P':100,'T_copies':2*100+1 }
+    psi = tensor((basis(N_level,0)+basis(N_level,1)).unit(),basis(N_level,1))
+    
 
-    subsystem = generate_subsys(Num_qubits)
-    global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
-    print(global_entropy)
+    finalstate = QBC.evolution(drive = None , psi = psi ,  track_plot = True , RWF = 'CpRWF',argument = args )
+
+
+
+    # inistate_label = ['+', '-', '+']
+    # t_total = 100
+
+    # subsystem = generate_subsys(Num_qubits)
+    # global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=False)
+    # print(global_entropy)
 
 
     # for root, dirs, files in os.walk('simulation'):
