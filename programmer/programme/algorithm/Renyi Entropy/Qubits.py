@@ -39,7 +39,7 @@ class Qubits():
             raise AssertionError()
         
         # 生成基本的operator
-        self.sm,self.E_uc,self.E_e,self.E_g = self._BasicOperator()
+        self.sm,self.E_uc,self.E_e,self.E_g,self.X_m,self.Y_m = self._BasicOperator()
 
         # 生成未加驱动的基本哈密顿量
         self.H0 = self._Generate_H0()
@@ -108,7 +108,30 @@ class Qubits():
                     cmdstr.append(qeye(self.N_level[JJ]))
             E_g.append(tensor(*cmdstr))
 
-        return([sm,E_uc,E_e,E_g])
+        X_m=[]
+        for II in range(0,self.num_qubits):
+            cmdstr=[]
+            for JJ in range(0,self.num_qubits):
+                if II==JJ:
+                    basis_matrix = np.zeros([self.N_level[JJ],self.N_level[JJ]])
+                    basis_matrix[0,1] = 1;basis_matrix[1,0] = 1;
+                    cmdstr.append(Qobj(basis_matrix))
+                else:
+                    cmdstr.append(qeye(self.N_level[JJ]))
+            X_m.append(tensor(*cmdstr))    
+        Y_m=[]
+        for II in range(0,self.num_qubits):
+            cmdstr=[]
+            for JJ in range(0,self.num_qubits):
+                if II==JJ:
+                    basis_matrix = np.zeros([self.N_level[JJ],self.N_level[JJ]],dtype = complex)
+                    basis_matrix[0,1] = -1j;basis_matrix[1,0] = 1j;
+                    cmdstr.append(Qobj(basis_matrix))
+                else:
+                    cmdstr.append(qeye(self.N_level[JJ]))
+            Y_m.append(tensor(*cmdstr))   
+
+        return([sm,E_uc,E_e,E_g,X_m,Y_m])
     def _Generate_H0(self):
         '''
         根据qubit参数，生成未加驱动的基本哈密顿量
@@ -303,9 +326,12 @@ class Qubits():
         #         leakage[q_index,t_index] = expect(self.E_uc[q_index] , self.result.states[t_index])
 
         for q_index in range(self.num_qubits):
-            opx = self.sm[q_index].dag()+self.sm[q_index]
-            opy = 1j*self.sm[q_index].dag()-1j*self.sm[q_index]
-            opz = (self.E_g[q_index]+self.E_e[q_index]+self.E_uc[q_index])-2*self.sm[q_index].dag()*self.sm[q_index]
+            # opx = self.sm[q_index].dag()+self.sm[q_index]
+            # opy = 1j*self.sm[q_index].dag()-1j*self.sm[q_index]
+            # opz = (self.E_g[q_index]+self.E_e[q_index]+self.E_uc[q_index])-2*self.sm[q_index].dag()*self.sm[q_index]
+            opx = self.X_m[q_index]
+            opy = self.Y_m[q_index]
+            opz = self.E_g[q_index]-self.E_e[q_index]
             nx[q_index] = self.expect_evolution(opx)
             ny[q_index] = self.expect_evolution(opy)
             nz[q_index] = self.expect_evolution(opz)

@@ -262,8 +262,8 @@ if __name__ == '__main__':
     # evo_list,all_ini_state = get_all_evolution(2)
     # print(evo_list)
     Num_qubits = 2
-    # frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
-    frequency = np.array([1,1.1]) * 5.0 * 2*np.pi
+    frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
+    # frequency = np.array([1,1]) * 5.0 * 2*np.pi
     coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
     eta_q=  np.ones(Num_qubits) * (-0.25) * 2*np.pi
     N_level= 3
@@ -271,10 +271,10 @@ if __name__ == '__main__':
     QBC = Qubits(qubits_parameter = parameter)
 
     args = {'T_P':100,'T_copies':2*100+1 }
-    psi = tensor((basis(N_level,0)+basis(N_level,1)).unit(),basis(N_level,1))
+    psi = tensor((basis(N_level,1)+basis(N_level,0)).unit(),basis(N_level,1))
     
 
-    finalstate = QBC.evolution(drive = None , psi = psi ,  track_plot = True , RWF = 'CpRWF',argument = args )
+    finalstate = QBC.evolution(drive = None , psi = psi ,  track_plot = True , RWF = 'UnCpRWF',argument = args )
 
 
 
