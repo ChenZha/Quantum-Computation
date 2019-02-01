@@ -74,7 +74,7 @@ def StateEvolution(qubit_chain,inistate,t_total):
     psi = inistate
     QB = qubit_chain
 
-    finalstate = QB.evolution(drive = None , psi = psi ,  track_plot = True , RWF = 'UnCpRWF',argument = args )
+    finalstate = QB.evolution(drive = None , psi = psi ,  track_plot = False , RWF = 'UnCpRWF',argument = args )
 
     return(QB)
 def dmToentropy(dm,alpha):
@@ -199,7 +199,9 @@ def generate_all_state(Num_qubits):
 
 
 def get_max_entropy(Num_qubits):
-    
+    '''
+    获得某个比特数目下的最大的renyi entropy及对应的态
+    '''
     frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
     coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
     eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
@@ -226,7 +228,9 @@ def get_max_entropy(Num_qubits):
     return(all_ini_state[loc],max_list[loc])
 
 def get_all_evolution(Num_qubits):
-    
+    '''
+    获得某个比特数目下所有比特初态编码的演化
+    '''
     frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
     coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
     eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
@@ -236,6 +240,8 @@ def get_all_evolution(Num_qubits):
 
     all_ini_state = generate_all_state(Num_qubits)
     t_total = 150
+    plot_list = np.arange(0,t_total,10)#需要画出来的时间节点
+
 
     subsystem = generate_subsys(Num_qubits)
 
@@ -250,31 +256,47 @@ def get_all_evolution(Num_qubits):
     p.join()
     ##
     evo_list = evo_list.transpose()
-    plt.figure()
-    # plt.pcolor(np.r_[np.arange(len(all_ini_state)),3], np.r_[tlist,3],evo_list)
-    plt.pcolor(np.r_[np.arange(len(all_ini_state)),len(all_ini_state)], tlist,evo_list)
-    plt.colorbar()
-    plt.show()
+    for T_node in plot_list:
+        node_list = evo_list[np.where(np.abs(tlist-T_node)<=0.0001)][0]
+        # plot and save
+        fig,axes = plt.subplots(1,1)
+        axes.plot(np.arange(len(all_ini_state)),node_list,label = 'entropy')
+        axes.set_xlabel('code of state');axes.set_ylabel('entropy of system')
+        handles, labels = plt.gca().get_legend_handles_labels()
+        plt.legend(handles,labels)
+        maxloc = np.argmax(node_list)
+        plt.title(str(T_node)+',state='+str(all_ini_state[maxloc])+',max entropy='+str(node_list[maxloc])[0:6])
+        if not os.path.exists('./one dimension_'+str(Num_qubits)):
+            os.mkdir('./one dimension_'+str(Num_qubits))   
+        plt.savefig('./one dimension_'+str(Num_qubits)+'/t='+str(T_node))
+
+    
+
+    # plt.figure()
+    # # plt.pcolor(np.r_[np.arange(len(all_ini_state)),3], np.r_[tlist,3],evo_list)
+    # plt.pcolor(np.r_[np.arange(len(all_ini_state)),len(all_ini_state)], tlist,evo_list)
+    # plt.colorbar()
+    # plt.show()
     return([evo_list,all_ini_state])
 
 if __name__ == '__main__':
     
-    # evo_list,all_ini_state = get_all_evolution(2)
+    evo_list,all_ini_state = get_all_evolution(2)
     # print(evo_list)
-    Num_qubits = 2
-    frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
-    # frequency = np.array([1,1]) * 5.0 * 2*np.pi
-    coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
-    eta_q=  np.ones(Num_qubits) * (-0.25) * 2*np.pi
-    N_level= 3
-    parameter = [frequency,coupling,eta_q,N_level]
-    QBC = Qubits(qubits_parameter = parameter)
+    # Num_qubits = 2
+    # frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
+    # # frequency = np.array([1,1]) * 5.0 * 2*np.pi
+    # coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
+    # eta_q=  np.ones(Num_qubits) * (-0.25) * 2*np.pi
+    # N_level= 3
+    # parameter = [frequency,coupling,eta_q,N_level]
+    # QBC = Qubits(qubits_parameter = parameter)
 
-    args = {'T_P':100,'T_copies':2*100+1 }
-    psi = tensor((basis(N_level,1)+basis(N_level,0)).unit(),basis(N_level,1))
+    # args = {'T_P':100,'T_copies':2*100+1 }
+    # psi = tensor((basis(N_level,1)+basis(N_level,0)).unit(),basis(N_level,1))
     
 
-    finalstate = QBC.evolution(drive = None , psi = psi ,  track_plot = True , RWF = 'UnCpRWF',argument = args )
+    # finalstate = QBC.evolution(drive = None , psi = psi ,  track_plot = True , RWF = 'UnCpRWF',argument = args )
 
 
 
