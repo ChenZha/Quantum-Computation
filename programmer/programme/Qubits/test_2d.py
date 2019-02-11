@@ -42,28 +42,36 @@ def readoutwave(t,args):
     return(w)
 
 if __name__ == '__main__':
-    Num_qubits = 2
+    
     frequency = np.array([
         [5.1 , 5.1],
         [5.1 , 5.1],
     ])*2*np.pi
+
     coupling = np.array([
-        [-0.250 , -0.250],
-        [-0.250 , -0.250],
+        [0 , 0],
+        [0 , 0] ,
+        [0.012 , 0],
     ])*2*np.pi
+
     eta_q=  np.array([
         [-0.250 , -0.250],
         [-0.250 , -0.250],
     ])*2*np.pi
-    N_level= [3,2]
+
+    N_level= [
+        [3 , 3],
+        [3 , 3],
+    ]
+
     parameter = [frequency,coupling,eta_q,N_level]
     QBE = Qubits_2d(qubits_parameter = parameter)
     print(QBE)
 
-    args = {'T_P':100,'T_copies':101 , 'readoutfreq':frequency[0]}
-    H1 = [QBE.sm[0].dag()+QBE.sm[0],readoutwave]
+    args = {'T_P':100,'T_copies':101 , 'readoutfreq':frequency[0,0]}
+    H1 = [QBE.sm[0,0].dag()+QBE.sm[0,0],readoutwave]
     Hdrive = [H1]
 
-    final = QBE.evolution(drive = None , psi = tensor((basis(3,1)).unit(),(basis(2,0)).unit()) ,  RWF = 'UnCpRWF' , RWA_freq = 0,track_plot = True ,argument = args)
+    final = QBE.evolution(drive = Hdrive , psi = tensor((basis(3,0)).unit(),(basis(3,1)).unit(),(basis(3,1)).unit(),(basis(3,0)).unit()) ,  RWF = 'UnCpRWF' , RWA_freq = 0,track_plot = True ,argument = args)
     print(final)
     # final = QBE.process(drive = Hdrive,process_plot = True , RWF = 'custom_RWF' , RWA_freq = 0.0 , parallel = True , argument = args)

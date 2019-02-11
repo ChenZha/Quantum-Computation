@@ -36,7 +36,10 @@ class Qubits_2d():
         self.qubit_row , self.qubit_column = np.shape(self.frequency)
         if type(self.N_level) == int:
             self.N_level = self.N_level*np.ones_like(self.frequency)
-        if (not np.shape(self.frequency) == np.shape(self.eta_q) == np.shape(self.N_level)) or (not len(self.coupling)==2*len(self.frequency)-1) or (not np.shape(self.coupling)[1]+1==np.shape(self.frequency)[1]):
+        self.N_level = np.array(self.N_level)
+        self.N_level_line = np.array(self.N_level).reshape(1,-1)[0]
+
+        if (not np.shape(self.frequency) == np.shape(self.eta_q) == np.shape(self.N_level)) or (not len(self.coupling)==2*len(self.frequency)-1) or (not np.shape(self.coupling)[1]==np.shape(self.frequency)[1]):
             print('dimension error')
             raise AssertionError()
         
@@ -65,14 +68,15 @@ class Qubits_2d():
         '''
         生成基本operator
         '''
+        
         sm=[]
         for II in range(0,self.num_qubits):
             cmdstr=[]
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    cmdstr.append(destroy(self.N_level[JJ]))
+                    cmdstr.append(destroy(self.N_level_line[JJ]))
                 else:
-                    cmdstr.append(qeye(self.N_level[JJ]))
+                    cmdstr.append(qeye(self.N_level_line[JJ]))
             sm.append(tensor(*cmdstr))
         sm = np.array(sm).reshape((self.qubit_row,self.qubit_column))
 
@@ -81,12 +85,12 @@ class Qubits_2d():
             cmdstr=[]
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    if self.N_level[JJ]>2:
-                        cmdstr.append(basis(self.N_level[JJ],2)*basis(self.N_level[JJ],2).dag())
+                    if self.N_level_line[JJ]>2:
+                        cmdstr.append(basis(self.N_level_line[JJ],2)*basis(self.N_level_line[JJ],2).dag())
                     else:
-                        cmdstr.append(Qobj(np.zeros([self.N_level[JJ],self.N_level[JJ]])))
+                        cmdstr.append(Qobj(np.zeros([self.N_level_line[JJ],self.N_level_line[JJ]])))
                 else:
-                    cmdstr.append(qeye(self.N_level[JJ]))
+                    cmdstr.append(qeye(self.N_level_line[JJ]))
             E_uc.append(tensor(*cmdstr))
         E_uc = np.array(E_uc).reshape((self.qubit_row,self.qubit_column))
 
@@ -95,9 +99,9 @@ class Qubits_2d():
             cmdstr=[]
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    cmdstr.append(basis(self.N_level[JJ],1)*basis(self.N_level[JJ],1).dag())
+                    cmdstr.append(basis(self.N_level_line[JJ],1)*basis(self.N_level_line[JJ],1).dag())
                 else:
-                    cmdstr.append(qeye(self.N_level[JJ]))
+                    cmdstr.append(qeye(self.N_level_line[JJ]))
             E_e.append(tensor(*cmdstr))
         E_e = np.array(E_e).reshape((self.qubit_row,self.qubit_column))
         
@@ -106,9 +110,9 @@ class Qubits_2d():
             cmdstr=[]
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    cmdstr.append(basis(self.N_level[JJ],0)*basis(self.N_level[JJ],0).dag())
+                    cmdstr.append(basis(self.N_level_line[JJ],0)*basis(self.N_level_line[JJ],0).dag())
                 else:
-                    cmdstr.append(qeye(self.N_level[JJ]))
+                    cmdstr.append(qeye(self.N_level_line[JJ]))
             E_g.append(tensor(*cmdstr))
         E_g = np.array(E_g).reshape((self.qubit_row,self.qubit_column))
 
@@ -118,11 +122,11 @@ class Qubits_2d():
             cmdstr=[]
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    basis_matrix = np.zeros([self.N_level[JJ],self.N_level[JJ]])
+                    basis_matrix = np.zeros([self.N_level_line[JJ],self.N_level_line[JJ]])
                     basis_matrix[0,1] = 1;basis_matrix[1,0] = 1;
                     cmdstr.append(Qobj(basis_matrix))
                 else:
-                    cmdstr.append(qeye(self.N_level[JJ]))
+                    cmdstr.append(qeye(self.N_level_line[JJ]))
             X_m.append(tensor(*cmdstr))   
         X_m = np.array(X_m).reshape((self.qubit_row,self.qubit_column)) 
 
@@ -132,11 +136,11 @@ class Qubits_2d():
             cmdstr=[]
             for JJ in range(0,self.num_qubits):
                 if II==JJ:
-                    basis_matrix = np.zeros([self.N_level[JJ],self.N_level[JJ]],dtype = complex)
+                    basis_matrix = np.zeros([self.N_level_line[JJ],self.N_level_line[JJ]],dtype = complex)
                     basis_matrix[0,1] = -1j;basis_matrix[1,0] = 1j;
                     cmdstr.append(Qobj(basis_matrix))
                 else:
-                    cmdstr.append(qeye(self.N_level[JJ]))
+                    cmdstr.append(qeye(self.N_level_line[JJ]))
             Y_m.append(tensor(*cmdstr)) 
         Y_m = np.array(Y_m).reshape((self.qubit_row,self.qubit_column)) 
           
@@ -167,7 +171,7 @@ class Qubits_2d():
         qustate = []
         for ii in range(len(state)):
             qulevel = int(eval(state[ii]))
-            qustate.append(basis(self.N_level[ii],qulevel))
+            qustate.append(basis(self.N_level_line[ii],qulevel))
         qustate = tensor(*qustate)
         return(qustate)
     def _findstate(self,state,search_space='full'):
@@ -439,11 +443,11 @@ class Qubits_2d():
             for JJ in range(self.num_qubits):
                 number = np.int(np.mod(II,2))
                 code += str(number)
-                state.insert(0,basis(self.N_level[JJ] , number))
+                state.insert(0,basis(self.N_level_line[JJ] , number))
                 if JJ == 0:
                     l += number
                 else: #为了适应各个比特不同的能接结构
-                    mullist = self.N_level[-1:-1-JJ:-1]
+                    mullist = self.N_level_line[-1:-1-JJ:-1]
                     mulval = reduce(lambda x,y:x*y,mullist)
                     l += number*mulval
                 II = np.int(np.floor(II/2))
