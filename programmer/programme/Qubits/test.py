@@ -2,6 +2,10 @@ import numpy as np
 from Qubits import Qubits
 from qutip import *
 import matplotlib.pyplot as plt
+import time
+timezero=time.time()
+import sys  
+
 
 def Z_pulse(t,args):
 
@@ -42,11 +46,11 @@ def readoutwave(t,args):
     return(w)
 
 if __name__ == '__main__':
-    Num_qubits = 2
-    frequency = np.array([5.1 , 5.358])*2*np.pi
-    coupling = np.array([0.00])*2*np.pi
-    eta_q=  np.array([-0.250 , -0.25]) * 2 * np.pi
-    N_level= [3,2]
+    Num_qubits = 4
+    frequency = np.array([5.1 , 5.1 , 5.1 , 5.1,5.1,5.1])*2*np.pi
+    coupling = np.array([0.012,0.012,0.012,0.012,0.012])*2*np.pi
+    eta_q=  np.array([-0.250 , -0.25, -0.25, -0.25,-0.25, -0.25]) * 2 * np.pi
+    N_level= 3
     parameter = [frequency,coupling,eta_q,N_level]
     QBE = Qubits(qubits_parameter = parameter)
     print(QBE)
@@ -55,6 +59,6 @@ if __name__ == '__main__':
     H1 = [QBE.sm[0].dag()+QBE.sm[0],readoutwave]
     Hdrive = [H1]
 
-    final = QBE.evolution(drive = Hdrive , psi = tensor((basis(3,1)).unit(),(basis(2,0)).unit()) ,  RWF = 'CpRWF' , RWA_freq = 0,track_plot = True ,argument = args)
-    print(final)
+    final = QBE.evolution(drive = None , psi = tensor((basis(3,0)).unit(),(basis(3,1)).unit(),(basis(3,1)).unit(),(basis(3,0)).unit(),(basis(3,0)).unit(),(basis(3,0)).unit()) ,  RWF = 'UnCpRWF' , RWA_freq = 0,track_plot = False ,argument = args);print("line %s time %s"%(sys._getframe().f_lineno,time.time()-timezero))
+    # print(final)
     # final = QBE.process(drive = Hdrive,process_plot = True , RWF = 'custom_RWF' , RWA_freq = 0.0 , parallel = True , argument = args)

@@ -1,9 +1,12 @@
 import numpy as np
-from Qubits import Qubits
+from Qubits_2d import Qubits_2d
 from qutip import *
 import matplotlib.pyplot as plt
 from multiprocessing import Pool
 import os
+import time
+timezero=time.time()
+import sys  
 
 import threading
 def runnow(func):
@@ -26,7 +29,7 @@ def InitialState(Num_qubits,state_qubits,N_level):
     '''
     if len(state_qubits) != Num_qubits:
         print('number of qubits error')
-
+    N_level = np.array(N_level).reshape(-1,Num_qubits)[0]
     state = []
     for ii in range(Num_qubits):
         if state_qubits[ii] == '1':
@@ -84,7 +87,10 @@ def dmToentropy(dm,alpha):
     alpha = int(alpha)
     temp = dm**alpha
     dmdata = temp.data.toarray()
+    # temp = np.mat(dm.data.toarray());print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now));time_now = time.time()
+    # dmdata = np.array(temp**alpha);print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now));time_now = time.time()
     SA = np.log2(np.trace(dmdata))/(1-alpha)
+    print('test')
     return(SA)
 
 def get_GHZ_entrpy(Num_qubits):
@@ -107,7 +113,7 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
     '''
     QB = QBC
     inistate = InitialState(QB.num_qubits,inistate_label,QB.N_level)
-    QB = StateEvolution(QB,inistate,t_total);print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
+    QB = StateEvolution(QB,inistate,t_total)#;print("line %s time %s"%(sys._getframe().f_lineno,time.time()-timezero))
 
     ##
     tlist = QB.tlist
@@ -119,7 +125,6 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
 
     if type(subsystem)==np.ndarray:
         subsystem = subsystem.tolist()
-    
     for ii,subsys in enumerate(subsystem):
         if traceplot:
             max_entrpy_list[ii] = len(subsys)
@@ -127,8 +132,8 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
         for jj in range(len(tlist)):
             sub_desitymatrix = ptrace(QB.result.states[jj],subsys)
             entropylist[ii,jj] = np.abs(dmToentropy(sub_desitymatrix,2))
-        # print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
-    print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
+    #     print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
+    # print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
     global_entropy = np.sum(entropylist,0)
     if traceplot:
         max_entrpy = np.ones_like(global_entropy)*np.sum(max_entrpy_list)
@@ -198,17 +203,18 @@ def generate_all_state(Num_qubits):
 
 
 
-def get_max_entropy(Num_qubits):
+def get_max_entropy(qubit_row,qubit_column):
     '''
-    获得某个比特数目下的最大的renyi entropy及对应的态
+    获得某个比特排布下的最大的renyi entropy及对应的态
     '''
-    frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
-    coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
-    eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
+    frequency = np.ones([qubit_row,qubit_column]) * 5.0 * 2*np.pi
+    coupling = np.ones([2*qubit_row-1,qubit_column]) * 0.0125 * 2*np.pi
+    eta_q=  np.ones([qubit_row,qubit_column]) * (-0.250) * 2*np.pi
     N_level= 3
     parameter = [frequency,coupling,eta_q,N_level]
-    QBC = Qubits(qubits_parameter = parameter)
+    QBC = Qubits_2d(qubits_parameter = parameter)
 
+    Num_qubits = int(qubit_row*qubit_column)
     all_ini_state = generate_all_state(Num_qubits)
     t_total = 150
 
@@ -227,20 +233,21 @@ def get_max_entropy(Num_qubits):
 
     return(all_ini_state[loc],max_list[loc])
 
-def get_all_evolution(Num_qubits):
+def get_all_evolution(qubit_row,qubit_column):
     '''
-    获得某个比特数目下所有比特初态编码的演化
+    获得某个比特排布下所有比特初态编码的演化
     '''
-    frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
-    coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
-    eta_q=  np.ones(Num_qubits) * (-0.250) * 2*np.pi
+    frequency = np.ones([qubit_row,qubit_column]) * 5.0 * 2*np.pi
+    coupling = np.ones([2*qubit_row-1,qubit_column]) * 0.0125 * 2*np.pi
+    eta_q=  np.ones([qubit_row,qubit_column]) * (-0.250) * 2*np.pi
     N_level= 3
     parameter = [frequency,coupling,eta_q,N_level]
-    QBC = Qubits(qubits_parameter = parameter)
+    QBC = Qubits_2d(qubits_parameter = parameter)
 
+    Num_qubits = int(qubit_row*qubit_column)
     all_ini_state = generate_all_state(Num_qubits)
     t_total = 150
-    plot_list = np.arange(0,t_total,10)#需要画出来的时间节点
+    plot_list = np.arange(0,t_total,5)#需要画出来的时间节点
 
 
     subsystem = generate_subsys(Num_qubits)
@@ -266,9 +273,9 @@ def get_all_evolution(Num_qubits):
         plt.legend(handles,labels)
         maxloc = np.argmax(node_list)
         plt.title(str(T_node)+',state='+str(all_ini_state[maxloc])+',max entropy='+str(node_list[maxloc])[0:6])
-        if not os.path.exists('./one dimension_'+str(Num_qubits)):
-            os.mkdir('./one dimension_'+str(Num_qubits))   
-        plt.savefig('./one dimension_'+str(Num_qubits)+'/t='+str(T_node))
+        if not os.path.exists('./two dimension_'+str(qubit_row)+str(qubit_column)):
+            os.mkdir('./two dimension_'+str(qubit_row)+str(qubit_column))   
+        plt.savefig('./two dimension_'+str(qubit_row)+str(qubit_column)+'/t='+str(T_node))
 
     
 
@@ -281,30 +288,33 @@ def get_all_evolution(Num_qubits):
 
 if __name__ == '__main__':
     
-    evo_list,all_ini_state = get_all_evolution(2)
-    # print(evo_list)
-    # Num_qubits = 2
-    # frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
-    # # frequency = np.array([1,1]) * 5.0 * 2*np.pi
-    # coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
-    # eta_q=  np.ones(Num_qubits) * (-0.25) * 2*np.pi
-    # N_level= 3
-    # parameter = [frequency,coupling,eta_q,N_level]
-    # QBC = Qubits(qubits_parameter = parameter)
+    # evo_list,all_ini_state = get_all_evolution(2,3)
+    # np.save('evo_list',evo_list)
+    # np.save('all_ini_state',all_ini_state)
+    
+    qubit_row=2;qubit_column=3
+    frequency = np.ones([qubit_row,qubit_column]) * 5.0 * 2*np.pi
+    coupling = np.ones([2*qubit_row-1,qubit_column]) * 0.0125 * 2*np.pi
+    eta_q=  np.ones([qubit_row,qubit_column]) * (-0.250) * 2*np.pi
+    N_level= 3
+    parameter = [frequency,coupling,eta_q,N_level]
+    QBC = Qubits_2d(qubits_parameter = parameter)
 
     # args = {'T_P':100,'T_copies':2*100+1 }
-    # psi = tensor((basis(N_level,1)+basis(N_level,0)).unit(),basis(N_level,1))
+    # psi = tensor((basis(N_level,1)+basis(N_level,0)).unit(),basis(N_level,1),basis(N_level,1),basis(N_level,1),basis(N_level,1),basis(N_level,1))
     
 
-    # finalstate = QBC.evolution(drive = None , psi = psi ,  track_plot = True , RWF = 'UnCpRWF',argument = args )
+
+
+    # finalstate = QBC.evolution(drive = None , psi = psi ,  track_plot = False , RWF = 'UnCpRWF',argument = args )
 
 
 
-    # inistate_label = ['+', '-', '+']
-    # t_total = 100
-
-    # subsystem = generate_subsys(Num_qubits)
-    # global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=False)
+    inistate_label = ['+', '-', '+','+','+','+']
+    t_total = 100
+    Num_qubits = int(qubit_row*qubit_column)
+    subsystem = generate_subsys(Num_qubits)
+    global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
     # print(global_entropy)
 
 
