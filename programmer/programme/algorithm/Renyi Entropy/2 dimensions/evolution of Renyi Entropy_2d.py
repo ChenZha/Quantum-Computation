@@ -73,7 +73,7 @@ def StateEvolution(qubit_chain,inistate,t_total):
     '''
     the evolution of state
     '''
-    args = {'T_P':t_total,'T_copies':2*t_total+1 }
+    args = {'T_P':t_total,'T_copies':t_total+1 }
     psi = inistate
     QB = qubit_chain
 
@@ -90,7 +90,6 @@ def dmToentropy(dm,alpha):
     # temp = np.mat(dm.data.toarray());print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now));time_now = time.time()
     # dmdata = np.array(temp**alpha);print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now));time_now = time.time()
     SA = np.log2(np.trace(dmdata))/(1-alpha)
-    print('test')
     return(SA)
 
 def get_GHZ_entrpy(Num_qubits):
@@ -153,7 +152,7 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
         handles, labels = plt.gca().get_legend_handles_labels()
         plt.legend(handles,labels)
         maxloc = np.argmax(global_entropy)
-        plt.title(str(inistate_label)+',entropy='+str(global_entropy[maxloc])[0:6]+',time='+str(QB.tlist[maxloc])[0:6])
+        plt.title(str(inistate_label)+',entropy='+str(global_entropy[maxloc])[1:6]+',time='+str(QB.tlist[maxloc])[0:6])
         # plt.savefig('./simulation_2/'+str(inistate_label))
         plt.show()
     print(str(inistate_label)+'evolution end')
@@ -310,8 +309,8 @@ if __name__ == '__main__':
 
 
 
-    inistate_label = ['+', '-', '+','+','+','+']
-    t_total = 100
+    inistate_label = ['1', '1', '0','0','1','0']
+    t_total = 150
     Num_qubits = int(qubit_row*qubit_column)
     subsystem = generate_subsys(Num_qubits)
     global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)

@@ -70,7 +70,7 @@ def StateEvolution(qubit_chain,inistate,t_total):
     '''
     the evolution of state
     '''
-    args = {'T_P':t_total,'T_copies':2*t_total+1 }
+    args = {'T_P':t_total,'T_copies':t_total+1 }
     psi = inistate
     QB = qubit_chain
 
@@ -94,8 +94,8 @@ def get_GHZ_entrpy(Num_qubits):
     ground_L = []
     excited_L = []
     for ii in range(Num_qubits):
-        ground_L.append(basis(2,0))
-        excited_L.append(basis(2,1))
+        ground_L.append(basis(3,0))
+        excited_L.append(basis(3,1))
     ground_S = tensor(*ground_L)
     excited_S = tensor(*excited_L)
     GHZ_entrpy_state = (ground_S+excited_S).unit()
@@ -148,9 +148,11 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
         handles, labels = plt.gca().get_legend_handles_labels()
         plt.legend(handles,labels)
         maxloc = np.argmax(global_entropy)
-        plt.title(str(inistate_label)+',entropy='+str(global_entropy[maxloc])[0:6]+',time='+str(QB.tlist[maxloc])[0:6])
+        plt.title(str(inistate_label)+',entropy='+str(global_entropy[maxloc])[1:6]+',time='+str(QB.tlist[maxloc])[0:6])
         # plt.savefig('./simulation_2/'+str(inistate_label))
         plt.show()
+    # print(entropylist[:,maxloc])
+    # print(np.sum(GHZ_entrpy_list))
     print(str(inistate_label)+'evolution end')
     return([global_entropy,tlist])
     # return(np.max(global_entropy))
@@ -281,16 +283,16 @@ def get_all_evolution(Num_qubits):
 
 if __name__ == '__main__':
     
-    evo_list,all_ini_state = get_all_evolution(2)
-    # print(evo_list)
-    # Num_qubits = 2
-    # frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
-    # # frequency = np.array([1,1]) * 5.0 * 2*np.pi
-    # coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
-    # eta_q=  np.ones(Num_qubits) * (-0.25) * 2*np.pi
-    # N_level= 3
-    # parameter = [frequency,coupling,eta_q,N_level]
-    # QBC = Qubits(qubits_parameter = parameter)
+    # evo_list,all_ini_state = get_all_evolution(2)
+    # # print(evo_list)
+    Num_qubits = 6
+    frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
+    # frequency = np.array([1,1]) * 5.0 * 2*np.pi
+    coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
+    eta_q=  np.ones(Num_qubits) * (-0.25) * 2*np.pi
+    N_level= 2
+    parameter = [frequency,coupling,eta_q,N_level]
+    QBC = Qubits(qubits_parameter = parameter)
 
     # args = {'T_P':100,'T_copies':2*100+1 }
     # psi = tensor((basis(N_level,1)+basis(N_level,0)).unit(),basis(N_level,1))
@@ -300,11 +302,11 @@ if __name__ == '__main__':
 
 
 
-    # inistate_label = ['+', '-', '+']
-    # t_total = 100
+    inistate_label = ['-', '+', '+','+','+','+']
+    t_total = 400
 
-    # subsystem = generate_subsys(Num_qubits)
-    # global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=False)
+    subsystem = generate_subsys(Num_qubits)
+    global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
     # print(global_entropy)
 
 
