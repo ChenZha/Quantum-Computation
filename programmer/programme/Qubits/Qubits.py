@@ -414,7 +414,7 @@ class Qubits():
             l = 0 #在3能级中的位置
             for JJ in range(self.num_qubits):
                 number = np.int(np.mod(II,2))
-                code += str(number)
+                code = str(number)+code
                 state.insert(0,basis(self.N_level[JJ] , number))
                 if JJ == 0:
                     l += number
