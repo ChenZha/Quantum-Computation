@@ -159,6 +159,168 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
     return([global_entropy,tlist])
     # return(np.max(global_entropy))
     # return([entropylist,global_entropy])
+##############################################################################################################
+
+def EigStateEvolution(QBC , level ,t_total , subsystem = [0] , traceplot = False):
+    '''
+    the evolution of global entropy
+    '''
+    QB = QBC
+    inistate = QB.State_eig[level]
+    GHZ_entrpy_state = get_GHZ_entrpy(QB.num_qubits)
+
+    ##
+    entropylist = np.zeros(len(subsystem),dtype = complex)
+    GHZ_entrpy_list = np.zeros(len(subsystem),dtype = complex)
+
+    if type(subsystem)==np.ndarray:
+        subsystem = subsystem.tolist()
+    for ii,subsys in enumerate(subsystem):
+        sub_desitymatrix = ptrace(inistate,subsys)
+        entropylist[ii] = np.abs(dmToentropy(sub_desitymatrix,2))
+        GHZ_entrpy_list[ii] = np.abs(dmToentropy(ptrace(GHZ_entrpy_state,subsys),2))
+    #     print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
+    # print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
+    global_entropy = np.sum(entropylist)
+    GHZ_entropy = np.sum(GHZ_entrpy_list)
+    
+    return([global_entropy,GHZ_entropy])
+def dec2bin(number,digit):
+    '''
+    10进制转2进制(str)
+    '''
+    number = int(number)
+    digit = int(digit)
+    assert 2**digit>number
+    bin_number = ''
+    for ii in range(digit):
+        remainder = np.int(np.mod(number,2))
+        bin_number = str(remainder) + bin_number
+        number = np.int(np.floor(number/2))
+    return(bin_number)
+def find_initial(QBC,level):
+    '''
+    找到QBC中某个能级对应0,1初态
+    '''
+    for ii in range(2**QBC.num_qubits):
+        state = dec2bin(ii,QBC.num_qubits)
+        location = QBC._findstate(state)
+        if int(location)==level:
+            return(state)
+    print('No state')
+    return(None)
+def Z_pulse_generator(QBC):
+    freq = QBC.frequency
+    mean_freq = np.mean(freq)
+    Z_pulse = []
+    for ii in range(QBC.qubit_row):
+        row = []
+        for jj in range(QBC.qubit_column):
+            delta = mean_freq-freq[ii,jj]
+            row.append(str(delta)+'/2*(1-np.cos(np.pi/t_rise*t))*(0<=t<=t_rise)+'+str(delta)+'*(t_rise<t<T_P-t_rise)+'+str(delta)+'/2*(1+np.cos(np.pi/t_rise*(t-T_P+t_rise)))*(T_P-t_rise<=t<=T_P)')
+        Z_pulse.append(row)
+    return(Z_pulse)
+
+def EigStateAdiabatic(level,t_rise,t_total,traceplot = False):
+    '''
+    '''
+    qubit_row=2;qubit_column=3
+    frequency = np.array([[5.28 , 5.43 , 5.58 ],
+                          [5.11 , 5.26 , 5.41 ]
+                        ])* 2*np.pi
+    coupling = np.ones([2*qubit_row-1,qubit_column]) * 0.0030 * 2*np.pi
+    eta_q=  np.ones([qubit_row,qubit_column]) * (-0.250) * 2*np.pi
+    N_level= 2
+    parameter = [frequency,coupling,eta_q,N_level]
+    QBC_2 = Qubits_2d(qubits_parameter = parameter)
+    state = find_initial(QBC_2,level)
+    
+
+    N_level= 3
+    parameter = [frequency,coupling,eta_q,N_level]
+    QBC_3 = Qubits_2d(qubits_parameter = parameter)
+    initial_state = InitialState(QBC_3.num_qubits,[i for i in state],QBC_3.N_level)
+    # initial_state = QBC_3.State_eig[level]
+
+    args = {'T_P':t_total,'T_copies':int(t_total/5)+1, 't_rise':t_rise}
+    Z_pulse = Z_pulse_generator(QBC_3)
+    print(Z_pulse[0][0])
+    H1 = []
+    for ii in range(QBC_3.qubit_row):
+        for jj in range(QBC_3.qubit_column):
+            H1.append([QBC_3.sm[ii][jj].dag()*QBC_3.sm[ii][jj],Z_pulse[ii][jj]])
+
+    finalstate = QBC_3.evolution(drive = H1 , psi = initial_state ,  track_plot = False , RWF = 'UnCpRWF',argument = args )
+
+
+    tlist = QBC_3.tlist
+    subsystem = generate_subsys(QBC_3.num_qubits)
+    entropylist = np.zeros([len(subsystem),len(tlist)],dtype = complex)
+    
+    if traceplot:
+        GHZ_entrpy_state = get_GHZ_entrpy(QBC_3.num_qubits)
+        GHZ_entrpy_list = np.zeros(len(subsystem),dtype = complex)
+        max_entrpy_list = np.zeros(len(subsystem),dtype = complex)
+        leak_list = np.zeros([QBC_3.qubit_row,QBC_3.qubit_column,len(tlist)],dtype = complex)
+        for ii in range(QBC_3.qubit_row):
+            for jj in range(QBC_3.qubit_column):
+                leak_list[ii,jj] = QBC_3.expect_evolution(QBC_3.E_uc[ii,jj])
+
+    if type(subsystem)==np.ndarray:
+        subsystem = subsystem.tolist()
+    for ii,subsys in enumerate(subsystem):
+        if traceplot:
+            max_entrpy_list[ii] = len(subsys)
+            GHZ_entrpy_list[ii] = np.abs(dmToentropy(ptrace(GHZ_entrpy_state,subsys),2))
+        for jj in range(len(tlist)):
+            sub_desitymatrix = ptrace(QBC_3.result.states[jj],subsys)
+            entropylist[ii,jj] = np.abs(dmToentropy(sub_desitymatrix,2))
+    global_entropy = np.sum(entropylist,0)
+    if traceplot:
+        max_entrpy = np.ones_like(global_entropy)*np.sum(max_entrpy_list)
+        GHZ_entrpy = np.ones_like(global_entropy)*np.sum(GHZ_entrpy_list)
+        # fig,axes = plt.subplots(len(subsystem)+1,1)
+        # for ii in range(len(subsystem)):
+        #     axes[ii].plot(tlist,entropylist[ii])
+        #     axes[ii].set_xlabel('t(ns)');axes[ii].set_ylabel('entropy of Q'+str(subsystem[ii]))
+        # axes[len(subsystem)].plot(tlist,whole_entropy)
+        # axes[len(subsystem)].set_xlabel('t(ns)');axes[len(subsystem)].set_ylabel('entropy of system')
+        # plt.show()
+
+        plt.rcParams['figure.figsize'] = (16.0, 9.0) # 设置figure_size尺寸
+        fig,axes = plt.subplots(QBC_3.qubit_row,QBC_3.qubit_column)
+        for ii in range(QBC_3.qubit_row):
+            for jj in range(QBC_3.qubit_column):
+                axes[ii][jj].plot(tlist,leak_list[ii][jj])
+                axes[ii][jj].set_xlabel('t(ns)');axes[ii][jj].set_ylabel('leakage')
+        plt.tight_layout()
+        plt.savefig('./adiabatic/t_rise='+str(t_rise)+',t_total='+str(t_total)+',level='+str(level)+'leakage')
+
+
+        plt.rcParams['figure.figsize'] = (6.0, 4.0) # 设置figure_size尺寸
+        fig,axes = plt.subplots(1,1)
+        axes.plot(tlist,global_entropy,label = 'entropy')
+        axes.plot(tlist,max_entrpy,label = 'max entropy',linestyle = '--')
+        axes.plot(tlist,GHZ_entrpy,label = 'GHZ entropy',linestyle = '--')
+        axes.set_xlabel('t(ns)');axes.set_ylabel('entropy of system')
+        handles, labels = plt.gca().get_legend_handles_labels()
+        plt.legend(handles,labels)
+        maxloc = np.argmax(global_entropy)
+        plt.tight_layout()
+        plt.title('3level='+str(level)+',t_rise='+str(t_rise)+',t_total='+str(t_total)+',entropy='+str(global_entropy[maxloc])[1:6]+',time='+str(QBC_3.tlist[maxloc])[0:6])
+        plt.savefig('./adiabatic/3level_t_rise='+str(t_rise)+',t_total='+str(t_total)+',level='+str(level))
+
+
+        plt.show()
+    print('evolution end')
+    return([global_entropy,tlist])
+
+
+
+
+
+##############################################################################################################
+
 def generate_all_state(Num_qubits):
     '''
     从0,1,+,-,+i,-i中选择,组成各种初始态,镜像的算一种态
@@ -286,18 +448,23 @@ def get_all_evolution(qubit_row,qubit_column):
     return([evo_list,all_ini_state])
 
 if __name__ == '__main__':
+
+
+    finalstate = EigStateAdiabatic(31,3000,10000,traceplot=True)
+    print(finalstate)
+
     
     # evo_list,all_ini_state = get_all_evolution(2,3)
     # np.save('evo_list',evo_list)
     # np.save('all_ini_state',all_ini_state)
     
-    qubit_row=2;qubit_column=3
-    frequency = np.ones([qubit_row,qubit_column]) * 5.0 * 2*np.pi
-    coupling = np.ones([2*qubit_row-1,qubit_column]) * 0.0125 * 2*np.pi
-    eta_q=  np.ones([qubit_row,qubit_column]) * (-0.250) * 2*np.pi
-    N_level= 3
-    parameter = [frequency,coupling,eta_q,N_level]
-    QBC = Qubits_2d(qubits_parameter = parameter)
+    # qubit_row=2;qubit_column=3
+    # frequency = np.ones([qubit_row,qubit_column]) * 5.0 * 2*np.pi
+    # coupling = np.ones([2*qubit_row-1,qubit_column]) * 0.0125 * 2*np.pi
+    # eta_q=  np.ones([qubit_row,qubit_column]) * (-0.250) * 2*np.pi
+    # N_level= 2
+    # parameter = [frequency,coupling,eta_q,N_level]
+    # QBC = Qubits_2d(qubits_parameter = parameter)
 
     # args = {'T_P':100,'T_copies':2*100+1 }
     # psi = tensor((basis(N_level,1)+basis(N_level,0)).unit(),basis(N_level,1),basis(N_level,1),basis(N_level,1),basis(N_level,1),basis(N_level,1))
@@ -308,13 +475,43 @@ if __name__ == '__main__':
     # finalstate = QBC.evolution(drive = None , psi = psi ,  track_plot = False , RWF = 'UnCpRWF',argument = args )
 
 
+    # t_total = 150
+    # level = 2
+    # Num_qubits = int(qubit_row*qubit_column)
+    # subsystem = generate_subsys(Num_qubits)
+    # # global_entropy,GHZ_entropy = EigStateEvolution(QBC,level,t_total,subsystem,traceplot=True)
+    # # print(global_entropy,GHZ_entropy)
 
-    inistate_label = ['1', '1', '0','0','1','0']
-    t_total = 150
-    Num_qubits = int(qubit_row*qubit_column)
-    subsystem = generate_subsys(Num_qubits)
-    global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
-    # print(global_entropy)
+    # inistate_label = ['+', '+','+','+','+','+']
+    # t_total = 150
+    # Num_qubits = int(qubit_row*qubit_column)
+    # subsystem = generate_subsys(Num_qubits)
+    # global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
+    # # print(global_entropy)
+
+    # level_list = [i for i in range(int(N_level**Num_qubits))]
+    # global_entropy_list = []
+    # GHZ_entropy_list = []
+    # for ii in level_list:
+    #     global_entropy,GHZ_entropy = EigStateEvolution(QBC,ii,t_total,subsystem,traceplot=True)
+    #     global_entropy_list.append(global_entropy)
+    #     GHZ_entropy_list.append(GHZ_entropy)
+    # ## plot 
+    # fig,axes = plt.subplots(1,1)
+    # axes.plot(level_list,global_entropy_list,label = 'entropy')
+    # axes.plot(level_list,GHZ_entropy_list,label = 'GHZ entropy',linestyle = '--')
+    # axes.set_xlabel('eigenstate');axes.set_ylabel('entropy of system')
+    # handles, labels = plt.gca().get_legend_handles_labels()
+    # plt.legend(handles,labels)
+    # maxloc = np.argmax(global_entropy_list)
+    # plt.title(str(level_list[maxloc])+',entropy='+str(global_entropy_list[maxloc]))
+    # # plt.savefig('./simulation_2/'+str(inistate_label))
+    # plt.show()
+        
+
+
+
+
 
 
     # for root, dirs, files in os.walk('simulation'):

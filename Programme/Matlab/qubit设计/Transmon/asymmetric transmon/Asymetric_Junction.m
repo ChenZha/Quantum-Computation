@@ -2,7 +2,7 @@
 func = CalFun();
 %%
 C = (89.19+9.8)*10^(-15);
-R= 8000;
+R= 10000;
 [Ex,~] = func .E_asym(func.C_E(C),func.R_E(R),8,0,50);
 w_max_f = Ex(2)-Ex(1);
 disp(['freq=',num2str(w_max_f)]);
