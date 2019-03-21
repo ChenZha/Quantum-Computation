@@ -4,6 +4,8 @@ from qutip import *
 import matplotlib.pyplot as plt
 from multiprocessing import Pool
 import os
+import matlab.engine
+import math
 
 import threading
 def runnow(func):
@@ -100,14 +102,20 @@ def get_GHZ_entrpy(Num_qubits):
     excited_S = tensor(*excited_L)
     GHZ_entrpy_state = (ground_S+excited_S).unit()
     return(GHZ_entrpy_state)
-
-def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplot = False):
+def get_GME(state):
+    eng = matlab.engine.start_matlab()
+    imput_state = matlab.double(ket2dm(state).data.toarray().tolist(),is_complex=True)
+    GME_output = eng.fdecwit(imput_state)
+    if math.isnan(GME_output):
+        GME_output = 20
+    return(GME_output)
+def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplot = False , GME = True):
     '''
     the evolution of global entropy
     '''
     QB = QBC
     inistate = InitialState(QB.num_qubits,inistate_label,QB.N_level)
-    QB = StateEvolution(QB,inistate,t_total);print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
+    QB = StateEvolution(QB,inistate,t_total);#print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
 
     ##
     tlist = QB.tlist
@@ -116,6 +124,17 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
         GHZ_entrpy_state = get_GHZ_entrpy(QB.num_qubits)
         GHZ_entrpy_list = np.zeros(len(subsystem),dtype = complex)
         max_entrpy_list = np.zeros(len(subsystem),dtype = complex)
+        
+    if GME:
+        GME_list = np.zeros(len(tlist))
+        p = Pool()
+        result = []
+        for i in range(len(tlist)):
+            result.append(p.apply_async(get_GME,(QBC.result.states[i],)))
+        GME_list = np.array([result[i].get() for i in range(len(result))])
+        p.close()
+        p.join()    
+
 
     if type(subsystem)==np.ndarray:
         subsystem = subsystem.tolist()
@@ -131,28 +150,31 @@ def EntropyEvolution(QBC , inistate_label , t_total , subsystem = [0] , traceplo
     print("line %s time %s"%(sys._getframe().f_lineno,time.time()-time_now))
     global_entropy = np.sum(entropylist,0)
     if traceplot:
-        max_entrpy = np.ones_like(global_entropy)*np.sum(max_entrpy_list)
-        GHZ_entrpy = np.ones_like(global_entropy)*np.sum(GHZ_entrpy_list)
-        # fig,axes = plt.subplots(len(subsystem)+1,1)
-        # for ii in range(len(subsystem)):
-        #     axes[ii].plot(tlist,entropylist[ii])
-        #     axes[ii].set_xlabel('t(ns)');axes[ii].set_ylabel('entropy of Q'+str(subsystem[ii]))
-        # axes[len(subsystem)].plot(tlist,whole_entropy)
-        # axes[len(subsystem)].set_xlabel('t(ns)');axes[len(subsystem)].set_ylabel('entropy of system')
-        # plt.show()
-        fig,axes = plt.subplots(1,1)
-        axes.plot(tlist,global_entropy,label = 'entropy')
-        axes.plot(tlist,max_entrpy,label = 'max entropy',linestyle = '--')
-        axes.plot(tlist,GHZ_entrpy,label = 'GHZ entropy',linestyle = '--')
-        axes.set_xlabel('t(ns)');axes.set_ylabel('entropy of system')
-        handles, labels = plt.gca().get_legend_handles_labels()
-        plt.legend(handles,labels)
-        maxloc = np.argmax(global_entropy)
-        plt.title(str(inistate_label)+',entropy='+str(global_entropy[maxloc])[1:6]+',time='+str(QB.tlist[maxloc])[0:6])
-        # plt.savefig('./simulation_2/'+str(inistate_label))
-        plt.show()
-    # print(entropylist[:,maxloc])
-    # print(np.sum(GHZ_entrpy_list))
+            max_entrpy = np.ones_like(global_entropy)*np.sum(max_entrpy_list)
+            GHZ_entrpy = np.ones_like(global_entropy)*np.sum(GHZ_entrpy_list)
+            # fig,axes = plt.subplots(len(subsystem)+1,1)
+            # for ii in range(len(subsystem)):
+            #     axes[ii].plot(tlist,entropylist[ii])
+            #     axes[ii].set_xlabel('t(ns)');axes[ii].set_ylabel('entropy of Q'+str(subsystem[ii]))
+            # axes[len(subsystem)].plot(tlist,whole_entropy)
+            # axes[len(subsystem)].set_xlabel('t(ns)');axes[len(subsystem)].set_ylabel('entropy of system')
+            # plt.show()
+            fig,axes = plt.subplots(1,1)
+            axes.plot(tlist,global_entropy,label = 'entropy')
+            axes.plot(tlist,max_entrpy,label = 'max entropy',linestyle = '--')
+            axes.plot(tlist,GHZ_entrpy,label = 'GHZ entropy',linestyle = '--')
+            axes.set_xlabel('t(ns)');axes.set_ylabel('entropy of system')
+            handles, labels = plt.gca().get_legend_handles_labels()
+            plt.legend(handles,labels)
+            if GME:
+                below_threshold = GME_list<-1e-8
+                plt.scatter(tlist[below_threshold], global_entropy[below_threshold], color='red') 
+        
+            maxloc = np.argmax(global_entropy)
+            plt.title(str(inistate_label)+',entropy='+str(global_entropy[maxloc])[1:6]+',time='+str(QB.tlist[maxloc])[0:6])
+            plt.savefig('./simulation_2level/'+str(inistate_label))
+            plt.show()
+
     print(str(inistate_label)+'evolution end')
     return([global_entropy,tlist])
     # return(np.max(global_entropy))
@@ -285,7 +307,7 @@ if __name__ == '__main__':
     
     # evo_list,all_ini_state = get_all_evolution(2)
     # # print(evo_list)
-    Num_qubits = 6
+    Num_qubits = 5
     frequency = np.ones(Num_qubits) * 5.0 * 2*np.pi
     # frequency = np.array([1,1]) * 5.0 * 2*np.pi
     coupling = np.ones(Num_qubits-1) * 0.0125 * 2*np.pi
@@ -301,12 +323,34 @@ if __name__ == '__main__':
     # finalstate = QBC.evolution(drive = None , psi = psi ,  track_plot = True , RWF = 'UnCpRWF',argument = args )
 
 
-
-    inistate_label = ['-', '+', '+','+','+','+']
-    t_total = 400
+    
+    inistate_label = ['+', '-', '-', '-', '+']
+    t_total = 300
 
     subsystem = generate_subsys(Num_qubits)
-    global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True)
+
+    # inistate = InitialState(QBC.num_qubits,inistate_label,QBC.N_level)
+    # QB = StateEvolution(QBC,inistate,t_total)
+    # state = QB.result.states
+    # GME = []
+    # for ii in range(len(state)):
+    #     time1 = time.time()
+    #     imput_state = matlab.double(ket2dm(state[ii]).data.toarray().tolist(),is_complex=True)
+    #     # imput_state = matlab.double(ket2dm(tensor(basis(2,0),basis(2,0))).data.toarray().tolist(),is_complex=True)
+    #     GME_output = eng.fdecwit(imput_state)
+    #     time2 = time.time()
+    #     print(time2-time1)
+    #     if math.isnan(GME_output):
+    #         GME_output = 20
+    #     GME.append(GME_output)
+    #     print(GME_output)
+    # fig,axes = plt.subplots(1,1)
+    # axes.plot(GME)
+    # plt.show()
+
+
+    
+    global_entropy = EntropyEvolution(QBC,inistate_label,t_total,subsystem,traceplot=True,GME = True)
     # print(global_entropy)
 
 

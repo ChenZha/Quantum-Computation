@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "E:\\Anaconda3\\envs\\qutip-env\\python.exe"
+    "python.pythonPath": "E:\\Anaconda3\\envs\\qutip-env\\python.exe",
+    "python.linting.enabled": false
 }
