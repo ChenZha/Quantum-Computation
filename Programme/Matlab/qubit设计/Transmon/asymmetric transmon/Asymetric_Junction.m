@@ -1,11 +1,13 @@
 %% 
 func = CalFun();
 %%
-C = (89.19+9.8)*10^(-15);
-R= 10000;
+C = (102.3+9.8)*10^(-15);
+R= 7000;
 [Ex,~] = func .E_asym(func.C_E(C),func.R_E(R),8,0,50);
 w_max_f = Ex(2)-Ex(1);
-disp(['freq=',num2str(w_max_f)]);
+w_max_f23 =  Ex(3)-Ex(2);
+anham = w_max_f23-w_max_f;
+disp(['freq=',num2str(w_max_f),',','anharmony=',num2str(anham)]);
 %%
 % 计算不同a下的电阻波动导致频率波动，以及调节磁通可以达到的频率范围
 

@@ -1,5 +1,5 @@
 % 计算Xmon中几何电容
-path = 'Cq.s1p';
+path = 'Cq2.s1p';
 
 
 Y = yparameters(path);

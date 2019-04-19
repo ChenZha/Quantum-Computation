@@ -19,20 +19,20 @@ plot(t,s);hold on;
 xlabel('t');
 title('原始信号');
 
-% subplot(1,2,2);
-% plot(freq0,abs(y0));hold on;
-% xlabel('freq');
-% title('FFT 模值');
+subplot(1,2,2);
+plot(freq0,abs(y0));hold on;
+xlabel('freq');
+title('FFT 模值');
 
 % subplot(2,3,3);
 % plot(freq0,phase(y0));hold on;
 % xlabel('freq');
 % title('FFT 相位');
 % 
-subplot(1,2,2);
-plot(freq1,abs(y1));hold on;
-xlabel('freq');
-title('幅度-频率曲线图');
+% subplot(1,2,2);
+% plot(freq1,abs(y1));hold on;
+% xlabel('freq');
+% title('幅度-频率曲线图');
 % 
 % subplot(2,3,5);
 % plot(freq1,phase(y1));hold on;
