@@ -209,24 +209,24 @@ def find_initial(QBC,level):
             return(state)
     print('No state')
     return(None)
-def Z_pulse_generator(QBC):
+def Z_pulse_generator(QBC,freq_target):
     freq = QBC.frequency
     mean_freq = np.mean(freq)
     Z_pulse = []
     for ii in range(QBC.qubit_row):
         row = []
         for jj in range(QBC.qubit_column):
-            delta = mean_freq-freq[ii,jj]
+            delta = freq_target-freq[ii,jj]
             row.append(str(delta)+'/2*(1-np.cos(np.pi/t_rise*t))*(0<=t<=t_rise)+'+str(delta)+'*(t_rise<t<T_P-t_rise)+'+str(delta)+'/2*(1+np.cos(np.pi/t_rise*(t-T_P+t_rise)))*(T_P-t_rise<=t<=T_P)')
         Z_pulse.append(row)
     return(Z_pulse)
 
-def EigStateAdiabatic(level,t_rise,t_total,traceplot = False):
+def EigStateAdiabatic(level,t_rise,t_total,freq_target,traceplot = False):
     '''
     '''
-    qubit_row=2;qubit_column=3
-    frequency = np.array([[5.28 , 5.43 , 5.58 ],
-                          [5.11 , 5.26 , 5.41 ]
+    qubit_row=2;qubit_column=2
+    frequency = np.array([[5.28 , 5.43  ],
+                          [5.11 , 5.26  ]
                         ])* 2*np.pi
     coupling = np.ones([2*qubit_row-1,qubit_column]) * 0.0030 * 2*np.pi
     eta_q=  np.ones([qubit_row,qubit_column]) * (-0.250) * 2*np.pi
@@ -240,11 +240,14 @@ def EigStateAdiabatic(level,t_rise,t_total,traceplot = False):
     parameter = [frequency,coupling,eta_q,N_level]
     QBC_3 = Qubits_2d(qubits_parameter = parameter)
     initial_state = InitialState(QBC_3.num_qubits,[i for i in state],QBC_3.N_level)
+    state_loc = QBC_3._findstate(state)
     # initial_state = QBC_3.State_eig[level]
 
+    print(state,fidelity(initial_state,QBC_3.State_eig[state_loc]))
+
     args = {'T_P':t_total,'T_copies':int(t_total/5)+1, 't_rise':t_rise}
-    Z_pulse = Z_pulse_generator(QBC_3)
-    print(Z_pulse[0][0])
+    Z_pulse = Z_pulse_generator(QBC_3,freq_target)
+    # print(Z_pulse[0][0])
     H1 = []
     for ii in range(QBC_3.qubit_row):
         for jj in range(QBC_3.qubit_column):
@@ -276,6 +279,10 @@ def EigStateAdiabatic(level,t_rise,t_total,traceplot = False):
             sub_desitymatrix = ptrace(QBC_3.result.states[jj],subsys)
             entropylist[ii,jj] = np.abs(dmToentropy(sub_desitymatrix,2))
     global_entropy = np.sum(entropylist,0)
+
+    fid1 = fidelity(finalstate,QBC_3.State_eig[state_loc])
+    fid2 = fidelity(finalstate,initial_state)
+
     if traceplot:
         max_entrpy = np.ones_like(global_entropy)*np.sum(max_entrpy_list)
         GHZ_entrpy = np.ones_like(global_entropy)*np.sum(GHZ_entrpy_list)
@@ -307,13 +314,15 @@ def EigStateAdiabatic(level,t_rise,t_total,traceplot = False):
         plt.legend(handles,labels)
         maxloc = np.argmax(global_entropy)
         plt.tight_layout()
-        plt.title('3level='+str(level)+',t_rise='+str(t_rise)+',t_total='+str(t_total)+',entropy='+str(global_entropy[maxloc])[1:6]+',time='+str(QBC_3.tlist[maxloc])[0:6])
-        plt.savefig('./adiabatic/3level_t_rise='+str(t_rise)+',t_total='+str(t_total)+',level='+str(level))
+        plt.title(str(N_level)+'level='+str(level)+',t_rise='+str(t_rise)+',t_total='+str(t_total)+',entropy='+str(global_entropy[maxloc])[1:6]+',time='+str(QBC_3.tlist[maxloc])[0:6])
+        plt.savefig('./adiabatic/'+str(N_level)+'level_t_rise='+str(t_rise)+',t_total='+str(t_total)+',level='+str(level))
 
 
         plt.show()
     print('evolution end')
-    return([global_entropy,tlist])
+    print([fid1,fid2])
+    # return([global_entropy,tlist,[fid1,fid2]])
+    return(fid1)
 
 
 
@@ -449,9 +458,13 @@ def get_all_evolution(qubit_row,qubit_column):
 
 if __name__ == '__main__':
 
-
-    finalstate = EigStateAdiabatic(31,3000,10000,traceplot=True)
-    print(finalstate)
+    t_total = np.linspace(7000,31000,7)
+    fid_list = []
+    for t in t_total:
+        finalstate = EigStateAdiabatic(6,3000,t,5.0*2*np.pi,traceplot=False)
+        fid_list.append(find_initial)
+    plt.figure();plt.plot(t_total,fid_list)
+    np.savez("fid.npy",fid_list = fid_list , t_total = t_total)
 
     
     # evo_list,all_ini_state = get_all_evolution(2,3)
