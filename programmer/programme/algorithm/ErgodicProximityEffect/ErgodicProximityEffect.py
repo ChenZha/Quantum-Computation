@@ -55,7 +55,44 @@ def standing_wave(t,args,args_para):
     else:
         print('Time Error')
     return(float(w))
-def Drive_Hamiltonian(QBC,frequency_working,t_total,N,):
+def OTOC_traveling_wave(t,args,args_para):
+    '''
+    args:
+        t_total
+        t_rise
+        t_xita
+        delta
+        h1
+        omega
+    '''
+    t_total = args_para['t_total']
+    t_rise = args_para['t_rise']
+    t_xita = args_para['t_xita']
+    delta = args_para['delta']
+    h1 = args_para['h1']
+    omega = args_para['omega']
+    if t<=0 :
+        w = 0
+    elif t>0 and t<=t_rise:
+        w = delta*(t/t_rise)
+    elif t>t_rise and t<=(t_total-t_xita)/2-t_rise:
+        w = delta+h1*np.cos(omega*t)
+    elif t>(t_total-t_xita)/2-t_rise and t<=(t_total-t_xita)/2:
+        w = delta/(t_rise)*((t_total-t_xita)/2-t)
+    elif t>(t_total-t_xita)/2 and t<=(t_total+t_xita)/2:
+        w = 0
+    elif t>(t_total+t_xita)/2 and t<=(t_total+t_xita)/2+t_rise:
+        w = delta*((t-(t_total+t_xita)/2)/t_rise)
+    elif t>(t_total+t_xita)/2+t_rise and t<=t_total-t_rise:
+        w = delta-h1*np.cos(omega*t)
+    elif t>t_total-t_rise and t<=t_total:
+        w = delta/(t_rise)*(t_total-t)
+    elif t>t_total:
+        w = 0
+    else:
+        print('Time Error')
+    return(float(w))
+def Drive_Hamiltonian(QBC,frequency_working,t_total,osc,N,):
     Hdrive = []
     drive_pulse = []
     central_point = int(QBC.num_qubits/2)
@@ -63,8 +100,12 @@ def Drive_Hamiltonian(QBC,frequency_working,t_total,N,):
         if ii < central_point and ii >=0:
             ## Ergodic domain
             delta = frequency_working[ii]-QBC.frequency[ii]
-            h1 = N*QBC.coupling[0]*np.cos(2*np.pi*(10-ii)/central_point)
-            omega = 2*np.sqrt(8*np.pi**2*N*coupling[0]*QBC.coupling[0]/central_point**2)
+            if osc:
+                h1 = N*QBC.coupling[0]*np.cos(2*np.pi*(10-ii)/central_point)
+                omega = 2*np.sqrt(8*np.pi**2*N*QBC.coupling[0]*QBC.coupling[0]/central_point**2)/3
+            else:
+                h1 = 0
+                omega = 0
             args = {'t_total':t_total , 't_rise':1 , 'delta':delta , 'h1': h1 , 'omega':omega}
             pulse_shape = partial(traveling_wave , args_para = args)
             drive_pulse.append(pulse_shape)
@@ -78,9 +119,35 @@ def Drive_Hamiltonian(QBC,frequency_working,t_total,N,):
             Hdrive.append([QBC.sm[ii].dag()*QBC.sm[ii],drive_pulse[ii]])
         else:
             print('Index Error')
-    
+    return(Hdrive)
 
-
+def Drive_Hamiltonian_OTOC(QBC,frequency_working,t_total,t_xita,osc,N,):
+    Hdrive = []
+    drive_pulse = []
+    central_point = int(QBC.num_qubits/2)
+    for ii in range(QBC.num_qubits):
+        if ii < central_point and ii >=0:
+            ## Ergodic domain
+            delta = frequency_working[ii]-QBC.frequency[ii]
+            if osc:
+                h1 = N*QBC.coupling[0]*np.cos(2*np.pi*(10-ii)/central_point)
+                omega = 2*np.sqrt(8*np.pi**2*N*QBC.coupling[0]*QBC.coupling[0]/central_point**2)/3
+            else:
+                h1 = 0
+                omega = 0
+            args = {'t_total':t_total , 't_rise':5 ,'t_xita':t_xita, 'delta':delta , 'h1': h1 , 'omega':omega}
+            pulse_shape = partial(OTOC_traveling_wave , args_para = args)
+            drive_pulse.append(pulse_shape)
+            Hdrive.append([QBC.sm[ii].dag()*QBC.sm[ii],drive_pulse[ii]])
+        elif ii >= central_point and ii <= QBC.num_qubits:
+            ## localized domain
+            delta = frequency_working[ii]-QBC.frequency[ii]
+            args = {'t_total':t_total , 't_rise':1 , 'delta':delta }
+            pulse_shape = partial(standing_wave , args_para = args)
+            drive_pulse.append(pulse_shape)
+            Hdrive.append([QBC.sm[ii].dag()*QBC.sm[ii],drive_pulse[ii]])
+        else:
+            print('Index Error')
     return(Hdrive)
 
 def StateEvolution(qubit_chain , Hdrive , inistate , t_total):
@@ -91,15 +158,26 @@ def StateEvolution(qubit_chain , Hdrive , inistate , t_total):
     psi = inistate
     QB = qubit_chain
 
-    finalstate = QB.evolution(drive = Hdrive , psi = psi ,  track_plot = False , RWF = 'CpRWF',argument = args )
+    c_op_list = []
+    T1 = 30000
+    T2 = 5000
+    n_th = 0.01
+    gamma = 1.0/T1
+    gamma_phi = 1.0/T2-1/2/T1
+    for ii in range(QB.num_qubits):
+        c_op_list.append(np.sqrt(gamma * (1+n_th)) * QB.sm[ii])
+        c_op_list.append(np.sqrt(gamma * n_th) * QB.sm[ii].dag())
+        c_op_list.append(np.sqrt(2*gamma_phi) * QB.sm[ii].dag()*QB.sm[ii])
+
+    finalstate = QB.evolution(drive = Hdrive , psi = psi , collapse = [], track_plot = False , RWF = 'NoRWF',argument = args )
 
     return(QB)
 
-def initialstate(QBC):
+def initialstate(QBC,excitation = [0]):
     psi = []
     num_qubits = QBC.num_qubits
     for ii in range(num_qubits):
-        if ii == int(num_qubits/2)-1:
+        if ii in excitation:
             psi.append(basis(QBC.N_level[ii],1))
         else:
             psi.append(basis(QBC.N_level[ii],0))
@@ -119,7 +197,7 @@ def plot_evolution(QB,note):
     x,y = np.meshgrid(tlist,np.r_[qlist,qlist[-1]+1])
     # x,y = np.meshgrid(qlist,tlist)
     plt.figure()
-    plt.pcolor(x,y,Zlist)
+    plt.pcolor(x,y,Zlist,cmap='jet')
     plt.title('population_'+note)
     plt.colorbar()
     plt.xlabel('time(ns)');plt.ylabel('qubit')
@@ -133,7 +211,9 @@ def plot_evolution(QB,note):
         XYcorrelation_list[ii] = QB.expect_evolution(QB.X_m[-1]*QB.X_m[ii]+QB.Y_m[-1]*QB.Y_m[ii])
     x,y = np.meshgrid(tlist,np.r_[qlist[1:],qlist[-1]+1])
     plt.figure()
-    plt.pcolor(x,y,XYcorrelation_list)
+    
+    plt.pcolor(x,y,XYcorrelation_list,cmap='jet')
+    
     plt.title('XYcorrelation_'+note)
     plt.colorbar()
     plt.xlabel('time(ns)');plt.ylabel('qubit')
@@ -147,7 +227,9 @@ def plot_evolution(QB,note):
         ZZcorrelation_list[ii] = QB.expect_evolution((QB.E_g[-1]-QB.E_e[-1])*(QB.E_g[ii]-QB.E_e[ii]))-QB.expect_evolution((QB.E_g[-1]-QB.E_e[-1]))*QB.expect_evolution((QB.E_g[ii]-QB.E_e[ii]))
     x,y = np.meshgrid(tlist,np.r_[qlist[1:],qlist[-1]+1])
     plt.figure()
-    plt.pcolor(x,y,ZZcorrelation_list)
+    
+    plt.pcolor(x,y,ZZcorrelation_list,cmap='jet')
+    
     plt.title('ZZcorrelation_'+note)
     plt.colorbar()
     plt.xlabel('time(ns)');plt.ylabel('qubit')
@@ -157,6 +239,28 @@ def plot_evolution(QB,note):
     
     # plt.show()
     return([Zlist,XYcorrelation_list,ZZcorrelation_list])
+def plot_evolution_OTOC(QB,note):
+    tlist = QBC.tlist
+    qlist = [ii+1 for ii in range(QBC.num_qubits)]
+
+    '''
+    OTOC
+    '''
+    OTOClist = np.zeros([len(qlist),len(tlist)])
+    for ii in range(len(qlist)):
+        OTOClist[ii] = QB.expect_evolution(QB.sm[ii].dag()*QB.sm[ii])
+    x,y = np.meshgrid(tlist,np.r_[qlist,qlist[-1]+1])
+    # x,y = np.meshgrid(qlist,tlist)
+    plt.figure()
+    plt.pcolor(x,y,OTOClist,cmap='jet')
+    plt.title('OTOClist_'+note)
+    plt.colorbar()
+    plt.xlabel('time(ns)');plt.ylabel('qubit')
+    plt.savefig('./result/OTOClist_'+str(note))
+    
+    
+    # plt.show()
+    return([OTOClist])
 def plt_waveform(QBC,note):
     fig,axes = plt.subplots(1,1)
     tlist  = QBC.tlist
@@ -170,10 +274,11 @@ def plt_waveform(QBC,note):
     plt.xlabel('time(ns)');plt.ylabel('frequency(GHz)');plt.title('waveform_'+note)
     plt.savefig('./result/waveform_'+str(note))
     plt.show()
+    return()
 
-def ErgodicEffect(QBC,frequency_working,t_total,note , N ):
-    ini_state = initialstate(QBC)
-    Hdrive = Drive_Hamiltonian(QBC,frequency_working,t_total , N)
+def ErgodicEffect(QBC , excitation, frequency_working,t_total , osc , note , N ):
+    ini_state = initialstate(QBC , excitation)
+    Hdrive = Drive_Hamiltonian(QBC,frequency_working,t_total , osc , N)
     QB = StateEvolution(QBC , Hdrive , ini_state , t_total)
 
     central_point = int(QBC.num_qubits/2)
@@ -183,8 +288,24 @@ def ErgodicEffect(QBC,frequency_working,t_total,note , N ):
     data_list = plot_evolution(QB,note)
     # plot_tlist = np.linspace(0,t_total,)
     return(data_list)
+def ErgodicEffect_OTOC(QBC , excitation, frequency_working,t_total , t_xita, osc , note , N ):
+    ini_state = initialstate(QBC , excitation)
+    Hdrive = Drive_Hamiltonian_OTOC(QBC,frequency_working , t_total , t_xita , osc , N)
+    QB = StateEvolution(QBC , Hdrive , ini_state , t_total)
 
+    central_point = int(QBC.num_qubits/2)
+    omega = 2*np.sqrt(8*np.pi**2*QBC.coupling[0]**2/central_point**2)
+    T = 2*np.pi/omega
 
+    data_list = plot_evolution_OTOC(QB,note)
+    # plot_tlist = np.linspace(0,t_total,)
+    return(data_list)
+
+def frequency_working_setup(frequency_working,disorder):
+    size = np.size(frequency_working)
+    for ii in range(int(size/2),size):
+        frequency_working[ii] = frequency_working[ii]+random.uniform(-disorder,disorder)
+    return(frequency_working)
     
 if  __name__ == '__main__':
     Num_qubits = 10
@@ -199,14 +320,23 @@ if  __name__ == '__main__':
     # # frequency_working = np.array([4.43650 ,	4.42855 ,	4.41570 ,	4.41570 ,	4.42855 ,	4.43082 ,	4.40897 ,	4.45854 ,	4.41848 ,	4.39802 ])* 2*np.pi
     # frequency_working = np.array([4.43650 ,	4.42855 ,	4.41570 ,	4.41570 ,	4.42855 ,	4.42504 ,	4.40879 ,	4.50660 ,	4.33894 ,	4.37505 ])* 2*np.pi
     
-    N = 1
+    N = 2
     h0 = N*coupling[0]
     frequency_working = (4.425)*2*np.pi+h0*np.cos(2*np.pi*(10-np.arange(10))/5)
-    # frequency_working = (4.425)*2*np.pi+h0*np.cos(2*np.pi*(10-np.arange(10))/5)+random.uniform(-5*coupling[0],5*coupling[0])
-    # frequency_working = (4.425)*2*np.pi+h0*np.cos(2*np.pi*(10-np.arange(10))/5)+random.uniform(-10*coupling[0],10*coupling[0])
+    # frequency_working = frequency_working_setup(frequency_working,5*coupling[0])
+    # frequency_working = frequency_working_setup(frequency_working,10*coupling[0])
+
+    # plt.figure();plt.plot(frequency_working/2/np.pi);plt.savefig('./result/frequency_working_No');plt.show()
 
     t_total = 500
-    note = 'No disorder With Osc N = 1'
-    data_list = ErgodicEffect(QBC,frequency_working,t_total,note = note,N = N)
+    t_xita = 40
+    excitation = [2]
+
+    # note = 'j = 3,No disorder No Osc N =  '+str(N)+',excitation='+str(excitation)
+    # data_list = ErgodicEffect(QBC , excitation , frequency_working,t_total , osc = False , note = note , N = N)
+    # plt_waveform(QBC,note = note)
+
+    note = 'j = 3,No disorder  With Osc N =  '+str(N)+',excitation='+str(excitation)+',t_xita='+str(t_xita)
+    data_list = ErgodicEffect_OTOC(QBC , excitation , frequency_working,t_total ,t_xita, osc = True ,  note = note , N = N)
     plt_waveform(QBC,note = note)
     
