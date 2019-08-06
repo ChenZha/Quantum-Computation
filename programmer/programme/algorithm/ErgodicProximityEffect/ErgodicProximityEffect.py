@@ -20,14 +20,15 @@ def traveling_wave(t,args,args_para):
     delta = args_para['delta']
     h1 = args_para['h1']
     omega = args_para['omega']
+    phi = args_para['phi']
     if t<=0 :
         w = 0
     elif t>0 and t<=t_rise:
-        w = delta*(t/t_rise)
+        w = delta*(t/t_rise)+h1*np.cos(omega*t+phi)*(t/t_rise)
     elif t>t_rise and t<=t_total-t_rise:
-        w = delta+h1*np.cos(omega*t)
+        w = delta+h1*np.cos(omega*t+phi)
     elif t>t_total-t_rise and t<=t_total:
-        w = delta/(t_rise)*(t_total-t)
+        w = delta/(t_rise)*(t_total-t)+h1*np.cos(omega*t+phi)/(t_rise)*(t_total-t)
     elif t>t_total:
         w = 0
     else:
@@ -142,14 +143,14 @@ def Drive_Hamiltonian(QBC,frequency_working,t_total,osc,N,):
             else:
                 h1 = 0
                 omega = 0
-            args = {'t_total':t_total , 't_rise':5 , 'delta':delta , 'h1': h1 , 'omega':omega}
+            args = {'t_total':t_total , 't_rise':5 , 'delta':delta , 'h1': h1 , 'omega':omega,'phi':-np.pi/10}
             pulse_shape = partial(traveling_wave , args_para = args)
             drive_pulse.append(pulse_shape)
             Hdrive.append([QBC.sm[ii].dag()*QBC.sm[ii],drive_pulse[ii]])
         elif ii >= central_point and ii <= QBC.num_qubits:
             ## localized domain
             delta = frequency_working[ii]-QBC.frequency[ii]
-            args = {'t_total':t_total , 't_rise':1 , 'delta':delta }
+            args = {'t_total':t_total , 't_rise':5 , 'delta':delta }
             pulse_shape = partial(standing_wave , args_para = args)
             drive_pulse.append(pulse_shape)
             Hdrive.append([QBC.sm[ii].dag()*QBC.sm[ii],drive_pulse[ii]])
@@ -221,7 +222,8 @@ def initialstate(QBC,excitation = [0]):
     return(psi)
 
 def plot_evolution(QB,correlator,note):
-    tlist = QBC.tlist
+    tlist = QBC.tlist[5:-5]
+    tlist = tlist-tlist[0]
     qlist = [ii+1 for ii in range(QBC.num_qubits)]
     correaltion_list = [ii for ii in range(QBC.num_qubits)];correaltion_list.remove(correlator)
     '''
@@ -229,7 +231,7 @@ def plot_evolution(QB,correlator,note):
     '''
     Zlist = np.zeros([len(qlist),len(tlist)])
     for ii in range(len(qlist)):
-        Zlist[ii] = QB.expect_evolution(QB.sm[ii].dag()*QB.sm[ii])
+        Zlist[ii] = QB.expect_evolution(QB.sm[ii].dag()*QB.sm[ii])[5:-5]
     x,y = np.meshgrid(np.r_[qlist,qlist[-1]+1],tlist)
     # x,y = np.meshgrid(qlist,tlist)
     plt.figure()
@@ -246,7 +248,7 @@ def plot_evolution(QB,correlator,note):
 
     XYcorrelation_list = np.zeros([len(correaltion_list),len(tlist)])
     for ii in range(len(correaltion_list)):
-        XYcorrelation_list[ii] = QB.expect_evolution(QB.X_m[correlator]*QB.X_m[correaltion_list[ii]]+QB.Y_m[correlator]*QB.Y_m[correaltion_list[ii]])
+        XYcorrelation_list[ii] = QB.expect_evolution(QB.X_m[correlator]*QB.X_m[correaltion_list[ii]]+QB.Y_m[correlator]*QB.Y_m[correaltion_list[ii]])[5:-5]
     x,y = np.meshgrid(np.r_[qlist[1:],qlist[-1]+1],tlist)
     plt.figure()
     
@@ -263,7 +265,7 @@ def plot_evolution(QB,correlator,note):
     '''
     ZZcorrelation_list = np.zeros([len(qlist)-1,len(tlist)])
     for ii in range(len(qlist)-1):
-        ZZcorrelation_list[ii] = QB.expect_evolution((QB.E_g[correlator]-QB.E_e[correlator])*(QB.E_g[correaltion_list[ii]]-QB.E_e[correaltion_list[ii]]))-QB.expect_evolution((QB.E_g[correlator]-QB.E_e[correlator]))*QB.expect_evolution((QB.E_g[correaltion_list[ii]]-QB.E_e[correaltion_list[ii]]))
+        ZZcorrelation_list[ii] = (QB.expect_evolution((QB.E_g[correlator]-QB.E_e[correlator])*(QB.E_g[correaltion_list[ii]]-QB.E_e[correaltion_list[ii]]))-QB.expect_evolution((QB.E_g[correlator]-QB.E_e[correlator]))*QB.expect_evolution((QB.E_g[correaltion_list[ii]]-QB.E_e[correaltion_list[ii]])))[5:-5]
     x,y = np.meshgrid(np.r_[qlist[1:],qlist[-1]+1],tlist)
     plt.figure()
     
@@ -275,7 +277,8 @@ def plot_evolution(QB,correlator,note):
     plt.xticks([i+2 for i in range(len(correaltion_list))],[str(x+1) for x in correaltion_list])
     plt.savefig('./result/ZZcorrelation_'+str(note))
     
-
+    savefilename = './result/'+str(note)+'.npz'
+    np.savez(savefilename,Zlist = Zlist,XYcorrelation_list=XYcorrelation_list,ZZcorrelation_list = ZZcorrelation_list)
     
     # plt.show()
     return([Zlist,XYcorrelation_list,ZZcorrelation_list])
@@ -392,21 +395,25 @@ if  __name__ == '__main__':
     
     N = 3
     h0 = N*coupling[0]
-    frequency_working = (4.35)*2*np.pi+h0*np.cos(2*np.pi*(12-np.arange(12))/6)
-    frequency_working = np.array([4.3845 ,4.36725 ,4.33275 ,4.31550 ,4.33275 ,4.36725 ,4.38450 ,4.338500 ,4.34195 ,4.28800 ,	4.36900 ,4.3160 ])* 2*np.pi
-    frequency_working = np.array([4.3845 ,4.36725 ,4.33275,4.31550,4.33275,4.36725,4.38525,4.22800,4.42400,4.28600,4.22900,4.2960 ])* 2*np.pi
+    frequency_working = (4.335)*2*np.pi+h0*np.cos(2*np.pi*(12-np.arange(12))/6)
+    # frequency_working = np.array([4.3845 ,4.36725 ,4.33275 ,4.31550 ,4.33275 ,4.36725 ,4.38450 ,4.338500 ,4.34195 ,4.28800 ,	4.36900 ,4.3160 ])* 2*np.pi
+    # frequency_working = np.array([4.3845 ,4.36725 ,4.33275,4.31550,4.33275,4.36725,4.38525,4.22800,4.42400,4.28600,4.22900,4.2960 ])* 2*np.pi
     # frequency_working = frequency_working_setup(frequency_working,5*coupling[0])
     # frequency_working = frequency_working_setup(frequency_working,10*coupling[0])
 
     # plt.figure();plt.plot(frequency_working/2/np.pi);plt.savefig('./result/frequency_working_No');plt.show()
 
-    t_total = 500
-    # t_xita = 30
-    excitation = [2]
-    correlator = 6
-    note = 'Strong disorder  N =  '+str(N)+',excitation='+str(excitation[0]+1)+',correlator='+str(correlator+1)
-    data_list = ErgodicEffect(QBC , excitation , frequency_working,t_total,correlator = correlator , osc = True , note = note , N = N)
-    plt_waveform(QBC,note = note)
+    # parameter = [frequency_working,coupling,eta_q,N_level]
+    # QB = Qubits(qubits_parameter = parameter)
+
+    for excitation in [3]:
+        t_total = 160
+        # t_xita = 30
+        excitation = [excitation]
+        correlator = 6
+        note = 'No disorder N =  '+str(N)+',excitation='+str(excitation[0]+1)+',correlator='+str(correlator+1)
+        data_list = ErgodicEffect(QBC , excitation , frequency_working,t_total,correlator = correlator , osc = True , note = note , N = N)
+        plt_waveform(QBC,note = note)
 
     # note = 'j = 4,No disorder  With Osc N =  '+str(N)+',excitation='+str(excitation)+',t_xita='+str(t_xita)
     # data_list = ErgodicEffect_OTOC(QBC , excitation , frequency_working,t_total ,t_xita, osc = True ,  note = note , N = N)
