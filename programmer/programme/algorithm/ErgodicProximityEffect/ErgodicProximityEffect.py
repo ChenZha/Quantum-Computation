@@ -415,17 +415,18 @@ if  __name__ == '__main__':
 
     # plt.figure();plt.plot(frequency_working/2/np.pi);plt.savefig('./result/frequency_working_No');plt.show()
 
-    # parameter = [frequency_working,coupling,eta_q,N_level]
-    # QB = Qubits(qubits_parameter = parameter)
+    parameter = [frequency_working,coupling,eta_q,N_level]
+    QB = Qubits(qubits_parameter = parameter)
     # frequency_working = (4.335)*2*np.pi+h0*np.cos(2*np.pi*(12-np.arange(12))/6)
-    # for excitation in [1]:
-    #     t_total = 210
-    #     # t_xita = 30
-    #     excitation = [excitation]
-    #     correlator = 6
-    #     note = 'No disorder, N =  '+str(N)+',excitation='+str(excitation[0]+1)+',correlator='+str(correlator+1)
-    #     data_list = ErgodicEffect(QBC , excitation , frequency_working,t_total,correlator = correlator , osc = True , note = note , N = N)
-    #     plt_waveform(QBC,note = note)
+    frequency_working = np.ones(12)*4.298*10**9
+    for excitation in [9]:
+        t_total = 110
+        # t_xita = 30
+        excitation = [excitation]
+        correlator = 6
+        note = 'No disorder, N =  '+str(N)+',excitation='+str(excitation[0]+1)+',correlator='+str(correlator+1)
+        data_list = ErgodicEffect(QBC , excitation , frequency_working,t_total,correlator = correlator , osc = False , note = note , N = N)
+        plt_waveform(QBC,note = note)
 
     # frequency_working = np.array([4.3695 ,	4.35225 ,	4.31775 , 4.30050 ,	4.31775 ,	4.35225 ,	4.3695,	4.3235,	4.32695,	4.27300 ,	4.35400 ,	4.3010  ])* 2*np.pi
 
@@ -448,13 +449,15 @@ if  __name__ == '__main__':
     #     note = 'Strong disorder, N =  '+str(N)+',excitation='+str(excitation[0]+1)+',correlator='+str(correlator+1)
     #     data_list = ErgodicEffect(QBC , excitation , frequency_working,t_total,correlator = correlator , osc = True , note = note , N = N)
     #     plt_waveform(QBC,note = note)
-    pi = np.pi
-    excitation = [5]
-    note = 'j = 6,No disorder  With Osc N =  '+str(N)+',excitation='+str(excitation[0]+1)+',t_xita='+str(15)
-    TargetPhase = np.array([2*pi,-3*pi,4*pi,-3*pi,2*pi,-3*pi,6*pi,-pi,6*pi,-5*pi,2*pi,-3*pi])
-    ZAmp = TargetPhase/(-15.0)
-    # ZAmp = np.array([-0.062415696716072 ,  0.122537354380784 , -0.134373411112656  , 0.117378648740031 , -0.064363781459242  , 0.156914016028379 , -0.162927383267175 , 0.044216812699949 , -0.201286696595737 ,  0.194024995971759 , -0.056849629849301 ,  0.151930816207425])*2*np.pi
-    ErgodicEffect_OTOC_single(QBC , excitation, frequency_working, ZAmp ,50 , osc = True , note = note , N = N)
+
+
+    # pi = np.pi
+    # excitation = [5]
+    # note = 'j = 6,No disorder  With Osc N =  '+str(N)+',excitation='+str(excitation[0]+1)+',t_xita='+str(15)
+    # TargetPhase = np.array([2*pi,-3*pi,4*pi,-3*pi,2*pi,-3*pi,6*pi,-pi,6*pi,-5*pi,2*pi,-3*pi])
+    # ZAmp = TargetPhase/(-15.0)
+    # # ZAmp = np.array([-0.062415696716072 ,  0.122537354380784 , -0.134373411112656  , 0.117378648740031 , -0.064363781459242  , 0.156914016028379 , -0.162927383267175 , 0.044216812699949 , -0.201286696595737 ,  0.194024995971759 , -0.056849629849301 ,  0.151930816207425])*2*np.pi
+    # ErgodicEffect_OTOC_single(QBC , excitation, frequency_working, ZAmp ,50 , osc = True , note = note , N = N)
 
     
     # note = 'j = 6,No disorder  With Osc N =  '+str(N)+',excitation='+str(excitation+1)+',t_xita='+str(15)
