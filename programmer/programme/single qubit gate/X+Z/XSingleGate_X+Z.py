@@ -67,8 +67,8 @@ if  __name__ == '__main__':
     N_level= 3
     parameter = [frequency,coupling,eta_q,N_level]
     QBC = Qubits(qubits_parameter = parameter)
-
-    print(opt_Xgate(0,QBC))
+    getfid_Xgate([  0.23724056,  34.55760448,  -0.43552389],0,QBC)
+    # print(opt_Xgate(0,QBC))
     # P = [0.03*2*np.pi*4,QBC.frequency[0],-0.5]
     # func = partial(getfid_Xgate , ratio = 0,QB=QBC )
 
