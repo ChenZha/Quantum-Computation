@@ -1183,26 +1183,26 @@ if __name__=='__main__':
     starttime=time.time()
     
     ## Approximation Type{ 0: Consider Cavity but no direct coupling between qubits; 1: No cavity but consider direct coupling between qubits; 2: two level system; 3: two level system without cavity; 4:directly coupled with three levels; 5:directly coupled with two levels}
-    APRType=4
+    APRType=2
     
     ## Qubit number
-    Num_Q=4
+    Num_Q=1
     
     ## Cavity Ladder Number
     N=3
     
     ## Savedata 
-    SD=False
+    SD=True
     
     ## PlotData
-    PLT=False
+    PLT=True
     
     ## Test Gate mode
     TG= 0
     ## Test CZ Gate
     TCZ = 0
     ## Coupled Rotation Frame
-    CRF = 0
+    CRF = 1
     ## Run experiment
     RE=0
     
@@ -1257,13 +1257,8 @@ if __name__=='__main__':
 #         ['CZ2_60=1.69457+0.0244367','CZ2_57.94037=2.050536+-1.618522','I'],
 #         ['I','I','H'],
 #
-         ['H','H','I','I'],
-         ['CZ1_61=-1.69457+0.102458','I','I','I'],
-         ['I','H','H','I'],
-         ['CZ2_60=1.69457+0.0244367','CZ2_57.94037=2.050536+-1.618522','I','I'],
-         ['I','I','H','H'],
-         ['I','I','I','CZ2_57.99937811=1.72206004+-3.13181605'],
-         ['I','I','I','H'],
+         ['H'],
+         
          
 #         ['H','H','I','I','I'],
 #         ['CZ1_61=-1.69457+0.102458','I','I','I','I'],

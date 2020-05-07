@@ -392,7 +392,7 @@ class Qubits():
             p.join()
         else:
             for Phi in basic:
-                final_state.append(self.evolution(drive , Phi , [] , False , RWF ,argument , options))
+                final_state.append(self.evolution(drive , Phi , [] , False , RWF ,RWA_freq,argument , options))
 
         process = np.column_stack([final_state[i].data.toarray() for i in range(len(final_state))])[loc,:] #只取演化矩阵中二能级部分
         angle = np.angle(process[0][0])
