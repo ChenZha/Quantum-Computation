@@ -1,7 +1,7 @@
 %计算Xmon中耦合电容
 
 
-path = 'q-r2.s2p';
+path = 'test.s2p';
 
 
 Y = yparameters(path);
@@ -9,10 +9,11 @@ Y = yparameters(path);
 f = Y.Frequencies;
 Y21 = squeeze(Y.Parameters(2,1,:));
 Cclist = -imag(Y21)/2/pi./f;
-% plot(f,Cclist);
-Cc = -imag(Y21(1))/2/pi./f(1);
+figure();plot(f,-imag(Y21))
+figure();plot(f,Cclist);
+Cc = mean(Cclist(10:end));
 disp(['Cc=',num2str(Cc)]);
-
+% figure();plot(f,Y21)
 
 %% 计算比特间耦合强度
 fq1 = 4.884e9;

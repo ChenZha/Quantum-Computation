@@ -327,163 +327,190 @@ def test(P):
     
 if __name__=='__main__':
     
-    starttime  = time.time()
+#     starttime  = time.time()
     
     
-    global th
-    resolution = 1024
-    thf = 0.55*pi/2;
-    thi = 0.05;
-    lam2 = -0.18;
-    lam3 = 0.04;
-    resolution = 1024;
+#     global th
+#     resolution = 1024
+#     thf = 0.55*pi/2;
+#     thi = 0.05;
+#     lam2 = -0.18;
+#     lam3 = 0.04;
+#     resolution = 1024;
     
-    ti=np.linspace(0,1,resolution)
-    han2 = np.vectorize(lambda ti:(1-lam3)*(1-cos(2*pi*ti))+lam2*(1-cos(4*pi*ti))+lam3*(1-cos(6*pi*ti)))
-    han2 = han2(ti)
-    thsl=thi+(thf-thi)*han2/max(han2)
-    x = 1/np.tan(thsl);
-    x = x-x[0];
+#     ti=np.linspace(0,1,resolution)
+#     han2 = np.vectorize(lambda ti:(1-lam3)*(1-cos(2*pi*ti))+lam2*(1-cos(4*pi*ti))+lam3*(1-cos(6*pi*ti)))
+#     han2 = han2(ti)
+#     thsl=thi+(thf-thi)*han2/max(han2)
+#     x = 1/np.tan(thsl);
+#     x = x-x[0];
     
-    tlu = np.cumsum(np.sin(thsl))*ti[1]
-    tlu=tlu-tlu[0]
-    ti=np.linspace(0, tlu[-1], resolution)
-    th=interpolate.interp1d(tlu,thsl,'slinear')
-    th = th(ti)
-    th=1/np.tan(th)
-    th=th-th[0]
-    th=th/min(th)
+#     tlu = np.cumsum(np.sin(thsl))*ti[1]
+#     tlu=tlu-tlu[0]
+#     ti=np.linspace(0, tlu[-1], resolution)
+#     th=interpolate.interp1d(tlu,thsl,'slinear')
+#     th = th(ti)
+#     th=1/np.tan(th)
+#     th=th-th[0]
+#     th=th/min(th)
     
-    w_q = np.array([ 4.73 , 5.22]) * 2 * np.pi      
-    g = 0.0125 * 2 * np.pi
-    eta_q = np.array([-0.25 , -0.25]) * 2 * np.pi
-    n= 0
+#     w_q = np.array([ 4.73 , 5.22]) * 2 * np.pi      
+#     g = 0.0125 * 2 * np.pi
+#     eta_q = np.array([-0.25 , -0.25]) * 2 * np.pi
+#     n= 0
     
-    #==============================================================================
-    sm = np.array([tensor(destroy(3),qeye(3)) , tensor(qeye(3),destroy(3))])
+#     #==============================================================================
+#     sm = np.array([tensor(destroy(3),qeye(3)) , tensor(qeye(3),destroy(3))])
     
-    E_uc = np.array([tensor(basis(3,2)*basis(3,2).dag(),qeye(3)) , tensor(qeye(3), basis(3,2)*basis(3,2).dag())])
+#     E_uc = np.array([tensor(basis(3,2)*basis(3,2).dag(),qeye(3)) , tensor(qeye(3), basis(3,2)*basis(3,2).dag())])
     
-    E_e = np.array([tensor(basis(3,1)*basis(3,1).dag(),qeye(3)),tensor(qeye(3),basis(3,1)*basis(3,1).dag())])
+#     E_e = np.array([tensor(basis(3,1)*basis(3,1).dag(),qeye(3)),tensor(qeye(3),basis(3,1)*basis(3,1).dag())])
     
-    E_g = np.array([tensor(basis(3,0)*basis(3,0).dag(),qeye(3)) , tensor(qeye(3),basis(3,0)*basis(3,0).dag())])
+#     E_g = np.array([tensor(basis(3,0)*basis(3,0).dag(),qeye(3)) , tensor(qeye(3),basis(3,0)*basis(3,0).dag())])
       
-    sn = np.array([sm[0].dag()*sm[0] , sm[1].dag()*sm[1]])
+#     sn = np.array([sm[0].dag()*sm[0] , sm[1].dag()*sm[1]])
     
-    sx = np.array([sm[0].dag()+sm[0],sm[1].dag()+sm[1]]);
-    sxm = np.array([tensor(Qobj([[0,1,0],[1,0,0],[0,0,0]]),qeye(3)) , tensor(qeye(3),Qobj([[0,1,0],[1,0,0],[0,0,0]]))])
-    
-    
-    sy = np.array([1j*(sm[0].dag()-sm[0]) , 1j*(sm[1].dag()-sm[1])]);
-    sym = np.array([tensor(Qobj([[0,-1j,0],[1j,0,0],[0,0,0]]),qeye(3)) , tensor(qeye(3),Qobj([[0,-1j,0],[1j,0,0],[0,0,0]]))])
-    
-    sz = np.array([E_g[0] - E_e[0] , E_g[1] - E_e[1]])
+#     sx = np.array([sm[0].dag()+sm[0],sm[1].dag()+sm[1]]);
+#     sxm = np.array([tensor(Qobj([[0,1,0],[1,0,0],[0,0,0]]),qeye(3)) , tensor(qeye(3),Qobj([[0,1,0],[1,0,0],[0,0,0]]))])
     
     
+#     sy = np.array([1j*(sm[0].dag()-sm[0]) , 1j*(sm[1].dag()-sm[1])]);
+#     sym = np.array([tensor(Qobj([[0,-1j,0],[1j,0,0],[0,0,0]]),qeye(3)) , tensor(qeye(3),Qobj([[0,-1j,0],[1j,0,0],[0,0,0]]))])
+    
+#     sz = np.array([E_g[0] - E_e[0] , E_g[1] - E_e[1]])
     
     
-#    E = CZgate([98,1.272])
     
-#    x0 = [np.pi/np.sqrt(2)/g+15,(w_q[1]-w_q[0]+eta_q[1])]
-#    result = minimize(CZgate, x0, method="Nelder-Mead",options={'disp': True})
-#    print(result.x[0],result.x[1])
+    
+# #    E = CZgate([98,1.272])
+    
+# #    x0 = [np.pi/np.sqrt(2)/g+15,(w_q[1]-w_q[0]+eta_q[1])]
+# #    result = minimize(CZgate, x0, method="Nelder-Mead",options={'disp': True})
+# #    print(result.x[0],result.x[1])
 
-#==============================================================================
-#    t = np.arange(35,150,1)
-#    Am = np.arange(1.014,2.054,0.006)
-#    z=np.zeros(shape=(len(t),len(Am)))
-#    
-#    p = Pool(45)
-#    
-#    for i in range(0,len(t)):
-#        P = [[t[i],Am[j]] for j in range(0,len(Am))]
-#        z[i] = p.map(CZgate,P)
-#        roundtime = time.time()
-#        print(t[i],roundtime-starttime)
-#    p.close()
-#    p.join()
-#    
-#    
-#    figure()
-#    pcolormesh(Am,t,z)
-#    xlabel('Am')
-#    ylabel('t')
-#    plt.colorbar()
-#    
-#    z = np.array(z)
-#    mz = np.max(z)
-#    indexz = np.where(z == mz)
-#    print(mz,t[indexz[0]],Am[indexz[1]])
-#    np.save('No_CrossTalk_1_0+1',z)    
-#==============================================================================
-#    t = 46
-#    Am = np.linspace(-5*1.72199,1.3*1.72199,32)
-#    z = np.zeros(shape = (1,len(Am)))
-#
-##    t = np.linspace(0.9*98,1.1*98,201)
-##    Am = 1.272
-##    z = np.zeros(shape = (1,len(t)))
-#    
-#    p = Pool(2)
-#    
-#    P = [[t,Am[j]] for j in range(0,len(Am))]
-##    P = [[t[j],Am] for j in range(0,len(t))]
-#    z = p.map(CZgate,P)
-#    p.close()
-#    p.join()
-#
-#
-#    
-##    plot(t,z)
-##    xlabel('t')
-#
-#    z = np.array(z)
-#    mz = np.max(z)
-#    indexz = np.where(z == mz)
-#    print(mz,Am[indexz])
-#    np.save('Am',z)
-##    print(mz,t[indexz])
-##    np.save('t',z)  
-#    
-#    figure()
-#    plot((Am-Am[indexz])/2/np.pi,z)
-#    xlabel('detuning')
-#    A = np.linspace(3.97,4.97,11)*2*np.pi
-#    fid = []
-#    for a in A:
-#        w_q[0] = a
-#        P = np.array([98,0])
-#        f = CZgate(P)
-#        fid.append(f)
-#    
-#    figure()
-#    plot((A - 4.97*2*np.pi)/2/np.pi,fid)
+# #==============================================================================
+# #    t = np.arange(35,150,1)
+# #    Am = np.arange(1.014,2.054,0.006)
+# #    z=np.zeros(shape=(len(t),len(Am)))
+# #    
+# #    p = Pool(45)
+# #    
+# #    for i in range(0,len(t)):
+# #        P = [[t[i],Am[j]] for j in range(0,len(Am))]
+# #        z[i] = p.map(CZgate,P)
+# #        roundtime = time.time()
+# #        print(t[i],roundtime-starttime)
+# #    p.close()
+# #    p.join()
+# #    
+# #    
+# #    figure()
+# #    pcolormesh(Am,t,z)
+# #    xlabel('Am')
+# #    ylabel('t')
+# #    plt.colorbar()
+# #    
+# #    z = np.array(z)
+# #    mz = np.max(z)
+# #    indexz = np.where(z == mz)
+# #    print(mz,t[indexz[0]],Am[indexz[1]])
+# #    np.save('No_CrossTalk_1_0+1',z)    
+# #==============================================================================
+# #    t = 46
+# #    Am = np.linspace(-5*1.72199,1.3*1.72199,32)
+# #    z = np.zeros(shape = (1,len(Am)))
+# #
+# ##    t = np.linspace(0.9*98,1.1*98,201)
+# ##    Am = 1.272
+# ##    z = np.zeros(shape = (1,len(t)))
+# #    
+# #    p = Pool(2)
+# #    
+# #    P = [[t,Am[j]] for j in range(0,len(Am))]
+# ##    P = [[t[j],Am] for j in range(0,len(t))]
+# #    z = p.map(CZgate,P)
+# #    p.close()
+# #    p.join()
+# #
+# #
+# #    
+# ##    plot(t,z)
+# ##    xlabel('t')
+# #
+# #    z = np.array(z)
+# #    mz = np.max(z)
+# #    indexz = np.where(z == mz)
+# #    print(mz,Am[indexz])
+# #    np.save('Am',z)
+# ##    print(mz,t[indexz])
+# ##    np.save('t',z)  
+# #    
+# #    figure()
+# #    plot((Am-Am[indexz])/2/np.pi,z)
+# #    xlabel('detuning')
+# #    A = np.linspace(3.97,4.97,11)*2*np.pi
+# #    fid = []
+# #    for a in A:
+# #        w_q[0] = a
+# #        P = np.array([98,0])
+# #        f = CZgate(P)
+# #        fid.append(f)
+# #    
+# #    figure()
+# #    plot((A - 4.97*2*np.pi)/2/np.pi,fid)
 
-#    decoherence([10*1000,0.098*1000])
+# #    decoherence([10*1000,0.098*1000])
 
-    a = np.linspace(0.1,1,16)*1000
-    b = np.linspace(1,12,12)*1000
-    T2 = np.append(a,b)
-    T = [[10*1000,T2[i]] for i in range(0,len(T2))]
-    p = Pool(14)
+#     a = np.linspace(0.1,1,16)*1000
+#     b = np.linspace(1,12,12)*1000
+#     T2 = np.append(a,b)
+#     T = [[10*1000,T2[i]] for i in range(0,len(T2))]
+#     p = Pool(14)
     
 
-    z = p.map(decoherence,T)
-    p.close()
-    p.join()
-    figure();plot(T2,z);xlabel('T2');ylabel('fidelity');title('0+  T1 = 10')
+#     z = p.map(decoherence,T)
+#     p.close()
+#     p.join()
+#     figure();plot(T2,z);xlabel('T2');ylabel('fidelity');title('0+  T1 = 10')
 
 
-    endtime  = time.time()
+#     endtime  = time.time()
     
-    print('used time:',endtime-starttime,'s')
-    
-    
+#     print('used time:',endtime-starttime,'s')
     
     
     
     
     
+    
+    T1, T_phi = 2, 2
+    wq = 2 * np.pi * 4000
+
+    g = 2 * np.pi * 20
+    H0 = -0.5 * wq * sigmaz()
+    H0 = 1 * wq * destroy(2).dag() * destroy(2)
+    H1 = g * sigmax()
+    def H1_coef(t,args):
+        return np.cos(args['wq']*t)
+    H = [H0, [H1, H1_coef]]
+    psi0 = basis(2, 1)
+    tlist = np.arange(0, 3, 0.001)
+    c_ops = [np.sqrt(1/T1)*destroy(2), np.sqrt(1/(2*T_phi))*sigmaz()]
+    meas_ops = [destroy(2).dag() * destroy(2),sigmax()]
+    result = mesolve(H, psi0, tlist, c_ops, meas_ops, args={'wq':wq})
+    p1 = result.expect[0]
+
+    _, ax = plt.subplots()
+    ax.plot(tlist/1e-3, p1)
+    ax.set_xlabel('tlist/ns')
+    ax.set_ylabel('P1')
+
+    p1 = result.expect[1]
+    _, ax = plt.subplots()
+    ax.plot(tlist/1e-3, p1)
+    ax.set_xlabel('tlist/ns')
+    ax.set_ylabel('P1')
+    plt.show()
     
     
     
