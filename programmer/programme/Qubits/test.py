@@ -48,41 +48,40 @@ def readoutwave(t,args):
 
 
 if __name__ == '__main__':
-    # Num_qubits = 4
-    # frequency = np.array([5.1 , 5.1 , 5.1 , 5.1,5.1,5.1])*2*np.pi
-    # coupling = np.array([0.012,0.012,0.012,0.012,0.012])*2*np.pi
-    # eta_q=  np.array([-0.250 , -0.25, -0.25, -0.25,-0.25, -0.25]) * 2 * np.pi
-    # N_level= 3
-    # parameter = [frequency,coupling,eta_q,N_level]
-    # QBE = Qubits(qubits_parameter = parameter)
-    # print(QBE)
+    Num_qubits = 4
+    frequency = np.array([5.1 , 5.1 , 5.1 , 5.1])*2*np.pi
+    coupling = np.array([0.012,0.012,0.012])*2*np.pi
+    eta_q=  np.array([-0.250 , -0.25, -0.25, -0.25]) * 2 * np.pi
+    N_level= 2
+    parameter = [frequency,coupling,eta_q,N_level]
+    QBE = Qubits(qubits_parameter = parameter)
+    QBE.H0 = QBE.H0 + coupling[0]*(QBE.sm[0]+QBE.sm[0].dag())*(QBE.sm[3]+QBE.sm[3].dag()) 
+    print(QBE.H0)
 
-    # args = {'T_P':100,'T_copies':101 , 'readoutfreq':frequency[0]}
+    args = {'T_P':100,'T_copies':101 , 'readoutfreq':frequency[0]}
     # H1 = [QBE.sm[0].dag()+QBE.sm[0],readoutwave]
     # Hdrive = [H1]
 
-    # final = QBE.evolution(drive = None , psi = tensor((basis(3,0)).unit(),(basis(3,1)).unit(),(basis(3,1)).unit(),(basis(3,0)).unit(),(basis(3,0)).unit(),(basis(3,0)).unit()) ,  RWF = 'UnCpRWF' , RWA_freq = 0,track_plot = False ,argument = args);print("line %s time %s"%(sys._getframe().f_lineno,time.time()-timezero))
-    # print(final)
-    # final = QBE.process(drive = Hdrive,process_plot = True , RWF = 'custom_RWF' , RWA_freq = 0.0 , parallel = True , argument = args)
+    final = QBE.evolution(drive = None , psi = tensor((basis(2,1)).unit(),(basis(2,0)).unit(),(basis(2,0)).unit(),(basis(2,0)).unit()) ,  RWF = 'UnCpRWF' , RWA_freq = 0,track_plot = True ,argument = args)
 
 
-    Num_qubits = 1
-    frequency = np.array([5.0])*2*np.pi
-    coupling = np.array([])*2*np.pi
-    eta_q=  np.array([-0.250]) * 2 * np.pi
-    N_level= 3
-    parameter = [frequency,coupling,eta_q,N_level]
-    QBE = Qubits(qubits_parameter = parameter)
-    # print(QBE)
+    # Num_qubits = 1
+    # frequency = np.array([5.0])*2*np.pi
+    # coupling = np.array([])*2*np.pi
+    # eta_q=  np.array([-0.250]) * 2 * np.pi
+    # N_level= 3
+    # parameter = [frequency,coupling,eta_q,N_level]
+    # QBE = Qubits(qubits_parameter = parameter)
+    # # print(QBE)
 
-    args = {'T_P':25,'T_copies':1001 , 'readoutfreq':frequency[0]}
-    H1 = [QBE.sm[0].dag()+QBE.sm[0],readoutwave]
-    Hdrive = [H1]
+    # args = {'T_P':25,'T_copies':1001 , 'readoutfreq':frequency[0]}
+    # H1 = [QBE.sm[0].dag()+QBE.sm[0],readoutwave]
+    # Hdrive = [H1]
 
-    final = QBE.evolution(drive = Hdrive , psi = basis(3,0),  RWF = 'UnCpRWF' , RWA_freq = 0,track_plot = False ,argument = args);print("line %s time %s"%(sys._getframe().f_lineno,time.time()-timezero))
-    X_list = QBE.expect_evolution(QBE.X_m[0])
-    Y_list = QBE.expect_evolution(QBE.Y_m[0])
-    xita_list = np.arg
-    fig,axes = plt.subplots(QBE.num_qubits,1)
-    axes.plot(QBE.tlist,xita_list)
-    plt.show()
+    # final = QBE.evolution(drive = Hdrive , psi = basis(3,0),  RWF = 'UnCpRWF' , RWA_freq = 0,track_plot = False ,argument = args);print("line %s time %s"%(sys._getframe().f_lineno,time.time()-timezero))
+    # X_list = QBE.expect_evolution(QBE.X_m[0])
+    # Y_list = QBE.expect_evolution(QBE.Y_m[0])
+    # xita_list = np.arg
+    # fig,axes = plt.subplots(QBE.num_qubits,1)
+    # axes.plot(QBE.tlist,xita_list)
+    # plt.show()

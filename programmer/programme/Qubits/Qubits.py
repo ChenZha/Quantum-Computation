@@ -311,6 +311,7 @@ class Qubits():
         nx = np.zeros([self.num_qubits,len(self.tlist)])
         ny = np.zeros([self.num_qubits,len(self.tlist)])
         nz = np.zeros([self.num_qubits,len(self.tlist)])
+        nn = np.zeros([self.num_qubits,len(self.tlist)])
         leakage = np.zeros([self.num_qubits,len(self.tlist)])
         # 各个时间点，各个比特在X,Y,Z轴上投影
         
@@ -332,9 +333,11 @@ class Qubits():
             opx = self.X_m[q_index]
             opy = self.Y_m[q_index]
             opz = self.E_g[q_index]-self.E_e[q_index]
+            opn = self.E_e[q_index]
             nx[q_index] = self.expect_evolution(opx)
             ny[q_index] = self.expect_evolution(opy)
             nz[q_index] = self.expect_evolution(opz)
+            nn[q_index] = self.expect_evolution(opn)
             leakage[q_index] = self.expect_evolution(self.E_uc[q_index])
         
         
@@ -363,6 +366,11 @@ class Qubits():
             sphere.zlabel[0] = 'qubit'+str(q_index)+'\n$\\left|0\\right>$'
             sphere.make_sphere()
 
+        xx,yy = np.meshgrid([i+1 for i in range(self.num_qubits+1)],self.tlist)
+        fig, ax = plt.subplots()
+        c = ax.pcolormesh(xx,yy,nn.T,cmap='jet')
+        fig.colorbar(c, ax=ax)
+        
         plt.show()
 
     def process(self , drive = None , process_plot  = False , RWF = 'CpRWF' , RWA_freq = 0.0 ,parallel = False , argument = {'T_p':100,'T_copies':201} , options = default_options):
