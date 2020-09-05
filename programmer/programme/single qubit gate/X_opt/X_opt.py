@@ -44,7 +44,8 @@ if __name__ == '__main__':
     frequency = np.array([5.6])*2*np.pi
     coupling = np.array([])*2*np.pi
     eta_q=  np.array([-0.250 ]) * 2 * np.pi
-    parameter = [frequency,coupling,eta_q]
+    N_level= 3
+    parameter = [frequency,coupling,eta_q,N_level]
     QB = Qubits(qubits_parameter = parameter)
 
     P = [0.08*2*np.pi,QB.frequency[0],-0.5]
