@@ -383,7 +383,7 @@ class Qubits_2d():
                     axes.plot(self.tlist,nx[index_x,index_y],label = 'x'+str(index_x)+str(index_y))
                     axes.plot(self.tlist,ny[index_x,index_y],label = 'y'+str(index_x)+str(index_y))
                     axes.plot(self.tlist,nz[index_x,index_y],label = 'z'+str(index_x)+str(index_y))
-                    axes[index_x,index_y].plot(self.tlist,leakage[index_x,index_y],label = 'leakage'+str(index_x)+str(index_y))
+                    axes.plot(self.tlist,leakage[index_x,index_y],label = 'leakage'+str(index_x)+str(index_y))
                     axes.set_xlabel('t');axes.set_ylabel('population of qubit'+str(index_x)+str(index_y));
                     axes.legend(loc = 'upper left')
 

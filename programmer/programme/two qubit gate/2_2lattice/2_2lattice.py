@@ -69,12 +69,12 @@ if __name__ == '__main__':
 
     parameter = [frequency,coupling,eta_q,N_level]
     QBE = Qubits_2d(qubits_parameter = parameter)
-    # QBE.H0 = QBE.H0 + nn_coupling*(QBE.sm[0,0]+QBE.sm[0,0].dag())*(QBE.sm[1,1]+QBE.sm[1,1].dag()) + nn_coupling*(QBE.sm[0,1]+QBE.sm[0,1].dag())*(QBE.sm[1,0]+QBE.sm[1,0].dag())
+    QBE.H0 = QBE.H0 + nn_coupling*(QBE.sm[0,0]+QBE.sm[0,0].dag())*(QBE.sm[1,1]+QBE.sm[1,1].dag()) + nn_coupling*(QBE.sm[0,1]+QBE.sm[0,1].dag())*(QBE.sm[1,0]+QBE.sm[1,0].dag())
     # print(QBE.H0)
 
-    args = {'T_P':100,'T_copies':201 }
+    args = {'T_P':220,'T_copies':221 }
 
-    psi = tensor((basis(3,1)).unit(),(basis(3,0)).unit(),(basis(3,1)).unit(),(basis(3,0)).unit())
+    psi = tensor((basis(3,1)).unit(),(basis(3,0)).unit(),(basis(3,0)).unit(),(basis(3,1)).unit())
     # psi = tensor((basis(2,1)).unit(),(basis(2,1)).unit(),(basis(2,0)).unit(),(basis(2,0)).unit())
     final = QBE.evolution(drive = None ,  psi = psi ,  RWF = 'UnCpRWF' , RWA_freq = 0,track_plot = True ,argument = args);
     # print(final)

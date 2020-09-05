@@ -1,13 +1,13 @@
 %计算Xmon中耦合电容
 
 
-path = 'test.s2p';
+path = 'V6.s10';
 
 
 Y = yparameters(path);
 
 f = Y.Frequencies;
-Y21 = squeeze(Y.Parameters(2,1,:));
+Y21 = squeeze(Y.Parameters(1,7,:));
 Cclist = -imag(Y21)/2/pi./f;
 figure();plot(f,-imag(Y21))
 figure();plot(f,Cclist);

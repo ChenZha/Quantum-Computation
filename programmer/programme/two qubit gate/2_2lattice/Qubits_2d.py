@@ -337,7 +337,7 @@ class Qubits_2d():
         nx = np.zeros([self.qubit_row,self.qubit_column,len(self.tlist)])
         ny = np.zeros([self.qubit_row,self.qubit_column,len(self.tlist)])
         nz = np.zeros([self.qubit_row,self.qubit_column,len(self.tlist)])
-        nn = np.zeros([self.qubit_row*self.qubit_column,len(self.tlist)])
+        nn = np.zeros([self.qubit_row,self.qubit_column,len(self.tlist)])
         leakage = np.zeros([self.qubit_row,self.qubit_column,len(self.tlist)])
         # 各个时间点，各个比特在X,Y,Z轴上投影
         
@@ -364,12 +364,13 @@ class Qubits_2d():
                 nx[index_x,index_y] = self.expect_evolution(opx)
                 ny[index_x,index_y] = self.expect_evolution(opy)
                 nz[index_x,index_y] = self.expect_evolution(opz)
-                nn[index_x*self.qubit_column+index_y] = self.expect_evolution(opn)
+                nn[index_x,index_y] = self.expect_evolution(opn)
                 leakage[index_x,index_y] = self.expect_evolution(self.E_uc[index_x,index_y])
         
         
         # 画图
         fig,axes = plt.subplots(self.qubit_row,self.qubit_column)
+        fig_allz, ax_allz = plt.subplots()
         for index_x in range(self.qubit_row):
             for index_y in range(self.qubit_column):
                 if self.num_qubits > 1:
@@ -383,10 +384,13 @@ class Qubits_2d():
                     axes.plot(self.tlist,nx[index_x,index_y],label = 'x'+str(index_x)+str(index_y))
                     axes.plot(self.tlist,ny[index_x,index_y],label = 'y'+str(index_x)+str(index_y))
                     axes.plot(self.tlist,nz[index_x,index_y],label = 'z'+str(index_x)+str(index_y))
-                    axes[index_x,index_y].plot(self.tlist,leakage[index_x,index_y],label = 'leakage'+str(index_x)+str(index_y))
+                    axes.plot(self.tlist,leakage[index_x,index_y],label = 'leakage'+str(index_x)+str(index_y))
                     axes.set_xlabel('t');axes.set_ylabel('population of qubit'+str(index_x)+str(index_y));
                     axes.legend(loc = 'upper left')
 
+                ax_allz.plot(self.tlist,nn[index_x,index_y],label = 'N'+str(index_x)+str(index_y))
+                ax_allz.set_xlabel('t');ax_allz.set_ylabel('population of qubit');
+                ax_allz.legend(loc = 'upper left')
 
                 sphere = Bloch()
                 sphere.add_points([nx[index_x,index_y] , ny[index_x,index_y] , nz[index_x,index_y]])
@@ -394,11 +398,14 @@ class Qubits_2d():
                 sphere.zlabel[0] = 'qubit'+str(index_x)+str(index_y)+'\n$\\left|0\\right>$'
                 sphere.make_sphere()
 
-
+        nn_reshape = np.reshape(nn,(self.qubit_row*self.qubit_column,-1))
         xx,yy = np.meshgrid([i+1 for i in range(self.qubit_row*self.qubit_column+1)],self.tlist)
         fig, ax = plt.subplots()
-        c = ax.pcolormesh(xx,yy,nn.T,cmap='jet')
+        c = ax.pcolormesh(xx,yy,nn_reshape.T,cmap='jet')
         fig.colorbar(c, ax=ax)
+
+        # np.savez('2-2-latice_1001',tlist = self.tlist,popultaion = nn)
+        
         plt.show()
 
     def process(self , drive = None , process_plot  = False , RWF = 'CpRWF' , RWA_freq = 0.0 ,parallel = False , argument = {'T_p':100,'T_copies':201} , options = default_options):
