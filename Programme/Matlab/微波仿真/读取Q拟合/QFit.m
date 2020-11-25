@@ -6,7 +6,7 @@
 
  
 % if (nargin<1)
-        path = 'w0.s2p';
+        path = 'RO_1.s2p';
 % end
 
 ckt=read(rfdata.data, path);
@@ -21,7 +21,7 @@ S_21 = 1./S_21-1;%ÇóS21^(-1)-1
 figure();plot(S_21,'b');xlabel('Re(S_{21}^{-1})');ylabel('Im(S_{21}^{-1})');hold on;
 
 % nlinfit
-Q0 = [9e+05,1e+04,0.01,6.78e+09];
+Q0 = [10e+05,1e+04,0.01,6.662e+09];
 modulefun = @S21;
 Q = nlinfit(f,S_21,modulefun,Q0);
 

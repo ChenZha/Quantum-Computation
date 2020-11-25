@@ -221,7 +221,7 @@ if __name__ == '__main__':
 
     Ec = 0.240 * 2 * np.pi
     Ej = 20 * 2 * np.pi
-    phi_s = np.pi*0.05
+    phi_s = np.pi*0.25
  
 
     Mx = 0.1*10**(-12)
@@ -292,8 +292,8 @@ if __name__ == '__main__':
     # phi_x = 0
     # gate =  expm(-1j*np.pi/4*(np.cos(phi_x)*X+np.sin(phi_x)*Y))
 
-    # psi = (basis(3,0)+1*basis(3,1)).unit()
-    # final = QB.evolution(drive = Hdrive , psi = (basis(3,0)+1*basis(3,1)).unit(),  RWF = 'UnCpRWF' , RWA_freq = 0,track_plot = True ,argument = args);
+    psi = (basis(3,0)+1j*basis(3,1)).unit()
+    final = QB.evolution(drive = Hdrive , psi = psi,  RWF = 'UnCpRWF' , RWA_freq = 0,track_plot = True ,argument = args);
     # process = QB.process(drive = Hdrive, process_plot  = False , RWF = 'UnCpRWF' , RWA_freq = 0.0 ,parallel = True ,argument = args)
     # Ufidelity = np.abs(np.trace(np.dot(np.conjugate(np.transpose(gate)),process)))/(2**QB.num_qubits)
     # print(Ufidelity)
@@ -413,7 +413,7 @@ if __name__ == '__main__':
 
 
     # # NM算法
-    P = [6.11269480e-06,frequency[0]]
-    func = getfid
-    result = minimize(func, P, method="Nelder-Mead",options={'disp': True})
-    print(result)
+    # P = [6.11269480e-06,frequency[0]]
+    # func = getfid
+    # result = minimize(func, P, method="Nelder-Mead",options={'disp': True})
+    # print(result)
