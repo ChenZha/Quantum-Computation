@@ -55,7 +55,7 @@ if __name__ == '__main__':
     N_level= 2
     parameter = [frequency,coupling,eta_q,N_level]
     QBE = Qubits(qubits_parameter = parameter)
-    QBE.H0 = QBE.H0 + coupling[0]*(QBE.sm[0]+QBE.sm[0].dag())*(QBE.sm[3]+QBE.sm[3].dag()) 
+    # QBE.H0 = QBE.H0 + coupling[0]*(QBE.sm[0]+QBE.sm[0].dag())*(QBE.sm[3]+QBE.sm[3].dag()) 
     print(QBE.H0)
 
     args = {'T_P':100,'T_copies':101 , 'readoutfreq':frequency[0]}
