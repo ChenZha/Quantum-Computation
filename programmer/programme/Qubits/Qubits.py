@@ -15,6 +15,7 @@ from functools import reduce
 class Qubits():
     # 输入比特信息，驱动哈密顿量，参数
     # 得到单态的演化结果，整体保真度Ufidelity
+    # 针对多比特实验
 
     # default evolution parameter
     default_options=Options()
@@ -153,7 +154,17 @@ class Qubits():
             qustate.append(basis(self.N_level[ii],qulevel))
         qustate = tensor(*qustate)
         return(qustate)
-    def _findstate(self,state,search_space='full'):
+    def _numTostate(self,state):
+        '''
+        将0,1 int list 转换为量子态
+        '''
+        qustate = []
+        for ii in range(len(state)):
+            qulevel = int(state[ii])
+            qustate.append(basis(self.N_level[ii],qulevel))
+        qustate = tensor(*qustate)
+        return(qustate)
+    def _findstate(self,state,search_space='full',mark = 'string'):
         '''
         在self.state中找到各个态对应的位置
         '''
@@ -171,19 +182,29 @@ class Qubits():
             search_len=min(3*self.num_qubits,len(self.State_eig))
         else:
             print('search space error')
+        if mark == 'string':
+            qustate = self._strTostate(state)
+            for index in range(search_len):
+                exp = expect(ket2dm(self.State_eig[index]),qustate)
+                if exp>0.5:
+                    index_level = index
+                    return(index_level)
+                # for i in range(self.num_qubits):
+                #     s[i] = np.abs(ptrace(self.State_eig[index],i)[e[i]][0][e[i]])
+                # if all(s>=0.5):
+                #     index_level = index
+                #     return(index_level)
+        elif mark == 'number':
+            qustate = self._numTostate(state)
+            for index in range(search_len):
+                exp = expect(ket2dm(self.State_eig[index]),qustate)
+                if exp>0.5:
+                    index_level = index
+                    return(index_level)
+        else:
+            print('Wrong Mark')
 
-        qustate = self._strTostate(state)
-        for index in range(search_len):
-            exp = expect(ket2dm(self.State_eig[index]),qustate)
-            if exp>0.5:
-                index_level = index
-                return(index_level)
 
-            # for i in range(self.num_qubits):
-            #     s[i] = np.abs(ptrace(self.State_eig[index],i)[e[i]][0][e[i]])
-            # if all(s>=0.5):
-            #     index_level = index
-            #     return(index_level)
 
         print('No State')
         return(None)
