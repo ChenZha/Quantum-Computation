@@ -48,6 +48,7 @@ def readoutwave(t,args):
 
 
 if __name__ == '__main__':
+
     Num_qubits = 4
     frequency = np.array([5.1 , 5.1 , 5.1 , 5.1])*2*np.pi
     coupling = np.array([0.012,0.012,0.012])*2*np.pi
@@ -57,7 +58,7 @@ if __name__ == '__main__':
     QBE = Qubits(qubits_parameter = parameter)
     # QBE.H0 = QBE.H0 + coupling[0]*(QBE.sm[0]+QBE.sm[0].dag())*(QBE.sm[3]+QBE.sm[3].dag()) 
     print(QBE.H0)
-
+    
     args = {'T_P':100,'T_copies':101 , 'readoutfreq':frequency[0]}
     # H1 = [QBE.sm[0].dag()+QBE.sm[0],readoutwave]
     # Hdrive = [H1]
