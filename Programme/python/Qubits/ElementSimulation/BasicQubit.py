@@ -10,12 +10,12 @@ class BasicQubit():
     def __init__(self , Hamilton , *args , **kwargs):
         self.__Hamilton = Hamilton #输入节点电容矩阵，电感矩阵，电阻矩阵，能级数目
     # 生成基本的测量operator
-        self.sm,self.E_uc,self.E_e,self.E_g,self.X_m,self.Y_m,self.E_phi= self._BasicOperator()
+        self.E_uc,self.E_e,self.E_g,self.X_m,self.Y_m= self._BasicMeasurementOperator()
       
 
     def _BasicMeasurementOperator(self):
         '''
-        生成构成哈密顿量的基本operator
+        生成构成用于测量的基本operator
         '''
         E_uc = []
         for II in range(0,self.__numQubit):
@@ -55,6 +55,7 @@ class BasicQubit():
         '''
         将0,1字符串转换为量子态
         '''
+        
         qustate = [basis(self.__Nlevel[ii],int(eval(state[ii]))) for ii in range(len(state))]
         qustate = tensor(*qustate)
         return(qustate)
