@@ -26,3 +26,5 @@ class TransmonQubit(BasicQubit):
             E_phi.append(tensor(*cmdstr))    
 
         return([sm,E_phi])
+    def _H0Generation(self):
+        
