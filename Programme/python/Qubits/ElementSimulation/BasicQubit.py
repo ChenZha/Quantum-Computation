@@ -7,7 +7,7 @@ from multiprocessing import Pool
 class BasicQubit():
     '''
     最原始的qubit类，输入qubit的哈密顿量，
-    方法包含基础测量operator的生成,比特状态寻址, 态的演化，process tomography, 态演化的画图
+    方法包含基础测量operator的生成,比特状态寻址, 态的演化，平均值的演化，process tomography, 态演化的画图
     '''
     # default evolution parameter
     default_options=Options()
