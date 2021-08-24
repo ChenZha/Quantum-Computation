@@ -145,7 +145,7 @@ class BasicQubit():
         return(firstExcited)
     def QutipEvolution(self , drive = None , psi = basis(3,0) , collapse = [] , track_plot = False , RWF = 'CpRWF' , RWAFreq = 0.0 , argument = {'T_p':100,'T_copies':201} , options = default_options):
         '''
-        计算当前比特在psi初态，经drive驱动，最终得到的末态final_state
+        计算当前比特在psi初态，经drive驱动，最终得到的末态finalState
         参数：
         drive:驱动哈密顿量，形式[H1,H2,H3]
         psi：初态
@@ -282,3 +282,128 @@ class BasicQubit():
         c = ax.pcolormesh(xx,yy,nn.T,cmap='jet')
         fig.colorbar(c, ax=ax)
         plt.show()
+
+    def process(self , drive = None , processPlot  = False , RWF = 'CpRWF' , RWAFreq = 0.0 ,parallel = False , argument = {'T_p':100,'T_copies':201} , options = default_options):
+        '''
+        对当前比特施加驱动drive，表征整个state space的演化过程(只取每个比特二能级的部分)
+        参数：
+        drive：驱动哈密顿量
+        process_plot：是否画出演化矩阵(实部与虚部)
+        RWF:旋转坐标系的种类
+        RWA_freq:使用custom_RWF种类时,与CpRWA频率相差的频率
+        parallel：是否进行并行计算(如果外部还需要并行计算，这里要去Flase)
+        argument：关于演化的参数,主要是drive中的参数，必须包含总时间T_p,时间份数T_copies
+
+        返回：
+        2^n维的演化矩阵
+        '''
+        # 生成2^n个基矢,以及各个基矢在3能级系统中的位置
+        basic , loc = self._basic_generation()
+        finalState = [] #基矢演化得到的末态
+        if parallel:
+            p = Pool()
+            result_final = [p.apply_async(self.QutipEvolution,(drive , basic[i] , [] , False , RWF, RWA_freq,argument , options)) for i in range(len(basic)) ]
+            finalState = np.array([result_final[i].get() for i in range(len(result_final))])
+            p.close()
+            p.join()
+        else:
+            finalState = [self.QutipEvolution(drive , Phi , [] , False , RWF ,RWA_freq,argument , options) for Phi in basic]
+
+
+        process = np.column_stack([finalState[i].data.toarray() for i in range(len(finalState))])[loc,:] #只取演化矩阵中二能级部分
+        angle = np.angle(process[0][0])
+        process = process*np.exp(-1j*angle)#消除global phase
+
+        if processPlot:
+            self.Operator_View(process,'Process')
+
+        return(process)
+
+    def _basic_generation(self):
+        '''生成2^n个基矢,以及各个基矢在多能级系统中的位置'''
+        Nlevel = self.__Hamilton.dims[0]
+        numQubit = len(Nlevel)
+        basic = []
+        loc = []
+        for index in range(2**numQubit):
+            II = index
+            code = '' #转化成二进制的字符串形式
+            state = [] #生成一个基矢
+            l = 0 #在3能级中的位置
+            for JJ in range(numQubit):
+                number = np.int(np.mod(II,2))
+                code = str(number)+code
+                state.insert(0,basis(Nlevel[JJ] , number))
+                if JJ == 0:
+                    l += number
+                else:
+                    mullist = Nlevel[-1:-1-JJ:-1]
+                    mulval = reduce(lambda x,y:x*y,mullist)
+                    l += number*mulval
+                II = np.int(np.floor(II/2))
+            assert len(code) == len(state) == numQubit    
+            basic.append(tensor(*state))
+            loc.append(l)    
+        return(basic,loc)
+    def Operator_View(self,M,lab):
+        '''
+        将一个矩阵可视化，标题为lab
+        '''
+        if isinstance(M, Qobj):
+            # extract matrix data from Qobj
+            M = M.full()
+
+        n = np.size(M)
+        xpos, ypos = np.meshgrid(range(M.shape[0]), range(M.shape[1]))
+        xpos = xpos.T.flatten() - 0.5
+        ypos = ypos.T.flatten() - 0.5
+        zpos = np.zeros(n)
+        dx = dy = 0.8 * np.ones(n)
+        
+        dz = np.real(M.flatten())
+        z_min = min(dz)
+        z_max = max(dz)
+        if z_min == z_max:
+            z_min -= 0.1
+            z_max += 0.1
+        norm = mpl.colors.Normalize(z_min, z_max)
+        cmap = mpl.cm.get_cmap('jet')  # Spectral
+        colors = cmap(norm(dz))
+        fig = plt.figure()
+        ax = Axes3D(fig, azim=-35, elev=35)
+        ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color=colors)
+        ax.set_title(lab+'_Real')
+        cax, kw = mpl.colorbar.make_axes(ax, shrink=.75, pad=.0)
+        mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm)
+        
+        dz = np.imag(M.flatten())
+        z_min = min(dz)
+        z_max = max(dz)
+        if z_min == z_max:
+            z_min -= 0.1
+            z_max += 0.1
+        norm = mpl.colors.Normalize(z_min, z_max)
+        cmap = mpl.cm.get_cmap('jet')  # Spectral
+        colors = cmap(norm(dz))
+        fig = plt.figure()
+        ax = Axes3D(fig, azim=-35, elev=35)
+        ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color=colors)
+        ax.set_title(lab+'_Imag')
+        cax, kw = mpl.colorbar.make_axes(ax, shrink=.75, pad=.0)
+        mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm)
+        plt.show()
+    def phase_comp(self , process , theta):
+        '''
+        对演化矩阵进行相位补偿，theta为每个比特的相位补偿角(弧度)
+        '''
+        Nlevel = self.__Hamilton.dims[0]
+        numQubit = len(Nlevel)
+        assert len(theta) == numQubit
+        for index in range(2**numQubit):
+            II = index
+            for JJ in range(numQubit):
+                number = np.int(np.mod(II,2))
+                if number == 1:
+                    process[:,index] = process[:,index]*np.exp(1j*xita[-1-JJ])
+                II = np.int(np.floor(II/2))
+        return(process)
