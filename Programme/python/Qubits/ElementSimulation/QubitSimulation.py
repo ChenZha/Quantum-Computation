@@ -1,8 +1,7 @@
-from operator import index
 import numpy as np
-from qutip import *
 import math
 import matplotlib.pyplot as plt
+from qutip import *
 from multiprocessing import Pool
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
@@ -424,7 +423,7 @@ class TransmonQubit(BasicQubit):
         self.__numQubit = len(self.__Nlevel)
         self.sm,self.E_phi = self._BasicHamiltonOperator()
         Hamilton = self._H0Generation()
-        super(TransmonQubit,self).__init__(Hamilton)
+        super(TransmonQubit,self).__init__(Hamilton, *args , **kwargs)
 
     def _BasicHamiltonOperator(self):
         '''
@@ -485,7 +484,9 @@ class FluxmonQubit(BasicQubit):
     def __init__(self , qubitsParameter , *args , **kwargs):
         self.__capacity, self.__inductance, self.__resistance, self.__Nlevel = qubitsParameter #输入节点电容矩阵，电感矩阵，电阻矩阵，能级数目
         self.__numQubit = len(self.__Nlevel)
-    
+        Hamilton = self._H0Generation()
+        super(FluxmonQubit,self).__init__(Hamilton, *args , **kwargs)
+
     def _BasicHamiltonOperator(self):
         '''
         生成构成哈密顿量的基本operator
@@ -522,7 +523,7 @@ class Frequency1DQubit(BasicQubit):
         self.sm,self.E_uc,self.E_phi = self._BasicHamiltonOperator()
         # 生成未加驱动的基本哈密顿量
         Hamilton = self._H0Generation()
-        super(Frequency1DQubit,self).__init__(Hamilton)
+        super(Frequency1DQubit,self).__init__(Hamilton, *args , **kwargs)
         
     def _BasicHamiltonOperator(self):
         '''
@@ -584,7 +585,7 @@ class Frequency2DQubit(BasicQubit):
         self.sm,self.E_uc,self.E_phi = self._BasicHamiltonOperator()
         # 生成未加驱动的基本哈密顿量
         Hamilton = self._H0Generation()
-        super(Frequency2DQubit,self).__init__(Hamilton)
+        super(Frequency2DQubit,self).__init__(Hamilton, *args , **kwargs)
         
     def _BasicHamiltonOperator(self):
         '''
@@ -627,4 +628,10 @@ class Frequency2DQubit(BasicQubit):
             HcColumn = 0
         H0 = Hq+HcRow+HcColumn
         return(H0)
+
+
+
+class Xmon(TransmonQubit):
+    def __init__(self, qubitsParameter, *args, **kwargs):
+        super().__init__(qubitsParameter, *args, **kwargs)     
         
