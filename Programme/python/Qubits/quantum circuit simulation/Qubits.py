@@ -66,12 +66,7 @@ class Qubits():
         '''
         sm=[]
         for II in range(0,self.num_qubits):
-            cmdstr=[]
-            for JJ in range(0,self.num_qubits):
-                if II==JJ:
-                    cmdstr.append(destroy(self.N_level[JJ]))
-                else:
-                    cmdstr.append(qeye(self.N_level[JJ]))
+            cmdstr=[destroy(self.N_level[JJ]) if II==JJ else qeye(self.N_level[JJ]) for JJ in range(0,self.num_qubits)]
             sm.append(tensor(*cmdstr))
 
 
@@ -91,22 +86,22 @@ class Qubits():
 
         E_e=[]
         for II in range(0,self.num_qubits):
-            cmdstr=[]
-            for JJ in range(0,self.num_qubits):
-                if II==JJ:
-                    cmdstr.append(basis(self.N_level[JJ],1)*basis(self.N_level[JJ],1).dag())
-                else:
-                    cmdstr.append(qeye(self.N_level[JJ]))
+            cmdstr=[basis(self.N_level[JJ],1)*basis(self.N_level[JJ],1).dag() if II==JJ else qeye(self.N_level[JJ]) for JJ in range(0,self.num_qubits)]
+            # for JJ in range(0,self.num_qubits):
+            #     if II==JJ:
+            #         cmdstr.append(basis(self.N_level[JJ],1)*basis(self.N_level[JJ],1).dag())
+            #     else:
+            #         cmdstr.append(qeye(self.N_level[JJ]))
             E_e.append(tensor(*cmdstr))
         
         E_g=[]
         for II in range(0,self.num_qubits):
-            cmdstr=[]
-            for JJ in range(0,self.num_qubits):
-                if II==JJ:
-                    cmdstr.append(basis(self.N_level[JJ],0)*basis(self.N_level[JJ],0).dag())
-                else:
-                    cmdstr.append(qeye(self.N_level[JJ]))
+            cmdstr=[basis(self.N_level[JJ],0)*basis(self.N_level[JJ],0).dag() if II==JJ else qeye(self.N_level[JJ]) for JJ in range(0,self.num_qubits)]
+            # for JJ in range(0,self.num_qubits):
+            #     if II==JJ:
+            #         cmdstr.append(basis(self.N_level[JJ],0)*basis(self.N_level[JJ],0).dag())
+            #     else:
+            #         cmdstr.append(qeye(self.N_level[JJ]))
             E_g.append(tensor(*cmdstr))
 
         X_m=[]
@@ -148,20 +143,20 @@ class Qubits():
         '''
         将0,1字符串转换为量子态
         '''
-        qustate = []
-        for ii in range(len(state)):
-            qulevel = int(eval(state[ii]))
-            qustate.append(basis(self.N_level[ii],qulevel))
+        qustate = [basis(self.N_level[ii],int(eval(state[ii]))) for ii in range(len(state))]
+        # for ii in range(len(state)):
+        #     qulevel = int(eval(state[ii]))
+        #     qustate.append(basis(self.N_level[ii],qulevel))
         qustate = tensor(*qustate)
         return(qustate)
     def _numTostate(self,state):
         '''
         将0,1 int list 转换为量子态
         '''
-        qustate = []
-        for ii in range(len(state)):
-            qulevel = int(state[ii])
-            qustate.append(basis(self.N_level[ii],qulevel))
+        qustate = [basis(self.N_level[ii],int(state[ii])) for ii in range(len(state))]
+        # for ii in range(len(state)):
+        #     qulevel = int(state[ii])
+        #     qustate.append(basis(self.N_level[ii],qulevel))
         qustate = tensor(*qustate)
         return(qustate)
     def _findstate(self,state,search_space='full',mark = 'string'):
@@ -311,7 +306,7 @@ class Qubits():
                 U.append(RW)
 
             else:
-                error('RWF ERROR')
+                raise ValueError('RWF ERROR')
         UF = tensor(*U)
         return(UF)
     def expect_evolution(self, operator):
