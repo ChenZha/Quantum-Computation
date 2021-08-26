@@ -18,8 +18,8 @@ class Frequency1DQubit(BasicQubit):
         # 生成基本的operator
         self.sm,self.E_uc,self.E_phi = self._BasicHamiltonOperator()
         # 生成未加驱动的基本哈密顿量
-        self.H0 = self._H0Generation()
-        super(Frequency1DQubit,self).__init__(self.H0)
+        Hamilton = self._H0Generation()
+        super(Frequency1DQubit,self).__init__(Hamilton)
         
     def _BasicHamiltonOperator(self):
         '''

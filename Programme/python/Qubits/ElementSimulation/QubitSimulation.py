@@ -1,8 +1,11 @@
 from operator import index
 import numpy as np
 from qutip import *
+import math
 import matplotlib.pyplot as plt
 from multiprocessing import Pool
+import matplotlib as mpl
+from mpl_toolkits.mplot3d import Axes3D
 
 class BasicQubit():
     '''
@@ -27,6 +30,8 @@ class BasicQubit():
         #找到本征值和本征态
         [self.energyEig,self.stateEig] = self.__Hamilton.eigenstates()
         self.firstExcited = self._FirstExcite()
+    def GetHamilton(self):
+        return(self.__Hamilton)
 
     def _BasicMeasurementOperator(self):
         '''
@@ -41,9 +46,9 @@ class BasicQubit():
         E_uc = []
         for II in range(0,numQubit):
             if Nlevel[II]>2:
-                cmdstr=[basis(numQubit[JJ],2)*basis(numQubit[JJ],2).dag() if II==JJ else qeye(Nlevel[JJ]) for JJ in range(numQubit)]                  
+                cmdstr=[basis(Nlevel[JJ],2)*basis(Nlevel[JJ],2).dag() if II==JJ else qeye(Nlevel[JJ]) for JJ in range(numQubit)]                  
             else:
-                cmdstr=[Qobj(np.zeros([numQubit[JJ],numQubit[JJ]])) if II==JJ else qeye(Nlevel[JJ]) for JJ in range(numQubit)]
+                cmdstr=[Qobj(np.zeros([Nlevel[JJ],Nlevel[JJ]])) if II==JJ else qeye(Nlevel[JJ]) for JJ in range(numQubit)]
             E_uc.append(tensor(*cmdstr))
 
         E_e=[]
@@ -58,14 +63,14 @@ class BasicQubit():
 
         X_m=[]
         for II in range(0,numQubit):
-            basisMatrix = np.zeros([Nlevel[II],Nlevel[II]])
+            basisMatrix = np.zeros([Nlevel[II],Nlevel[II]],dtype=complex)
             basisMatrix[0,1] = 1;basisMatrix[1,0] = 1
             cmdstr=[Qobj(basisMatrix) if II==JJ else qeye(Nlevel[JJ]) for JJ in range(0,numQubit)]
             X_m.append(tensor(*cmdstr))    
 
         Y_m=[]
         for II in range(0,numQubit):
-            basisMatrix = np.zeros([Nlevel[II],Nlevel[II]])
+            basisMatrix = np.zeros([Nlevel[II],Nlevel[II]],dtype=complex)
             basisMatrix[0,1] = -1j;basisMatrix[1,0] = 1j
             cmdstr=[Qobj(basisMatrix) if II==JJ else qeye(Nlevel[JJ]) for JJ in range(0,numQubit)] 
             Y_m.append(tensor(*cmdstr))  
@@ -95,7 +100,7 @@ class BasicQubit():
         qustate = [basis(Nlevel[ii],int(state[ii])) for ii in range(len(state))]
         qustate = tensor(*qustate)
         return(qustate)
-    def findstate(self,state,searchSpace='full',mark = 'string'):
+    def findstate(self,state,searchSpace='full'):
         '''
         在self.stateEig中找到state对应的index,对于简并的态，01探测到的是01+10，10探测到的是01-10
         输入：
@@ -137,11 +142,11 @@ class BasicQubit():
         Nlevel = self.__Hamilton.dims[0]
         numQubit = len(Nlevel)
         firstExcited = []
-        firstExcited.append(self.findstate(self._numTostate([0]*numQubit),search_space='brev')) #基态的位置index
+        firstExcited.append(self.findstate(self._numTostate([0]*numQubit),searchSpace='brev')) #基态的位置index
         for II in range(0,numQubit):
             stateNum = [0]*numQubit
             stateNum[II] = 1
-            firstExcited.append(self.findstate(self._numTostate(stateNum),search_space='brev')) #各第一激发态位置index
+            firstExcited.append(self.findstate(self._numTostate(stateNum),searchSpace='brev')) #各第一激发态位置index
         return(firstExcited)
     def QutipEvolution(self , drive = None , psi = basis(3,0) , collapse = [] , track_plot = False , RWF = 'CpRWF' , RWAFreq = 0.0 , argument = {'T_p':100,'T_copies':201} , options = default_options):
         '''
@@ -407,3 +412,219 @@ class BasicQubit():
                     process[:,index] = process[:,index]*np.exp(1j*xita[-1-JJ])
                 II = np.int(np.floor(II/2))
         return(process)
+
+class TransmonQubit(BasicQubit):
+    '''
+    TransmonQubit类, 输入等效节点电容逆矩阵，等效节点电感逆矩阵，等效节点Ej矩阵，各个节点能级，生成Hamilton
+    要求每个节点对地都构成一个类谐振子的比特，或者构成一个谐振子，以此对算符phi进行谐振子展开，进一步计算Hamilton，否则不满足这个类的条件
+    计算所需的Ec，Ej均以GHz为单位
+    '''
+    def __init__(self , qubitsParameter , *args , **kwargs):
+        self.__capacityInv, self.__inductanceInv, self.__EjMatrix,  self.__Nlevel = qubitsParameter #输入节点电容矩阵，电感矩阵，电阻矩阵，能级数目
+        self.__numQubit = len(self.__Nlevel)
+        self.sm,self.E_phi = self._BasicHamiltonOperator()
+        Hamilton = self._H0Generation()
+        super(TransmonQubit,self).__init__(Hamilton)
+
+    def _BasicHamiltonOperator(self):
+        '''
+        生成构成哈密顿量的基本operator
+        '''
+        sm=[]
+        for II in range(0,self.__numQubit):
+            cmdstr=[destroy(self.__Nlevel[JJ]) if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(self.__numQubit)]
+            sm.append(tensor(*cmdstr))
+
+        E_phi=[]
+        for II in range(0,self.__numQubit):
+            basisMatrix = np.diag([1]*(self.__Nlevel[II]-1),1) + np.diag([1]*(self.__Nlevel[II]-1),-1)
+            cmdstr=[Qobj(basisMatrix) if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(0,self.__numQubit)]
+            E_phi.append(tensor(*cmdstr))    
+
+        return([sm,E_phi])
+
+    def _H0Generation(self):
+        # 固定参数
+        hbar=1.054560652926899e-34
+        h = hbar*2*np.pi
+        e = 1.60217662e-19
+        # 计算Cinv
+        CInv = self.__capacityInv
+        Ec = e**2/2*CInv/h
+
+        # 计算Linv
+        LInv = self.__inductanceInv
+        EL = (hbar/2/e)**2*LInv/h
+        # 计算EU
+        EjMatrix = self.__EjMatrix
+        Ej = np.diag(np.diag(EjMatrix))
+        EU = EL + Ej
+
+        # 谐振子展开
+        alpha = np.diag(EU)
+        beta = 8*np.diag(Ec)
+        sm = self.sm
+        smd = [op.dag() for op in sm]
+        sn = [op.dag()*op for op in sm]
+        XX = [(op+op.dag())/2 for op in sm]
+        YY = [(-1j)*(op-op.dag())/2 for op in sm]
+        phi = [np.sqrt(2)*(beta[ii]/alpha[ii])**(1/4)*XX[ii] for ii in range(len(alpha))]
+        nn = [np.sqrt(2)*(alpha[ii]/beta[ii])**(1/4)*YY[ii] for ii in range(len(alpha))]
+
+        H0 = sum([np.sqrt(alpha[ii]*beta[ii])*sn[ii] for ii in range(np.shape(Ec)[0])])
+        Heta = sum([-Ej[ii,ii]*(phi[ii]**4/24-phi[ii]**6/math.factorial(6)+phi[ii]**8/math.factorial(8)) for ii in range(np.shape(Ec)[0])])
+        Hc = sum([4*Ec[ii,jj]*nn[ii]*nn[jj]+1/2*EU[ii,jj]*phi[ii]*phi[jj]-EjMatrix[ii][jj]*((-phi[ii]**2/2+phi[ii]**4/24)*(-phi[jj]**2/2+phi[jj]**4/24)+(phi[ii]-phi[ii]**3/6)*(phi[jj]-phi[jj]**3/6)) for ii in range(np.shape(Ec)[0]) for jj in range(np.shape(Ec)[1]) if ii!=jj])
+
+        Hamilton = H0+Heta+Hc
+        return(Hamilton)
+
+class FluxmonQubit(BasicQubit):
+    '''
+    FluxmonQubit类, 输入电容矩阵，电感矩阵，电阻矩阵和能级，生成Hamilton
+    '''
+    def __init__(self , qubitsParameter , *args , **kwargs):
+        self.__capacity, self.__inductance, self.__resistance, self.__Nlevel = qubitsParameter #输入节点电容矩阵，电感矩阵，电阻矩阵，能级数目
+        self.__numQubit = len(self.__Nlevel)
+    
+    def _BasicHamiltonOperator(self):
+        '''
+        生成构成哈密顿量的基本operator
+        '''
+        sm=[]
+        for II in range(0,self.__numQubit):
+            cmdstr=[destroy(self.__Nlevel[JJ]) if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(self.__numQubit)]
+            sm.append(tensor(*cmdstr))
+
+        E_phi=[]
+        for II in range(0,self.__numQubit):
+            basisMatrix = np.diag([1]*(self.__Nlevel[II]-1),1) + np.diag([1]*(self.__Nlevel[II]-1),-1)
+            cmdstr=[Qobj(basisMatrix) if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(0,self.__numQubit)]
+            E_phi.append(tensor(*cmdstr))    
+
+        return([sm,E_phi])
+    def _H0Generation(self):
+        pass
+
+class Frequency1DQubit(BasicQubit):
+    '''
+    Frequency1DQubit类, 输入频率矩阵，耦合矩阵，非简谐性矩阵和能级，生成Hamilton
+    '''
+    def __init__(self , qubitsParameter , *args , **kwargs):
+        # qubitsParameter结构:frequency(频率);coupling(耦合强度);eta_q(非简谐性);Nlevel(涉及的能级)
+        self.__frequency , self.__coupling , self.__etaQ , self.__Nlevel = qubitsParameter #输入节点频率矩阵，耦合矩阵，非简谐性矩阵，能级数目
+        self.__numQubit = len(self.__Nlevel)
+        if type(self.__Nlevel) == int:
+                self.__Nlevel = [self.__Nlevel]*self.__numQubit
+        if not len(self.__frequency) == len(self.__coupling)+1 == len(self.__etaQ) == len(self.__Nlevel):
+            print('dimension error')
+            raise AssertionError()
+        # 生成基本的operator
+        self.sm,self.E_uc,self.E_phi = self._BasicHamiltonOperator()
+        # 生成未加驱动的基本哈密顿量
+        Hamilton = self._H0Generation()
+        super(Frequency1DQubit,self).__init__(Hamilton)
+        
+    def _BasicHamiltonOperator(self):
+        '''
+        生成构成哈密顿量的基本operator
+        '''
+        sm=[]
+        for II in range(0,self.__numQubit):
+            cmdstr=[destroy(self.__Nlevel[JJ]) if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(self.__numQubit)]
+            sm.append(tensor(*cmdstr))
+
+        E_uc = []
+        for II in range(0,self.__numQubit):
+            if self.__Nlevel[II]>2:
+                cmdstr=[basis(self.__numQubit[JJ],2)*basis(self.__numQubit[JJ],2).dag() if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(self.__numQubit)]                  
+            else:
+                cmdstr=[Qobj(np.zeros([self.__numQubit[JJ],self.__numQubit[JJ]])) if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(self.__numQubit)]
+            E_uc.append(tensor(*cmdstr))
+
+        E_phi=[]
+        for II in range(0,self.__numQubit):
+            basisMatrix = np.diag([1]*(self.__Nlevel[II]-1),1) + np.diag([1]*(self.__Nlevel[II]-1),-1)
+            cmdstr=[Qobj(basisMatrix) if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(0,self.__numQubit)]
+            E_phi.append(tensor(*cmdstr))    
+
+        return([sm,E_uc,E_phi])
+    def _H0Generation(self):
+        '''
+        根据qubit参数，生成未加驱动的基本哈密顿量
+        '''
+        Hq = sum([self.__frequency[index]*self.sm[index].dag()*self.sm[index] + self.__etaQ[index]*self.E_uc[index]  for index in range(self.__numQubit)])
+        if self.num_qubits != 1:
+            Hc = sum([self.__coupling[index]*(self.sm[index]+self.sm[index].dag())*(self.sm[index+1]+self.sm[index+1].dag()) for index in range(self.__numQubit-1)])
+        else:
+            Hc = 0
+        H0 = Hq+Hc
+        return(H0) 
+
+class Frequency2DQubit(BasicQubit):
+    '''
+    Frequency2DQubit类, 输入二维频率矩阵，耦合矩阵，非简谐性矩阵和能级，生成Hamilton
+    '''
+    def __init__(self , qubitsParameter , *args , **kwargs):
+        # qubitsParameter结构:frequency(频率);coupling(耦合强度);eta_q(非简谐性);Nlevel(涉及的能级)
+        self.__frequency , self.__coupling , self.__etaQ , self.__Nlevel = qubitsParameter
+        self.__numQubits = int(np.size(self.__frequency)) #比特数目
+        self.rowQubit , self.columnQubit = np.shape(self.frequency)
+        if type(self.__Nlevel) == int:
+            self.__Nlevel = self.__Nlevel*np.ones_like(self.__frequency,dtype=int)
+        else:
+            self.__Nlevel = np.array(self.__Nlevel)
+        self.__NlevelLine = self.__Nlevel.reshape(1,-1)[0]
+        self.__frequencyLine = self.__frequency.reshape(1,-1)[0]
+        self.__etaQLine = self.__etaQ.reshape(1,-1)[0]
+
+        if (not np.shape(self.__frequency) == np.shape(self.__etaQ) == np.shape(self.__Nlevel)) or (not len(self.__coupling)==2*len(self.__frequency)-1) or (not np.shape(self.__coupling)[1]==np.shape(self.__frequency)[1]):
+            print('dimension error')
+            raise AssertionError()
+        # 生成基本的operator
+        self.sm,self.E_uc,self.E_phi = self._BasicHamiltonOperator()
+        # 生成未加驱动的基本哈密顿量
+        Hamilton = self._H0Generation()
+        super(Frequency2DQubit,self).__init__(Hamilton)
+        
+    def _BasicHamiltonOperator(self):
+        '''
+        生成构成哈密顿量的基本operator
+        '''
+        sm=[]
+        for II in range(0,self.__numQubit):
+            cmdstr=[destroy(self.__Nlevel[JJ]) if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(self.__numQubit)]
+            sm.append(tensor(*cmdstr))
+        sm = np.array(sm).reshape((self.rowQubit,self.ColumnQubit)) 
+
+        E_uc = []
+        for II in range(0,self.__numQubit):
+            if self.__Nlevel[II]>2:
+                cmdstr=[basis(self.__numQubit[JJ],2)*basis(self.__numQubit[JJ],2).dag() if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(self.__numQubit)]                  
+            else:
+                cmdstr=[Qobj(np.zeros([self.__numQubit[JJ],self.__numQubit[JJ]])) if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(self.__numQubit)]
+            E_uc.append(tensor(*cmdstr))
+        E_uc = np.array(E_uc).reshape((self.rowQubit,self.ColumnQubit))
+
+        E_phi=[]
+        for II in range(0,self.__numQubit):
+            basisMatrix = np.diag([1]*(self.__Nlevel[II]-1),1) + np.diag([1]*(self.__Nlevel[II]-1),-1)
+            cmdstr=[Qobj(basisMatrix) if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(0,self.__numQubit)]
+            E_phi.append(tensor(*cmdstr))   
+        E_phi = np.array(E_phi).reshape((self.rowQubit,self.ColumnQubit))  
+
+        return([sm,E_uc,E_phi])
+    def _H0Generation(self):
+        '''
+        根据qubit参数，生成未加驱动的基本哈密顿量
+        '''
+        self.rowQubit , self.columnQubit
+        Hq = sum([self.__frequency[index_x,index_y]*self.sm[index_x,index_y].dag()*self.sm[index_x,index_y] + self.__etaQ[index_x,index_y]*self.E_uc[index_x,index_y] for index_x in range(self.rowQubit) for index_y in range(self.columnQubit)])
+        if self.num_qubits != 1:
+            HcRow = sum([self.coupling[2*index_x+1,index_y]*(self.sm[index_x,index_y]+self.sm[index_x,index_y].dag())*(self.sm[index_x+1,index_y]+self.sm[index_x+1,index_y].dag()) for index_x in range(self.rowQubit) for index_y in range(self.columnQubit) if index_x != self.rowQubit-1])
+            HcColumn = sum([self.coupling[2*index_x,index_y]*(self.sm[index_x,index_y]+self.sm[index_x,index_y].dag())*(self.sm[index_x,index_y+1]+self.sm[index_x,index_y+1].dag()) for index_x in range(self.rowQubit) for index_y in range(self.columnQubit) if index_y != self.columnQubit-1])
+        else:
+            HcRow = 0
+            HcColumn = 0
+        H0 = Hq+HcRow+HcColumn
+        return(H0)
+        
