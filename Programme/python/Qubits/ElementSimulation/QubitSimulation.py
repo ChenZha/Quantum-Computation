@@ -415,7 +415,8 @@ class BasicQubit():
 class TransmonQubit(BasicQubit):
     '''
     TransmonQubit类：
-        要求每个节点对地都构成一个类谐振子的比特，或者构成一个谐振子，以此对算符phi进行谐振子展开，进一步计算Hamilton，否则不满足这个类的条件
+        代表一个transmon链
+        每个节点对地都构成一个类谐振子的比特，或者构成一个谐振子，以此对算符phi进行谐振子展开，进一步计算Hamilton，否则不满足这个类的条件
         这是一个通用的类，其他transmon类型都是该类的子类，需要转化到这种TransmonQubit类型(需要手动解出变化形式)
     输入：
         等效节点电容逆矩阵，等效节点电感逆矩阵，等效节点顶点Ej矩阵，磁通偏置矩阵，各个节点能级，生成Hamilton
@@ -461,7 +462,9 @@ class TransmonQubit(BasicQubit):
         LInv = self.__inductanceInv
         EL = (hbar/2/e)**2*LInv/h
         # 计算EU
-        EjMatrix = self.__EjMatrixTop*np.cos(np.pi*self.__flux)
+        EjMatrixTop = self.__EjMatrixTop
+        flux = self.__flux
+        EjMatrix = EjMatrixTop*np.cos(np.pi*flux)
         Ej = np.diag(np.diag(EjMatrix))
         EU = EL + Ej
 
@@ -501,6 +504,7 @@ class TransmonQubit(BasicQubit):
         else:
             raise ValueError('couplingMode error')
         return(dirveH)
+
 class FluxmonQubit(BasicQubit):
     '''
     FluxmonQubit类, 输入电容矩阵，电感矩阵，电阻矩阵和能级，生成Hamilton
@@ -653,8 +657,6 @@ class Frequency2DQubit(BasicQubit):
         H0 = Hq+HcRow+HcColumn
         return(H0)
 
-
-
 class Xmon(TransmonQubit):
     '''
     最简单的transmon变种,从Xmon到Transmon的变化其实是手动的。
@@ -675,7 +677,6 @@ class Xmon(TransmonQubit):
             LInv[ii][ii] = -np.sum(LInv[ii])
         # 计算EjMatrix
         R2E = np.vectorize(self._R2E)
-        # 计算EjMatrix
         EjMatrixTop = R2E(np.array(self.__resistance))
         qubitsParameter = [CInv,LInv,EjMatrixTop,self.__flux, self.__Nlevel]
         super().__init__(qubitsParameter, *args, **kwargs)
@@ -696,22 +697,33 @@ class DifferentialTransmon(TransmonQubit):
     __init__:如何从电容矩阵，电感矩阵，节电阻矩阵，SQUID磁通，能级矩阵 转化成 等效节点电容逆矩阵，等效节点电感逆矩阵，等效节点顶点Ej矩阵，SQUID磁通矩阵，能级矩阵
     '''
     def __init__(self, elementParameter, *args, **kwargs):
-        self.__capacity, self.__inductance, self.__resistance, self.__flux, self.__Nlevel = elementParameter
-
+        self.__capacity, self.__inductance, self.__resistance, self.__flux, self.__SMatrix, self.__structure, self.__Nlevel = elementParameter
+        retainNode = [b[0] for b in self.__structure]
+        SMatrix = self.__SMatrix
+        SMatrixInv = np.linalg.inv(SMatrix)
         # 计算Cinv
         Capa = -np.array(self.__capacity)
         for ii in range(np.shape(Capa)[0]):
-            Capa[ii][ii] = -sum(self.__capacity[ii])
+            Capa[ii][ii] = -sum(Capa[ii])
+        Capa = np.dot(np.transpose(SMatrixInv),np.dot(Capa,SMatrixInv))
         CInv = np.linalg.inv(Capa)
+        CInv = CInv[retainNode,:]
+        CInv = CInv[:,retainNode]
         # 计算Linv
         LInv = -1/np.array(self.__inductance)
         for ii in range(np.shape(LInv)[0]):
             LInv[ii][ii] = -np.sum(LInv[ii])
+        LInv = np.dot(np.transpose(SMatrixInv),np.dot(LInv,SMatrixInv))
+        LInv = LInv[retainNode,:]
+        LInv = LInv[:,retainNode]
         # 计算EjMatrix
         R2E = np.vectorize(self._R2E)
         # 计算EjMatrix
         EjMatrixTop = R2E(np.array(self.__resistance))
-        qubitsParameter = [CInv,LInv,EjMatrixTop,self.__flux, self.__Nlevel]
+        fluxMatrix = self.__flux
+        EjMatrixTopN = np.diag([EjMatrixTop[self.__structure[ii][0]][self.__structure[ii][1]] if len(self.__structure[ii])==2 else EjMatrixTop[self.__structure[ii][0]][self.__structure[ii][0]] for ii in range(len(retainNode))])
+        fluxMatrixN = np.diag([fluxMatrix[self.__structure[ii][0]][self.__structure[ii][1]] if len(self.__structure[ii])==2 else fluxMatrix[self.__structure[ii][0]][self.__structure[ii][0]] for ii in range(len(retainNode))])
+        qubitsParameter = [CInv,LInv,EjMatrixTopN,fluxMatrixN, self.__Nlevel]
         super().__init__(qubitsParameter, *args, **kwargs)
     def _R2E(self,R):
         hbar=1.054560652926899e-34
