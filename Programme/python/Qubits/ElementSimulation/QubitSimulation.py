@@ -414,12 +414,18 @@ class BasicQubit():
 
 class TransmonQubit(BasicQubit):
     '''
-    TransmonQubit类, 输入等效节点电容逆矩阵，等效节点电感逆矩阵，等效节点Ej矩阵，各个节点能级，生成Hamilton
-    要求每个节点对地都构成一个类谐振子的比特，或者构成一个谐振子，以此对算符phi进行谐振子展开，进一步计算Hamilton，否则不满足这个类的条件
-    计算所需的Ec，Ej均以GHz为单位
+    TransmonQubit类：
+        要求每个节点对地都构成一个类谐振子的比特，或者构成一个谐振子，以此对算符phi进行谐振子展开，进一步计算Hamilton，否则不满足这个类的条件
+        这是一个通用的类，其他transmon类型都是该类的子类，需要转化到这种TransmonQubit类型(需要手动解出变化形式)
+    输入：
+        等效节点电容逆矩阵，等效节点电感逆矩阵，等效节点顶点Ej矩阵，磁通偏置矩阵，各个节点能级，生成Hamilton
+        计算所需的Ec，Ej均以GHz为单位
+    需要定义TransmonQubit的方法：
+        __init__:如何从电容矩阵，电感矩阵，节电阻矩阵，SQUID磁通，能级矩阵 转化成 等效节点电容逆矩阵，等效节点电感逆矩阵，等效节点Ej矩阵，能级矩阵
+        驱动：通过电路参数，生成驱动哈密顿量
     '''
     def __init__(self , qubitsParameter , *args , **kwargs):
-        self.__capacityInv, self.__inductanceInv, self.__EjMatrix,  self.__Nlevel = qubitsParameter #输入节点电容矩阵，电感矩阵，电阻矩阵，能级数目
+        self.__capacityInv, self.__inductanceInv, self.__EjMatrixTop, self.__flux, self.__Nlevel = qubitsParameter #输入节点电容矩阵，电感矩阵，电阻矩阵，能级数目
         self.__numQubit = len(self.__Nlevel)
         self.sm,self.E_phi = self._BasicHamiltonOperator()
         Hamilton = self._H0Generation()
@@ -455,7 +461,7 @@ class TransmonQubit(BasicQubit):
         LInv = self.__inductanceInv
         EL = (hbar/2/e)**2*LInv/h
         # 计算EU
-        EjMatrix = self.__EjMatrix
+        EjMatrix = self.__EjMatrixTop*np.cos(np.pi*self.__flux)
         Ej = np.diag(np.diag(EjMatrix))
         EU = EL + Ej
 
@@ -467,16 +473,34 @@ class TransmonQubit(BasicQubit):
         sn = [op.dag()*op for op in sm]
         XX = [(op+op.dag())/2 for op in sm]
         YY = [(-1j)*(op-op.dag())/2 for op in sm]
-        phi = [np.sqrt(2)*(beta[ii]/alpha[ii])**(1/4)*XX[ii] for ii in range(len(alpha))]
-        nn = [np.sqrt(2)*(alpha[ii]/beta[ii])**(1/4)*YY[ii] for ii in range(len(alpha))]
+        self.phi = [np.sqrt(2)*(beta[ii]/alpha[ii])**(1/4)*XX[ii] for ii in range(len(alpha))]
+        self.nn = [np.sqrt(2)*(alpha[ii]/beta[ii])**(1/4)*YY[ii] for ii in range(len(alpha))]
+        self.phid = [sum([(hbar/2/e)**2*CInv[ii,jj]*hbar*self.nn[jj] for jj in range(np.shape(CInv)[1])]) for ii in range(len(self.nn))] 
 
         H0 = sum([np.sqrt(alpha[ii]*beta[ii])*sn[ii] for ii in range(np.shape(Ec)[0])])
-        Heta = sum([-Ej[ii,ii]*(phi[ii]**4/24-phi[ii]**6/math.factorial(6)+phi[ii]**8/math.factorial(8)) for ii in range(np.shape(Ec)[0])])
-        Hc = sum([4*Ec[ii,jj]*nn[ii]*nn[jj]+1/2*EU[ii,jj]*phi[ii]*phi[jj]-EjMatrix[ii][jj]*((-phi[ii]**2/2+phi[ii]**4/24)*(-phi[jj]**2/2+phi[jj]**4/24)+(phi[ii]-phi[ii]**3/6)*(phi[jj]-phi[jj]**3/6)) for ii in range(np.shape(Ec)[0]) for jj in range(np.shape(Ec)[1]) if ii!=jj])
+        Heta = sum([-Ej[ii,ii]*(self.phi[ii]**4/24-self.phi[ii]**6/math.factorial(6)+self.phi[ii]**8/math.factorial(8)) for ii in range(np.shape(Ec)[0])])
+        Hc = sum([4*Ec[ii,jj]*self.nn[ii]*self.nn[jj]+1/2*EU[ii,jj]*self.phi[ii]*self.phi[jj]-EjMatrix[ii][jj]*((-self.phi[ii]**2/2+self.phi[ii]**4/24)*(-self.phi[jj]**2/2+self.phi[jj]**4/24)+(self.phi[ii]-self.phi[ii]**3/6)*(self.phi[jj]-self.phi[jj]**3/6)) for ii in range(np.shape(Ec)[0]) for jj in range(np.shape(Ec)[1]) if ii!=jj])
 
         Hamilton = H0+Heta+Hc
         return(Hamilton)
 
+    def DriveHamilton(self,node,couplingParameter,couplingMode = 'Current'):
+        hbar=1.054560652926899e-34
+        h = hbar*2*np.pi
+        e = 1.60217662e-19 
+        phi0 = h/2/e
+        if couplingMode == 'Voltage':
+            # couplingParameter为耦合电容
+            dirveH = 1/2*couplingParameter*hbar/2/e*self.phid[node]
+        elif couplingMode == 'Current':
+            # couplingParameter为[做驱动的与大loop的互感，做detune的与DC-SQUID的互感]
+            Mx,Mz = couplingParameter
+            drive = self.__EjMatrixTop[node,node]*np.cos(np.pi*self.__flux[node,node]) * 2 *np.pi*Mx/phi0 * (self.phi[node]-self.phi[node]**3/6)
+            detune = self.__EjMatrixTop[node,node]*np.sin(np.pi*self.__flux[node,node]) * np.pi*Mz/phi0 * (-self.phi[node]**2/2+self.phi[node]**4/24)
+            dirveH = [drive, detune]
+        else:
+            raise ValueError('couplingMode error')
+        return(dirveH)
 class FluxmonQubit(BasicQubit):
     '''
     FluxmonQubit类, 输入电容矩阵，电感矩阵，电阻矩阵和能级，生成Hamilton
@@ -632,6 +656,70 @@ class Frequency2DQubit(BasicQubit):
 
 
 class Xmon(TransmonQubit):
-    def __init__(self, qubitsParameter, *args, **kwargs):
-        super().__init__(qubitsParameter, *args, **kwargs)     
+    '''
+    最简单的transmon变种,从Xmon到Transmon的变化其实是手动的。
+    需要定义Xmon的方法：
+    __init__:如何从电容矩阵，电感矩阵，节电阻矩阵，SQUID磁通，能级矩阵 转化成 等效节点电容逆矩阵，等效节点电感逆矩阵，等效节点顶点Ej矩阵，SQUID磁通矩阵，能级矩阵
+    '''
+    def __init__(self, elementParameter, *args, **kwargs):
+        self.__capacity, self.__inductance, self.__resistance, self.__flux, self.__Nlevel = elementParameter
+
+        # 计算Cinv
+        Capa = -np.array(self.__capacity)
+        for ii in range(np.shape(Capa)[0]):
+            Capa[ii][ii] = -sum(self.__capacity[ii])
+        CInv = np.linalg.inv(Capa)
+        # 计算Linv
+        LInv = -1/np.array(self.__inductance)
+        for ii in range(np.shape(LInv)[0]):
+            LInv[ii][ii] = -np.sum(LInv[ii])
+        # 计算EjMatrix
+        R2E = np.vectorize(self._R2E)
+        # 计算EjMatrix
+        EjMatrixTop = R2E(np.array(self.__resistance))
+        qubitsParameter = [CInv,LInv,EjMatrixTop,self.__flux, self.__Nlevel]
+        super().__init__(qubitsParameter, *args, **kwargs)
+    def _R2E(self,R):
+        hbar=1.054560652926899e-34
+        h = hbar*2*np.pi
+        e = 1.60217662e-19 
+        I0 = 280e-9
+        R0 = 1000
+        I = I0*R0/R
+        Ej = I*hbar/2/e/h
+        return(Ej)
+
+class DifferentialTransmon(TransmonQubit):
+    '''
+    电容浮地的transmon变种,从DifferentialTransmon到Transmon的变化是手动的。
+    需要定义DifferentialTransmon的方法：
+    __init__:如何从电容矩阵，电感矩阵，节电阻矩阵，SQUID磁通，能级矩阵 转化成 等效节点电容逆矩阵，等效节点电感逆矩阵，等效节点顶点Ej矩阵，SQUID磁通矩阵，能级矩阵
+    '''
+    def __init__(self, elementParameter, *args, **kwargs):
+        self.__capacity, self.__inductance, self.__resistance, self.__flux, self.__Nlevel = elementParameter
+
+        # 计算Cinv
+        Capa = -np.array(self.__capacity)
+        for ii in range(np.shape(Capa)[0]):
+            Capa[ii][ii] = -sum(self.__capacity[ii])
+        CInv = np.linalg.inv(Capa)
+        # 计算Linv
+        LInv = -1/np.array(self.__inductance)
+        for ii in range(np.shape(LInv)[0]):
+            LInv[ii][ii] = -np.sum(LInv[ii])
+        # 计算EjMatrix
+        R2E = np.vectorize(self._R2E)
+        # 计算EjMatrix
+        EjMatrixTop = R2E(np.array(self.__resistance))
+        qubitsParameter = [CInv,LInv,EjMatrixTop,self.__flux, self.__Nlevel]
+        super().__init__(qubitsParameter, *args, **kwargs)
+    def _R2E(self,R):
+        hbar=1.054560652926899e-34
+        h = hbar*2*np.pi
+        e = 1.60217662e-19 
+        I0 = 280e-9
+        R0 = 1000
+        I = I0*R0/R
+        Ej = I*hbar/2/e/h
+        return(Ej)
         
