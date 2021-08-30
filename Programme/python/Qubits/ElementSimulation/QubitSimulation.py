@@ -196,8 +196,41 @@ class BasicQubit():
         if track_plot:
             self._TrackPlot()
         return(finalState)
-    def DifferentialEvolution():
-        pass
+    def DifferentialEvolution(self, drive = None , psi = basis(3,0) , collapse = [] , track_plot = False , RWF = 'CpRWF' , RWAFreq = 0.0 , argument = {'T_p':100,'T_copies':201}):
+        tList = np.linspace(0,argument['T_p'],argument['T_copies'])
+        numslice = 30
+        timeStep = np.linspace(tList[1],tList[-1],numslice*(len(tList)-1)+1)
+        stateStep = []
+        stateStep.append(psi)
+        HamiltonTimeList = np.diff(timeStep)/2+timeStep[0:-1-1]
+        HamiltonList = []
+        if len(collapse)==0:
+            for ii in range(len(HamiltonTimeList)):#生成不同时间点时的哈密顿量
+                HamiltonListTemp=self.__Hamilton
+                if len(drive)>1:
+                    for jj in range(1,len(drive)):
+                        timefunction = drive[jj][1]
+                        HamiltonListTemp = HamiltonListTemp + drive[jj][0]*timefunction(HamiltonTimeList[ii])
+                stateStepNew = stateStep[ii]+HamiltonListTemp*stateStep[ii]*(timeStep[ii+1]-timeStep[ii])/(1j)
+                stateStep.append(stateStepNew)
+            stateEnd = stateStep[1:-1:numslice]
+            return(stateEnd)
+        else:
+            for ii in range(len(HamiltonTimeList)):#生成不同时间点时的哈密顿量
+                HamiltonListTemp=self.__Hamilton
+                if len(drive)>1:
+                    for jj in range(1,len(drive)):
+                        timefunction = drive[jj][1]
+                        HamiltonListTemp = HamiltonListTemp+drive[jj][0]*timefunction(HamiltonTimeList[ii])
+
+                stateStepTemp = -1j*((HamiltonListTemp*stateStep[ii])-(stateStep[ii]*HamiltonListTemp))
+                for jj in range(len(collapse)):
+                    stateStepTemp = stateStepTemp + collapse[jj]*(stateStep[ii])*(collapse[jj].dag())-(collapse[jj].dag()*(collapse[jj])*(stateStep[ii])+stateStep[ii]*(collapse[jj].dag())*(collapse[jj]))/2
+                stateStepNew = stateStep[ii]+stateStepTemp*(timeStep[ii+1]-timeStep[ii])
+                stateStep.append(stateStepNew)
+
+            stateEnd = stateStep[1:-1:numslice]
+            return(stateEnd)
     def _RF_Generation(self,select_time):
         '''
         生成时间t时刻的旋转坐标系矩阵

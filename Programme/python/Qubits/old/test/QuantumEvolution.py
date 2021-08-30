@@ -1,5 +1,5 @@
 import numpy as np
-import qutip
+from qutip import *
 def quantumEvolution(Hamilton, stateInitial, tList, cOps=[]):
     if len(cOps)==0:
         numslice = 30
@@ -46,7 +46,7 @@ def quantumEvolution(Hamilton, stateInitial, tList, cOps=[]):
 
 
 if __name__ == '__main__':
-    Hamilton = [np.array([[1,0],[0,1]])]
+    Hamilton = 0.01*
     stateInitial = np.array([[0],[1]])
     tList = np.linspace(0,100,101)
     stateEnd = quantumEvolution(Hamilton, stateInitial, tList)
