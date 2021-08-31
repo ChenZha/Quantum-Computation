@@ -3,6 +3,7 @@ import math
 import matplotlib.pyplot as plt
 from qutip import *
 from multiprocessing import Pool
+from functools import reduce
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -99,7 +100,7 @@ class BasicQubit():
         qustate = [basis(Nlevel[ii],int(state[ii])) for ii in range(len(state))]
         qustate = tensor(*qustate)
         return(qustate)
-    def findstate(self,state,searchSpace='full'):
+    def findstate(self,state,searchSpace='brev'):
         '''
         在self.stateEig中找到state对应的index,对于简并的态，01探测到的是01+10，10探测到的是01-10
         输入：
@@ -113,7 +114,7 @@ class BasicQubit():
         assert int(len(state.dims[0])) == numQubit
 
         if searchSpace == 'full':
-            searchLen=len(self.StatenergyEig)
+            searchLen=len(self.stateEig)
         elif searchSpace == 'brev':
             searchLen=min(4*numQubit,len(self.stateEig))
         else:
@@ -164,7 +165,7 @@ class BasicQubit():
         # 生成演化Hamilton
         self.evolutionH = self.__Hamilton
         if drive != None:
-            self.evolutionH = [self.H0]
+            self.evolutionH = [self.__Hamilton]
             for H_drive in drive:
                 self.evolutionH.append(H_drive)
 
@@ -174,7 +175,7 @@ class BasicQubit():
         # 时间序列
         T_p = argument['T_P']
         T_copies = argument['T_copies']
-        self.tlist = np.linspace(0,self.T_p,self.T_copies)
+        self.tlist = np.linspace(0,T_p,T_copies)
         # collapse
         self.collapse = collapse
         # evolution
@@ -184,7 +185,7 @@ class BasicQubit():
         self.RWF = RWF
         self.RWAFreq = RWAFreq
         # Rotation Frame of final state
-        UF = self._RFGeneration(self.tlist[-1])
+        UF = self._RF_Generation(self.tlist[-1])
         # Final State in Rotation Frame(pure state)
         stateType = self.result.states[-1].type
         if stateType == 'ket':
@@ -197,11 +198,17 @@ class BasicQubit():
             self._TrackPlot()
         return(finalState)
     def DifferentialEvolution(self, drive = None , psi = basis(3,0) , collapse = [] , track_plot = False , RWF = 'CpRWF' , RWAFreq = 0.0 , argument = {'T_p':100,'T_copies':201}):
-        tList = np.linspace(0,argument['T_p'],argument['T_copies'])
+        self.iniPsi = psi
+        self.collapse = collapse
+        self.RWF = RWF
+        self.RWAFreq = RWAFreq
+        self.evolutionDH = drive
+        
+        self.tList = np.linspace(0,argument['T_p'],argument['T_copies'])
         numslice = 30
-        timeStep = np.linspace(tList[1],tList[-1],numslice*(len(tList)-1)+1)
+        timeStep = np.linspace(self.tList[1],self.tList[-1],numslice*(len(self.tList)-1)+1)
         stateStep = []
-        stateStep.append(psi)
+        stateStep.append(self.iniPsi)
         HamiltonTimeList = np.diff(timeStep)/2+timeStep[0:-1-1]
         HamiltonList = []
         if len(collapse)==0:
@@ -211,10 +218,10 @@ class BasicQubit():
                     for jj in range(1,len(drive)):
                         timefunction = drive[jj][1]
                         HamiltonListTemp = HamiltonListTemp + drive[jj][0]*timefunction(HamiltonTimeList[ii])
+                HamiltonList.append(HamiltonListTemp)
                 stateStepNew = stateStep[ii]+HamiltonListTemp*stateStep[ii]*(timeStep[ii+1]-timeStep[ii])/(1j)
                 stateStep.append(stateStepNew)
-            stateEnd = stateStep[1:-1:numslice]
-            return(stateEnd)
+
         else:
             for ii in range(len(HamiltonTimeList)):#生成不同时间点时的哈密顿量
                 HamiltonListTemp=self.__Hamilton
@@ -222,15 +229,18 @@ class BasicQubit():
                     for jj in range(1,len(drive)):
                         timefunction = drive[jj][1]
                         HamiltonListTemp = HamiltonListTemp+drive[jj][0]*timefunction(HamiltonTimeList[ii])
-
+                HamiltonList.append(HamiltonListTemp)
                 stateStepTemp = -1j*((HamiltonListTemp*stateStep[ii])-(stateStep[ii]*HamiltonListTemp))
                 for jj in range(len(collapse)):
                     stateStepTemp = stateStepTemp + collapse[jj]*(stateStep[ii])*(collapse[jj].dag())-(collapse[jj].dag()*(collapse[jj])*(stateStep[ii])+stateStep[ii]*(collapse[jj].dag())*(collapse[jj]))/2
                 stateStepNew = stateStep[ii]+stateStepTemp*(timeStep[ii+1]-timeStep[ii])
                 stateStep.append(stateStepNew)
 
-            stateEnd = stateStep[1:-1:numslice]
-            return(stateEnd)
+        self.result = stateStep[1:-1:numslice]
+        
+        if track_plot:
+            self._TrackPlot()
+        return(stateEnd)
     def _RF_Generation(self,select_time):
         '''
         生成时间t时刻的旋转坐标系矩阵
@@ -284,11 +294,11 @@ class BasicQubit():
             opy = self.Y_m[q_index]
             opz = self.E_g[q_index]-self.E_e[q_index]
             opn = self.E_e[q_index]
-            nx[q_index] = self.expect_evolution(opx)
-            ny[q_index] = self.expect_evolution(opy)
-            nz[q_index] = self.expect_evolution(opz)
-            nn[q_index] = self.expect_evolution(opn)
-            leakage[q_index] = self.expect_evolution(self.E_uc[q_index])
+            nx[q_index] = self.ExpectEvolution(opx)
+            ny[q_index] = self.ExpectEvolution(opy)
+            nz[q_index] = self.ExpectEvolution(opz)
+            nn[q_index] = self.ExpectEvolution(opn)
+            leakage[q_index] = self.ExpectEvolution(self.E_uc[q_index])
         
         
         # 画图
@@ -339,12 +349,12 @@ class BasicQubit():
         finalState = [] #基矢演化得到的末态
         if parallel:
             p = Pool()
-            result_final = [p.apply_async(self.QutipEvolution,(drive , basic[i] , [] , False , RWF, RWA_freq,argument , options)) for i in range(len(basic)) ]
+            result_final = [p.apply_async(self.QutipEvolution,(drive , basic[i] , [] , False , RWF, RWAFreq,argument , options)) for i in range(len(basic)) ]
             finalState = np.array([result_final[i].get() for i in range(len(result_final))])
             p.close()
             p.join()
         else:
-            finalState = [self.QutipEvolution(drive , Phi , [] , False , RWF ,RWA_freq,argument , options) for Phi in basic]
+            finalState = [self.QutipEvolution(drive , Phi , [] , False , RWF ,RWAFreq,argument , options) for Phi in basic]
 
 
         process = np.column_stack([finalState[i].data.toarray() for i in range(len(finalState))])[loc,:] #只取演化矩阵中二能级部分
@@ -441,7 +451,7 @@ class BasicQubit():
             for JJ in range(numQubit):
                 number = np.int(np.mod(II,2))
                 if number == 1:
-                    process[:,index] = process[:,index]*np.exp(1j*xita[-1-JJ])
+                    process[:,index] = process[:,index]*np.exp(1j*theta[-1-JJ])
                 II = np.int(np.floor(II/2))
         return(process)
 
@@ -453,7 +463,7 @@ class TransmonQubit(BasicQubit):
         这是一个通用的类，其他transmon类型都是该类的子类，需要转化到这种TransmonQubit类型(需要手动解出变化形式)
     输入：
         等效节点电容逆矩阵，等效节点电感逆矩阵，等效节点顶点Ej矩阵，磁通偏置矩阵，各个节点能级，生成Hamilton
-        计算所需的Ec，Ej均以GHz为单位
+        计算所需的Ec，Ej均以GHz*2pi为单位
     需要定义TransmonQubit的方法：
         __init__:如何从电容矩阵，电感矩阵，节电阻矩阵，SQUID磁通，能级矩阵 转化成 等效节点电容逆矩阵，等效节点电感逆矩阵，等效节点Ej矩阵，能级矩阵
         驱动：通过电路参数，生成驱动哈密顿量
@@ -489,11 +499,11 @@ class TransmonQubit(BasicQubit):
         e = 1.60217662e-19
         # 计算Cinv
         CInv = self.__capacityInv
-        Ec = e**2/2*CInv/h
+        Ec = e**2/2*CInv/hbar/1e9
 
         # 计算Linv
         LInv = self.__inductanceInv
-        EL = (hbar/2/e)**2*LInv/h
+        EL = (hbar/2/e)**2*LInv/hbar/1e9
         # 计算EU
         EjMatrixTop = self.__EjMatrixTop
         flux = self.__flux
@@ -527,7 +537,7 @@ class TransmonQubit(BasicQubit):
         phi0 = h/2/e
         if couplingMode == 'Voltage':
             # couplingParameter为耦合电容
-            dirveH = 1/2*couplingParameter*hbar/2/e*self.phid[node]
+            dirveH = 1/2*couplingParameter*hbar/2/e*self.phid[node]/hbar
         elif couplingMode == 'Current':
             # couplingParameter为[做驱动的与大loop的互感，做detune的与DC-SQUID的互感]
             Mx,Mz = couplingParameter
@@ -720,7 +730,7 @@ class Xmon(TransmonQubit):
         I0 = 280e-9
         R0 = 1000
         I = I0*R0/R
-        Ej = I*hbar/2/e/h
+        Ej = I*hbar/2/e/hbar/1e9
         return(Ej)
 
 class DifferentialTransmon(TransmonQubit):
@@ -765,6 +775,6 @@ class DifferentialTransmon(TransmonQubit):
         I0 = 280e-9
         R0 = 1000
         I = I0*R0/R
-        Ej = I*hbar/2/e/h
+        Ej = I*hbar/2/e/hbar/1e9
         return(Ej)
         
