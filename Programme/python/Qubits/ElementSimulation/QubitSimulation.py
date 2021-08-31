@@ -2,6 +2,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 from qutip import *
+import functools
 from multiprocessing import Pool
 from functools import reduce
 import matplotlib as mpl
@@ -240,7 +241,7 @@ class BasicQubit():
         
         if track_plot:
             self._TrackPlot()
-        return(stateEnd)
+        return(self.result)
     def _RF_Generation(self,select_time):
         '''
         生成时间t时刻的旋转坐标系矩阵
@@ -330,7 +331,7 @@ class BasicQubit():
         fig.colorbar(c, ax=ax)
         plt.show()
 
-    def process(self , drive = None , processPlot  = False , RWF = 'CpRWF' , RWAFreq = 0.0 ,parallel = False , argument = {'T_p':100,'T_copies':201} , options = default_options):
+    def process(self , drive = None ,  retainNode = [0,2], processPlot  = False , RWF = 'CpRWF' , RWAFreq = 0.0 ,parallel = False , argument = {'T_p':100,'T_copies':201} , options = default_options):
         '''
         对当前比特施加驱动drive，表征整个state space的演化过程(只取每个比特二能级的部分)
         参数：
@@ -344,13 +345,23 @@ class BasicQubit():
         返回：
         2^n维的演化矩阵
         '''
-        # 生成2^n个基矢,以及各个基矢在3能级系统中的位置
+        Nlevel = self.__Hamilton.dims[0]
+        numQubit = len(Nlevel)
+        self.retainNode = retainNode
+        # 生成2^n个基矢,以及各个基矢在多能级系统中的位置
         basic , loc = self._basic_generation()
+        # 只取保留的node的基矢，抛弃的node保持在0态
+        abandonNode = list(set(np.arange(numQubit)) - set(retainNode))
+
+        retainIndex = [ii for ii in range(len(loc)) if [bin(ii)[2:].zfill(numQubit)[jj] for jj in abandonNode] == ['0']*len(abandonNode)]
+        basic = [basic[ii] for ii in retainIndex]
+        loc = [loc[ii] for ii in retainIndex]
+
         finalState = [] #基矢演化得到的末态
         if parallel:
             p = Pool()
             result_final = [p.apply_async(self.QutipEvolution,(drive , basic[i] , [] , False , RWF, RWAFreq,argument , options)) for i in range(len(basic)) ]
-            finalState = np.array([result_final[i].get() for i in range(len(result_final))])
+            finalState = [result_final[i].get() for i in range(len(result_final))]
             p.close()
             p.join()
         else:
@@ -360,6 +371,7 @@ class BasicQubit():
         process = np.column_stack([finalState[i].data.toarray() for i in range(len(finalState))])[loc,:] #只取演化矩阵中二能级部分
         angle = np.angle(process[0][0])
         process = process*np.exp(-1j*angle)#消除global phase
+        process = Qobj(process, dims=[[2]*len(retainNode),[2]*len(retainNode)])
 
         if processPlot:
             self.Operator_View(process,'Process')
@@ -443,17 +455,20 @@ class BasicQubit():
         '''
         对演化矩阵进行相位补偿，theta为每个比特的相位补偿角(弧度)
         '''
-        Nlevel = self.__Hamilton.dims[0]
-        numQubit = len(Nlevel)
-        assert len(theta) == numQubit
-        for index in range(2**numQubit):
-            II = index
-            for JJ in range(numQubit):
-                number = np.int(np.mod(II,2))
-                if number == 1:
-                    process[:,index] = process[:,index]*np.exp(1j*theta[-1-JJ])
-                II = np.int(np.floor(II/2))
+        numRetainQubit = len(self.retainNode)
+        assert len(theta) == numRetainQubit
+        for ii in range(numRetainQubit):
+            op = tensor(*[Qobj(np.array([[1,0],[0,np.exp(1j*theta[ii])]])) if ii==jj else qeye(2) for jj in range(numRetainQubit)])
+            process = op*process
         return(process)
+        # for index in range(2**numRetainQubit):
+        #     II = index
+        #     for JJ in range(numRetainQubit):
+        #         number = np.int(np.mod(II,2))
+        #         if number == 1:
+        #             process[:,index] = process[:,index]*np.exp(1j*theta[-1-JJ])
+        #         II = np.int(np.floor(II/2))
+        # return(process)
 
 class TransmonQubit(BasicQubit):
     '''

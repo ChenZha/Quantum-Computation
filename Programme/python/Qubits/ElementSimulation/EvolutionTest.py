@@ -50,6 +50,10 @@ def sweepDetuning(DT,II):
     diff = max(result)-min(result)
 
     return(diff)
+    def MatrixPtrace(Matrix,retainNode):
+        ptraceMatrix = np.zeros([2**len(retainNode),2**len(retainNode)])
+
+        return(ptraceMatrix)
 
 if __name__ == '__main__':
     
@@ -105,46 +109,61 @@ if __name__ == '__main__':
     couplingParameter = [Mx,Mz]
     couplingMode = 'Current'
     driveH = DT.DriveHamilton(node,couplingParameter,couplingMode)
-    
+    ptrace(tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],0)),0)
 
     # %% 
     # 单比特驱动演化
-    Hdrive = [[driveH[0],IDrive],[driveH[1],IDrive]]
-    startTime = datetime.datetime.now()
-    w001 = energyLevel[DT.findstate(tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],1)))]
-    w002 = energyLevel[DT.findstate(tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],2)))]
-    wf = w001
-    eta_q = w002-2*w001
-    args = {'T_P':60,'T_copies':101 , 'omegaI':7.48269480e-06/3*2 ,'phiI':0, 'wf': wf,'eta_q':eta_q}
-    iniState = tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],0))
-    final = DT.QutipEvolution(drive = Hdrive , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = True, argument = args)
-    endTime = datetime.datetime.now()
-    print((endTime-startTime).seconds)
+    # Hdrive = [[driveH[0],IDrive],[driveH[1],IDrive]]
+    # startTime = datetime.datetime.now()
+    # w001 = energyLevel[DT.findstate(tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],1)))]
+    # w002 = energyLevel[DT.findstate(tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],2)))]
+    # wf = w001
+    # eta_q = w002-2*w001
+    # args = {'T_P':60,'T_copies':101 , 'omegaI':7.48269480e-06/3*2 ,'phiI':0, 'wf': wf,'eta_q':eta_q}
+    # iniState = tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),(basis(Nlevel[2],0)-basis(Nlevel[2],1)).unit())
+    # final = DT.QutipEvolution(drive = Hdrive , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = True, argument = args)
+    # endTime = datetime.datetime.now()
+    # print((endTime-startTime).seconds)
 
     # %% 
     # 单比特门保真度
-    Hdrive = [[driveH[0],IDrive],[driveH[1],IDrive]]
-    startTime = datetime.datetime.now()
-    w001 = energyLevel[DT.findstate(tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],1)))]
-    w002 = energyLevel[DT.findstate(tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],2)))]
-    wf = w001
-    eta_q = w002-2*w001
-    args = {'T_P':60,'T_copies':101 , 'omegaI':7.48269480e-06/3*2 ,'phiI':0, 'wf': wf,'eta_q':eta_q}
-    
-    iniState = tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],0))
-    final = DT.QutipEvolution(drive = Hdrive , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = True, argument = args)
-    endTime = datetime.datetime.now()
-    print((endTime-startTime).seconds)
+    # Hdrive = [[driveH[0],IDrive],[driveH[1],IDrive]]
+    # startTime = datetime.datetime.now()
+    # w001 = energyLevel[DT.findstate(tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],1)))]
+    # w002 = energyLevel[DT.findstate(tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],2)))]
+    # wf = w001
+    # eta_q = w002-2*w001
+    # args = {'T_P':60,'T_copies':101 , 'omegaI':7.48269480e-06/3*2 ,'phiI':0, 'wf': wf,'eta_q':eta_q}
+    # processTomo = DT.process(drive = Hdrive , retainNode = [0,2], processPlot  = False , RWF = 'CpRWF' , RWAFreq = 0.0 ,parallel = True , argument = args)
+    # targetMatrix = tensor(qeye(2),sigmax())
+    # Ufidelity = np.abs(np.trace(processTomo.dag()*targetMatrix))/(np.shape(targetMatrix.full())[0])
+    # endTime = datetime.datetime.now()
+    # print(Ufidelity)
+    # print((endTime-startTime).seconds)
 
     # %% 
     # 双比特门驱动演化
+    # Hdrive = [[driveH[0],IPulse],[driveH[1],IPulse]]
+    # startTime = datetime.datetime.now()
+    # args = {'T_P':120,'T_copies':101 , 'omegaI':-71.4e-6}
+    # iniState = tensor((basis(Nlevel[0],1)).unit(),(basis(Nlevel[1],0)).unit(),(basis(Nlevel[2],1)).unit())
+    # final = DT.QutipEvolution(drive = Hdrive , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = True, argument = args)
+    # endTime = datetime.datetime.now()
+    # print((endTime-startTime).seconds)
+
+    # %% 
+    # 双比特门保真度
     Hdrive = [[driveH[0],IPulse],[driveH[1],IPulse]]
     startTime = datetime.datetime.now()
     args = {'T_P':60,'T_copies':101 , 'omegaI':-71.4e-6}
-    iniState = tensor((basis(Nlevel[0],1)).unit(),(basis(Nlevel[1],0)).unit(),(basis(Nlevel[2],1)).unit())
-    final = DT.QutipEvolution(drive = Hdrive , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = True, argument = args)
+    processTomo = DT.process(drive = Hdrive , retainNode = [0,2], processPlot  = False , RWF = 'CpRWF' , RWAFreq = 0.0 ,parallel = True , argument = args)
+    targetMatrix =  Qobj(np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,-1]]), dims=processTomo.dims)
+    theta = [-np.angle(processTomo.full()[2,2]),-np.angle(processTomo.full()[1,1])]
+    processTomo = DT.phase_comp(processTomo,theta)
+    Ufidelity = np.abs(np.trace(processTomo.dag()*targetMatrix))/(np.shape(targetMatrix.full())[0])
     endTime = datetime.datetime.now()
-    print((endTime-startTime).seconds)
+    print(Ufidelity)
+    print((endTime-startTime).seconds) 
 
     # %% 
     # 双比特sweepI  -71.4e-6
