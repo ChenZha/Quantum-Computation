@@ -1,10 +1,9 @@
 import numpy as np
 import math
-import matplotlib.pyplot as plt
 from qutip import *
 import functools
 from multiprocessing import Pool
-from functools import reduce
+import matplotlib.pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -397,7 +396,7 @@ class BasicQubit():
                     l += number
                 else:
                     mullist = Nlevel[-1:-1-JJ:-1]
-                    mulval = reduce(lambda x,y:x*y,mullist)
+                    mulval = functools.reduce(lambda x,y:x*y,mullist)
                     l += number*mulval
                 II = np.int(np.floor(II/2))
             assert len(code) == len(state) == numQubit    

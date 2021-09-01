@@ -4,6 +4,8 @@ from qutip import *
 import matplotlib.pyplot as plt
 import datetime
 from multiprocessing import Pool
+import functools
+from scipy import signal, interpolate
 
 def IDrive(t,args):
     ## 0.07853982  X/2
@@ -18,17 +20,21 @@ def IDrive(t,args):
         w = 0
     else:
         w = omega*((1-np.cos(2*np.pi/tp*t))*np.exp(1j*(wf*t-phi)))+omega*D*(2*np.pi/tp)*np.sin(2*np.pi/tp*t)/(eta_q)*np.exp(1j*(t*wf-phi-np.pi/2))
-    return(np.real(w)) 
+    return(w)
+ 
 
 def IPulse(t,args):
     tp = args['T_P']
     omega = args['omegaI']
-    if t<0 or t>tp:
-        w = 0
-    elif t>0 and t<3:
-        w = omega/3*t
-    elif t>tp-3 and t<tp:
-        w = omega/3*(tp-t)
+    rise = 3 # 上升沿
+    edge = 5 # 前后平的部分
+
+    if t<=edge or t>=tp-edge:
+        w = 0.0
+    elif t>edge and t<rise+edge:
+        w = omega/rise*(t-edge)
+    elif t>tp-rise-edge and t<tp-edge:
+        w = omega/rise*(tp-edge-t)
     else:
         w = omega
     return(w) 
@@ -143,27 +149,27 @@ if __name__ == '__main__':
 
     # %% 
     # 双比特门驱动演化
-    # Hdrive = [[driveH[0],IPulse],[driveH[1],IPulse]]
-    # startTime = datetime.datetime.now()
-    # args = {'T_P':120,'T_copies':101 , 'omegaI':-71.4e-6}
-    # iniState = tensor((basis(Nlevel[0],1)).unit(),(basis(Nlevel[1],0)).unit(),(basis(Nlevel[2],1)).unit())
-    # final = DT.QutipEvolution(drive = Hdrive , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = True, argument = args)
-    # endTime = datetime.datetime.now()
-    # print((endTime-startTime).seconds)
+    Hdrive = [[driveH[0],IPulse],[driveH[1],IPulse]]
+    startTime = datetime.datetime.now()
+    args = {'T_P':120,'T_copies':101 , 'omegaI':-71.4e-6}
+    iniState = tensor((basis(Nlevel[0],1)).unit(),(basis(Nlevel[1],0)).unit(),(basis(Nlevel[2],1)).unit())
+    final = DT.QutipEvolution(drive = Hdrive , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = True, argument = args)
+    endTime = datetime.datetime.now()
+    print((endTime-startTime).seconds)
 
     # %% 
     # 双比特门保真度
-    Hdrive = [[driveH[0],IPulse],[driveH[1],IPulse]]
-    startTime = datetime.datetime.now()
-    args = {'T_P':60,'T_copies':101 , 'omegaI':-71.4e-6}
-    processTomo = DT.process(drive = Hdrive , retainNode = [0,2], processPlot  = False , RWF = 'CpRWF' , RWAFreq = 0.0 ,parallel = True , argument = args)
-    targetMatrix =  Qobj(np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,-1]]), dims=processTomo.dims)
-    theta = [-np.angle(processTomo.full()[2,2]),-np.angle(processTomo.full()[1,1])]
-    processTomo = DT.phase_comp(processTomo,theta)
-    Ufidelity = np.abs(np.trace(processTomo.dag()*targetMatrix))/(np.shape(targetMatrix.full())[0])
-    endTime = datetime.datetime.now()
-    print(Ufidelity)
-    print((endTime-startTime).seconds) 
+    # Hdrive = [[driveH[0],IPulse],[driveH[1],IPulse]]
+    # startTime = datetime.datetime.now()
+    # args = {'T_P':60,'T_copies':101 , 'omegaI':-71.4e-6}
+    # processTomo = DT.process(drive = Hdrive , retainNode = [0,2], processPlot  = False , RWF = 'CpRWF' , RWAFreq = 0.0 ,parallel = True , argument = args)
+    # targetMatrix =  Qobj(np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,-1]]), dims=processTomo.dims)
+    # theta = [-np.angle(processTomo.full()[2,2]),-np.angle(processTomo.full()[1,1])]
+    # processTomo = DT.phase_comp(processTomo,theta)
+    # Ufidelity = np.abs(np.trace(processTomo.dag()*targetMatrix))/(np.shape(targetMatrix.full())[0])
+    # endTime = datetime.datetime.now()
+    # print(Ufidelity)
+    # print((endTime-startTime).seconds) 
 
     # %% 
     # 双比特sweepI  -71.4e-6
@@ -171,8 +177,37 @@ if __name__ == '__main__':
     # sweepI = np.linspace(-72,-70,21)*1e-6
     # result_final = [p.apply_async(sweepDetuning,(DT , II)) for II in sweepI ]
     # finalState = np.array([result_final[i].get() for i in range(len(result_final))])
-    # p.close()
-    # p.join()
+    # p.close()    # p.join()
     # fig = plt.figure()
     # plt.plot(sweepI,finalState)
     # plt.show()
+    # %%
+    # drive shape
+    args = {'T_P':120,'T_copies':101 , 'omegaI':-71.4e-6}
+    timeSampling = np.linspace(0,args['T_P'],2*args['T_P']+1)
+    SamlingFunction = np.vectorize(functools.partial(IPulse, args = args))
+    dataSampling = SamlingFunction(timeSampling)
+    b, a = signal.butter(8, 0.5, 'lowpass')   #配置滤波器 8 表示滤波器的阶数
+    filtedData = signal.filtfilt(b, a, dataSampling)  #data为要过滤的信号
+    interFunction = interpolate.interp1d(timeSampling,filtedData,kind ='linear')
+    time = np.linspace(-10,args['T_P']+10,10*args['T_P']+1)
+    def func(t,args):
+        tp = args['T_P']
+        if t<=0 or t>=tp:
+            w = 0.0
+        else:
+            w = interFunction(t)
+        return(w)
+    plt.figure()
+    plt.plot(timeSampling, dataSampling)
+    plt.plot(timeSampling, filtedData)
+    plt.plot(time, [func(t,args) for t in time])
+    plt.show()
+
+    Hdrive = [[driveH[0],func],[driveH[1],func]]
+    startTime = datetime.datetime.now()
+    args = {'T_P':120,'T_copies':101 , 'omegaI':-71.4e-6}
+    iniState = tensor((basis(Nlevel[0],1)).unit(),(basis(Nlevel[1],0)).unit(),(basis(Nlevel[2],1)).unit())
+    final = DT.QutipEvolution(drive = Hdrive , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = True, argument = args)
+    endTime = datetime.datetime.now()
+    print((endTime-startTime).seconds)
