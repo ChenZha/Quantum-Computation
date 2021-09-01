@@ -3,6 +3,7 @@ import math
 from qutip import *
 import functools
 from multiprocessing import Pool
+from scipy import signal, interpolate
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
@@ -792,3 +793,56 @@ class DifferentialTransmon(TransmonQubit):
         Ej = I*hbar/2/e/hbar/1e9
         return(Ej)
         
+
+def ControlWaveForm(inputWaveForm, inputFilter, inputType, args):
+    '''
+    InputParamter：
+        inputWaveForm:输入的波形函数,格式func(t, args)
+        inputFilter:输入的滤波器,为signal.butter格式 inputFilter = signal.butter(8, 0.8, 'lowpass')
+        inputType: 'pulse' or 'microwave'
+        args: qutip演化波形，所需参数
+    OutPut：
+        funtion format func(t,args)
+    '''
+    if inputType == 'pulse':
+        timeSampling = np.linspace(0,args['T_P'],2*args['T_P']+1) # 2G采样率
+        SamlingFunction = np.vectorize(functools.partial(inputWaveForm, args = args))
+        dataSampling = SamlingFunction(timeSampling)
+        filtedData = signal.filtfilt(inputFilter[0], inputFilter[1], dataSampling)  #data为要过滤的信号
+        interFunction = interpolate.interp1d(timeSampling,filtedData,kind ='linear')
+        def func(t,args):
+            tp = args['T_P']
+            if t<=0 or t>=tp:
+                w = 0.0
+            else:
+                w = np.asscalar(interFunction(t))
+            return(w)
+        return(func)
+    elif inputType == 'microwave':
+        ## sideband 采样
+        timeSampling = np.linspace(0,args['T_P'],2*args['T_P']+1) # 2G采样率
+        SamlingFunction = np.vectorize(functools.partial(inputWaveForm, args = args))
+        dataSampling = SamlingFunction(timeSampling)
+        dataSamplingX = np.real(dataSampling)
+        dataSamplingY = np.imag(dataSampling)
+        filtedDataX = signal.filtfilt(inputFilter[0], inputFilter[1], dataSamplingX)  #data为要过滤的信号
+        interFunctionX = interpolate.interp1d(timeSampling,filtedDataX,kind ='linear')
+        filtedDataY = signal.filtfilt(inputFilter[0], inputFilter[1], dataSamplingY)  #data为要过滤的信号
+        interFunctionY = interpolate.interp1d(timeSampling,filtedDataY,kind ='linear')
+        ## IQ混频
+        def IQMixer(t, args):
+            tp = args['T_P']
+            LoFreq = args['LoFreq']
+            if t<=0 or t>=tp:
+                w = 0.0
+            else:
+                w = interFunctionX(t)*np.cos(LoFreq*t)-interFunctionY(t)*np.sin(LoFreq*t)
+            return(w)
+        return(IQMixer)
+    else:
+        raise ValueError('Wrong InputType')
+    
+
+
+    
+     

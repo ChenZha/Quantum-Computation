@@ -1,5 +1,5 @@
 import numpy as np
-from QubitSimulation import DifferentialTransmon
+from QubitSimulation import DifferentialTransmon, ControlWaveForm
 from qutip import *
 import matplotlib.pyplot as plt
 import datetime
@@ -149,13 +149,13 @@ if __name__ == '__main__':
 
     # %% 
     # 双比特门驱动演化
-    Hdrive = [[driveH[0],IPulse],[driveH[1],IPulse]]
-    startTime = datetime.datetime.now()
-    args = {'T_P':120,'T_copies':101 , 'omegaI':-71.4e-6}
-    iniState = tensor((basis(Nlevel[0],1)).unit(),(basis(Nlevel[1],0)).unit(),(basis(Nlevel[2],1)).unit())
-    final = DT.QutipEvolution(drive = Hdrive , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = True, argument = args)
-    endTime = datetime.datetime.now()
-    print((endTime-startTime).seconds)
+    # Hdrive = [[driveH[0],IPulse],[driveH[1],IPulse]]
+    # startTime = datetime.datetime.now()
+    # args = {'T_P':120,'T_copies':101 , 'omegaI':-71.4e-6}
+    # iniState = tensor((basis(Nlevel[0],1)).unit(),(basis(Nlevel[1],0)).unit(),(basis(Nlevel[2],1)).unit())
+    # final = DT.QutipEvolution(drive = Hdrive , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = True, argument = args)
+    # endTime = datetime.datetime.now()
+    # print((endTime-startTime).seconds)
 
     # %% 
     # 双比特门保真度
@@ -184,30 +184,39 @@ if __name__ == '__main__':
     # %%
     # drive shape
     args = {'T_P':120,'T_copies':101 , 'omegaI':-71.4e-6}
-    timeSampling = np.linspace(0,args['T_P'],2*args['T_P']+1)
+    time = np.linspace(-10,args['T_P']+10,1000*args['T_P']+1)
+    inputFilter = signal.butter(8, 0.5, 'lowpass')
+    func = ControlWaveForm(IPulse, inputFilter, 'pulse', args)
+    # plt.figure()
+    # plt.plot(time, [func(t,args) for t in time])
+    # plt.show()
+    # a = func(10,args)
+    # Hdrive1 = [[driveH[0],func],[driveH[1],func]]
+    # Hdrive2 = [[driveH[0],IPulse],[driveH[1],IPulse]]
+    # iniState = tensor((basis(Nlevel[0],1)).unit(),(basis(Nlevel[1],0)).unit(),(basis(Nlevel[2],1)).unit())
+    # startTime1 = datetime.datetime.now()
+    # final = DT.QutipEvolution(drive = Hdrive1 , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = False, argument = args)
+    # endTime1 = datetime.datetime.now()
+    # print((endTime1-startTime1).seconds)
+
+    
+    # startTime2 = datetime.datetime.now()
+    # final = DT.QutipEvolution(drive = Hdrive2 , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = False, argument = args)
+    # endTime2 = datetime.datetime.now()
+    # print((endTime2-startTime2).seconds)
+
+    # %%
+    timeSampling = np.linspace(0,args['T_P'],10*args['T_P']+1) # 2G采样率
     SamlingFunction = np.vectorize(functools.partial(IPulse, args = args))
     dataSampling = SamlingFunction(timeSampling)
-    b, a = signal.butter(8, 0.5, 'lowpass')   #配置滤波器 8 表示滤波器的阶数
-    filtedData = signal.filtfilt(b, a, dataSampling)  #data为要过滤的信号
+    filtedData = signal.filtfilt(inputFilter[0], inputFilter[1], dataSampling)  #data为要过滤的信号
     interFunction = interpolate.interp1d(timeSampling,filtedData,kind ='linear')
-    time = np.linspace(-10,args['T_P']+10,10*args['T_P']+1)
-    def func(t,args):
-        tp = args['T_P']
-        if t<=0 or t>=tp:
-            w = 0.0
-        else:
-            w = interFunction(t)
-        return(w)
-    plt.figure()
-    plt.plot(timeSampling, dataSampling)
-    plt.plot(timeSampling, filtedData)
-    plt.plot(time, [func(t,args) for t in time])
-    plt.show()
 
-    Hdrive = [[driveH[0],func],[driveH[1],func]]
     startTime = datetime.datetime.now()
-    args = {'T_P':120,'T_copies':101 , 'omegaI':-71.4e-6}
-    iniState = tensor((basis(Nlevel[0],1)).unit(),(basis(Nlevel[1],0)).unit(),(basis(Nlevel[2],1)).unit())
-    final = DT.QutipEvolution(drive = Hdrive , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = True, argument = args)
+    a = [interFunction(5) for t in time]
     endTime = datetime.datetime.now()
-    print((endTime-startTime).seconds)
+    print((endTime-startTime).microseconds)
+    startTime = datetime.datetime.now()
+    a = [1e-5 for t in time]
+    endTime = datetime.datetime.now()
+    print((endTime-startTime).microseconds)
