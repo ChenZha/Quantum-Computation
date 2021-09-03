@@ -545,7 +545,7 @@ class TransmonQubit(BasicQubit):
         Hamilton = H0+Heta+Hc
         return(Hamilton)
 
-    def DriveHamilton(self,node,couplingParameter,couplingMode = 'Current'):
+    def DriveHamilton(self,node,couplingParameter,couplingMode = 'Current_1st'):
         hbar=1.054560652926899e-34
         h = hbar*2*np.pi
         e = 1.60217662e-19 
@@ -553,12 +553,27 @@ class TransmonQubit(BasicQubit):
         if couplingMode == 'Voltage':
             # couplingParameter为耦合电容
             dirveH = 1/2*couplingParameter*hbar/2/e*self.phid[node]/hbar
-        elif couplingMode == 'Current':
+        elif couplingMode == 'Current_1st':
+            # 只考虑一阶项
             # couplingParameter为[做驱动的与大loop的互感，做detune的与DC-SQUID的互感]
             Mx,Mz = couplingParameter
-            drive = self.__EjMatrixTop[node,node]*np.cos(np.pi*self.__flux[node,node]) * 2 *np.pi*Mx/phi0 * (self.phi[node]-self.phi[node]**3/6)
-            detune = self.__EjMatrixTop[node,node]*np.sin(np.pi*self.__flux[node,node]) * np.pi*Mz/phi0 * (-self.phi[node]**2/2+self.phi[node]**4/24)
+            phiZ = np.pi*Mz/phi0
+            phiX = 2 *np.pi*Mx/phi0
+            drive = self.__EjMatrixTop[node,node]*np.cos(np.pi*self.__flux[node,node]) * phiX * (self.phi[node]-self.phi[node]**3/6)
+            detune = self.__EjMatrixTop[node,node]*np.sin(np.pi*self.__flux[node,node]) * phiZ * (-self.phi[node]**2/2+self.phi[node]**4/24)
             dirveH = [drive, detune]
+        elif couplingMode == 'Current_2rd':
+            # 考虑一阶和二阶项
+            # couplingParameter为[做驱动的与大loop的互感，做detune的与DC-SQUID的互感]
+            Mx,Mz = couplingParameter
+            phiZ = np.pi*Mz/phi0
+            phiX = 2 *np.pi*Mx/phi0
+            X1st = self.__EjMatrixTop[node,node]*np.cos(np.pi*self.__flux[node,node]) * phiX * (self.phi[node]-self.phi[node]**3/6)
+            Z1st = self.__EjMatrixTop[node,node]*np.sin(np.pi*self.__flux[node,node]) * phiZ * (-self.phi[node]**2/2+self.phi[node]**4/24)
+            XX = self.__EjMatrixTop[node,node]*np.cos(np.pi*self.__flux[node,node]) * phiX**2/2 * (-self.phi[node]**2/2+self.phi[node]**4/24)
+            ZZ = self.__EjMatrixTop[node,node]*np.cos(np.pi*self.__flux[node,node]) * phiZ**2/2 * (-self.phi[node]**2/2+self.phi[node]**4/24)
+            ZX = -self.__EjMatrixTop[node,node]*np.sin(np.pi*self.__flux[node,node]) * phiZ * phiX * (self.phi[node]-self.phi[node]**3/6)
+            dirveH = [X1st, Z1st, XX, ZZ, ZX]
         else:
             raise ValueError('couplingMode error')
         return(dirveH)
