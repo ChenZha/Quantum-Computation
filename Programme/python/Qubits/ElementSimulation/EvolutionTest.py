@@ -123,18 +123,20 @@ if __name__ == '__main__':
 
     # %% 
     # 单比特驱动演化
-    # realIDrive = lambda t,args: np.real(IDrive(t,args))
-    # Hdrive = [[driveH[0],realIDrive],[driveH[1],realIDrive]]
-    # startTime = datetime.datetime.now()
-    # w001 = energyLevel[DT.findstate(tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],1)))]
-    # w002 = energyLevel[DT.findstate(tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],2)))]
-    # wf = w001
-    # eta_q = w002-2*w001
-    # args = {'T_P':60,'T_copies':101 , 'omegaI':7.48269480e-06 ,'phiI':0, 'wf': wf,'eta_q':eta_q}
-    # iniState = tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),(basis(Nlevel[2],0)).unit())
-    # final = DT.QutipEvolution(drive = Hdrive , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = True, argument = args)
-    # endTime = datetime.datetime.now()
-    # print((endTime-startTime).seconds)
+    realIDrive = lambda t,args: np.real(IDrive(t,args))
+    Hdrive = [[driveH[0],realIDrive],[driveH[1],realIDrive]]
+    startTime = datetime.datetime.now()
+    w001 = energyLevel[DT.findstate(tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],1)))]
+    w002 = energyLevel[DT.findstate(tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],2)))]
+    wf = w001
+    eta_q = w002-2*w001
+    args = {'T_P':60,'T_copies':101 , 'omegaI':7.48269480e-06 ,'phiI':0, 'wf': wf,'eta_q':eta_q}
+    c_ops = []
+    c_ops.append(np.sqrt(1/6000) * DT.sm[2])
+    iniState = tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),(basis(Nlevel[2],0)).unit())
+    final = DT.QutipEvolution(drive = Hdrive , psi = iniState,  collapse = c_ops,RWF = 'CpRWF', RWAFreq = 0, track_plot = True, argument = args)
+    endTime = datetime.datetime.now()
+    print((endTime-startTime).seconds)
 
     # %% 
     # 单比特门保真度
