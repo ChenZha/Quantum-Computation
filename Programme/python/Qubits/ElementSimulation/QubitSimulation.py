@@ -33,7 +33,8 @@ class BasicQubit():
         self.firstExcited = self._FirstExcite()
     def GetHamilton(self):
         return(self.__Hamilton)
-
+    def GetNlevel(self):
+        return(self.__Hamilton.dims[0])
     def _BasicMeasurementOperator(self):
         '''
         生成构成用于测量的基本operator
@@ -258,6 +259,12 @@ class BasicQubit():
         elif self.RWF=='NoRWF':
             for index in range(numQubit):
                 U.append(qeye(Nlevel[index]))
+        elif self.RWF=='SetRWF':
+            for index in range(numQubit):
+                mat = np.diag(np.ones(Nlevel[index],dtype = complex))
+                mat[1,1] = np.exp(1j*(self.RWAFreq[index])*select_time)
+                RW = Qobj(mat)
+                U.append(RW)
         elif self.RWF=='custom_RWF':
             for index in range(numQubit):
                 if type(self.RWAFreq) == float or type(self.RWAFreq) == int:
@@ -669,8 +676,8 @@ class Frequency2DQubit(BasicQubit):
     def __init__(self , qubitsParameter , *args , **kwargs):
         # qubitsParameter结构:frequency(频率);coupling(耦合强度);eta_q(非简谐性);Nlevel(涉及的能级)
         self.__frequency , self.__coupling , self.__etaQ , self.__Nlevel = qubitsParameter
-        self.__numQubits = int(np.size(self.__frequency)) #比特数目
-        self.rowQubit , self.columnQubit = np.shape(self.frequency)
+        self.__numQubit = int(np.size(self.__frequency)) #比特数目
+        self.rowQubit , self.columnQubit = np.shape(self.__frequency)
         if type(self.__Nlevel) == int:
             self.__Nlevel = self.__Nlevel*np.ones_like(self.__frequency,dtype=int)
         else:
@@ -694,36 +701,35 @@ class Frequency2DQubit(BasicQubit):
         '''
         sm=[]
         for II in range(0,self.__numQubit):
-            cmdstr=[destroy(self.__Nlevel[JJ]) if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(self.__numQubit)]
+            cmdstr=[destroy(self.__NlevelLine[JJ]) if II==JJ else qeye(self.__NlevelLine[JJ]) for JJ in range(self.__numQubit)]
             sm.append(tensor(*cmdstr))
-        sm = np.array(sm).reshape((self.rowQubit,self.ColumnQubit)) 
+        # sm = np.array(sm).reshape((self.rowQubit,self.columnQubit)) 
 
         E_uc = []
         for II in range(0,self.__numQubit):
-            if self.__Nlevel[II]>2:
-                cmdstr=[basis(self.__numQubit[JJ],2)*basis(self.__numQubit[JJ],2).dag() if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(self.__numQubit)]                  
+            if self.__NlevelLine[II]>2:
+                cmdstr=[basis(self.__NlevelLine[JJ],2)*basis(self.__NlevelLine[JJ],2).dag() if II==JJ else qeye(self.__NlevelLine[JJ]) for JJ in range(self.__numQubit)]                  
             else:
-                cmdstr=[Qobj(np.zeros([self.__numQubit[JJ],self.__numQubit[JJ]])) if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(self.__numQubit)]
+                cmdstr=[Qobj(np.zeros([self.__NlevelLine[JJ],self.__NlevelLine[JJ]])) if II==JJ else qeye(self.__NlevelLine[JJ]) for JJ in range(self.__numQubit)]
             E_uc.append(tensor(*cmdstr))
-        E_uc = np.array(E_uc).reshape((self.rowQubit,self.ColumnQubit))
+        # E_uc = np.array(E_uc).reshape((self.rowQubit,self.columnQubit))
 
         E_phi=[]
         for II in range(0,self.__numQubit):
-            basisMatrix = np.diag([1]*(self.__Nlevel[II]-1),1) + np.diag([1]*(self.__Nlevel[II]-1),-1)
-            cmdstr=[Qobj(basisMatrix) if II==JJ else qeye(self.__Nlevel[JJ]) for JJ in range(0,self.__numQubit)]
+            basisMatrix = np.diag([1]*(self.__NlevelLine[II]-1),1) + np.diag([1]*(self.__NlevelLine[II]-1),-1)
+            cmdstr=[Qobj(basisMatrix) if II==JJ else qeye(self.__NlevelLine[JJ]) for JJ in range(0,self.__numQubit)]
             E_phi.append(tensor(*cmdstr))   
-        E_phi = np.array(E_phi).reshape((self.rowQubit,self.ColumnQubit))  
+        # E_phi = np.array(E_phi).reshape((self.rowQubit,self.columnQubit))  
 
         return([sm,E_uc,E_phi])
     def _H0Generation(self):
         '''
         根据qubit参数，生成未加驱动的基本哈密顿量
         '''
-        self.rowQubit , self.columnQubit
-        Hq = sum([self.__frequency[index_x,index_y]*self.sm[index_x,index_y].dag()*self.sm[index_x,index_y] + self.__etaQ[index_x,index_y]*self.E_uc[index_x,index_y] for index_x in range(self.rowQubit) for index_y in range(self.columnQubit)])
-        if self.num_qubits != 1:
-            HcRow = sum([self.coupling[2*index_x+1,index_y]*(self.sm[index_x,index_y]+self.sm[index_x,index_y].dag())*(self.sm[index_x+1,index_y]+self.sm[index_x+1,index_y].dag()) for index_x in range(self.rowQubit) for index_y in range(self.columnQubit) if index_x != self.rowQubit-1])
-            HcColumn = sum([self.coupling[2*index_x,index_y]*(self.sm[index_x,index_y]+self.sm[index_x,index_y].dag())*(self.sm[index_x,index_y+1]+self.sm[index_x,index_y+1].dag()) for index_x in range(self.rowQubit) for index_y in range(self.columnQubit) if index_y != self.columnQubit-1])
+        Hq = sum([self.__frequency[index_x,index_y]*self.sm[index_x*self.columnQubit+index_y].dag()*self.sm[index_x*self.columnQubit+index_y] + self.__etaQ[index_x,index_y]*self.E_uc[index_x*self.columnQubit+index_y] for index_x in range(self.rowQubit) for index_y in range(self.columnQubit)])
+        if self.__numQubit != 1:
+            HcRow = sum([self.__coupling[2*index_x+1,index_y]*(self.sm[index_x*self.columnQubit+index_y]+self.sm[index_x*self.columnQubit+index_y].dag())*(self.sm[(index_x+1)*self.columnQubit+index_y]+self.sm[(index_x+1)*self.columnQubit+index_y].dag()) for index_x in range(self.rowQubit) for index_y in range(self.columnQubit) if index_x != self.rowQubit-1])
+            HcColumn = sum([self.__coupling[2*index_x,index_y]*(self.sm[index_x*self.columnQubit+index_y]+self.sm[index_x*self.columnQubit+index_y].dag())*(self.sm[index_x*self.columnQubit+index_y+1]+self.sm[index_x*self.columnQubit+index_y+1].dag()) for index_x in range(self.rowQubit) for index_y in range(self.columnQubit) if index_y != self.columnQubit-1])
         else:
             HcRow = 0
             HcColumn = 0
@@ -824,13 +830,14 @@ def ControlWaveForm(inputWaveForm, inputFilter, inputType, args):
         SamlingFunction = np.vectorize(functools.partial(inputWaveForm, args = args))
         dataSampling = SamlingFunction(timeSampling)
         filtedData = signal.filtfilt(inputFilter[0], inputFilter[1], dataSampling)  #data为要过滤的信号
-        interFunction = interpolate.interp1d(timeSampling,filtedData,kind ='linear')
+        
         def func(t,args):
             tp = args['T_P']
             if t<=0 or t>=tp:
                 w = 0.0
             else:
-                w = np.asscalar(interFunction(t))
+                sequenceIndex = int(t/tp*len(filtedData))
+                w = filtedData[sequenceIndex]
             return(w)
         return(func)
     elif inputType == 'microwave':
@@ -841,9 +848,9 @@ def ControlWaveForm(inputWaveForm, inputFilter, inputType, args):
         dataSamplingX = np.real(dataSampling)
         dataSamplingY = np.imag(dataSampling)
         filtedDataX = signal.filtfilt(inputFilter[0], inputFilter[1], dataSamplingX)  #data为要过滤的信号
-        interFunctionX = interpolate.interp1d(timeSampling,filtedDataX,kind ='linear')
+        # interFunctionX = interpolate.interp1d(timeSampling,filtedDataX,kind ='linear')
         filtedDataY = signal.filtfilt(inputFilter[0], inputFilter[1], dataSamplingY)  #data为要过滤的信号
-        interFunctionY = interpolate.interp1d(timeSampling,filtedDataY,kind ='linear')
+        # interFunctionY = interpolate.interp1d(timeSampling,filtedDataY,kind ='linear')
         ## IQ混频
         def IQMixer(t, args):
             tp = args['T_P']
@@ -851,7 +858,8 @@ def ControlWaveForm(inputWaveForm, inputFilter, inputType, args):
             if t<=0 or t>=tp:
                 w = 0.0
             else:
-                w = interFunctionX(t)*np.cos(LoFreq*t)-interFunctionY(t)*np.sin(LoFreq*t)
+                sequenceIndex = int(t/tp*len(filtedDataX))
+                w = filtedDataX[sequenceIndex]*np.cos(LoFreq*t)-filtedDataY[sequenceIndex]*np.sin(LoFreq*t)
             return(w)
         return(IQMixer)
     else:
