@@ -50,22 +50,30 @@ def de(evaluate_func,n = 4, m_size = 20 , f = 0.5 , cr = 0.3 , S = 1 , iterate_t
     f_list = np.zeros(iterate_time);f_list[0] = f
     cr_list = np.zeros(iterate_time);cr_list[0] = cr 
     
-    if os.path.exists('result'):
+    if os.path.exists('DE_Result'):
         pass
     else:
-        os.mkdir('result')
+        os.mkdir('DE_Result')
 
     
     if inputfile == None:#随机初始化
         initial = []
-        p = Pool(num_CPU)
-        for i in range(m_size):
-            for j in range(n):
-                x_all[0][i][j] = x_l[j] + random.random()*(x_u[j]-x_l[j])
-            initial.append(p.apply_async(evaluate_func,(x_all[0][i],)))
-        value[0] = np.array([initial[i].get() for i in range(len(initial))])
-        p.close()
-        p.join()
+        if num_CPU>1:
+            p = Pool(num_CPU)
+            for i in range(m_size):
+                for j in range(n):
+                    x_all[0][i][j] = x_l[j] + random.random()*(x_u[j]-x_l[j])
+                initial.append(p.apply_async(evaluate_func,(x_all[0][i],)))
+            value[0] = np.array([initial[i].get() for i in range(len(initial))])
+            p.close()
+            p.join()
+        else:
+            for i in range(m_size):
+                for j in range(n):
+                    x_all[0][i][j] = x_l[j] + random.random()*(x_u[j]-x_l[j])
+                initial.append(evaluate_func(x_all[0][i]))
+            value[0] = np.array([initial[i] for i in range(len(initial))])
+        
     else:#通过输入的inputfile.mat文件进行初始化
         inputdata = sio.loadmat(inputfile)
         x_all[0] = inputdata['x_all'][-1]
@@ -73,40 +81,67 @@ def de(evaluate_func,n = 4, m_size = 20 , f = 0.5 , cr = 0.3 , S = 1 , iterate_t
         f_list[0] = inputdata['f_list'][0][-1]
         cr_list[0] = inputdata['cr_list'][0][-1] 
     
-    p = Pool(num_CPU)
+    
     print('差分进化算法初始化完成')
     print('寻优参数维度为：',n)
     print('population为：',m_size)
-    for g in range(iterate_time-1):
-        print('第',g,'代')
-        
-        result = []
-        for i in range(m_size):
-            result.append(p.apply_async(evolution,(evaluate_func,i,g,n,S,x_all.copy(),cr_list.copy(),f_list.copy(),x_u.copy(),x_l.copy(),)))
-        res = np.array([result[i].get() for i in range(len(result))])
-        v_i = np.array([res[i][0] for i in range(len(res))])
-        value_vi = np.array([res[i][1] for i in range(len(res))])
-        for i in range(len(v_i)):
-            x_all[g+1][i] = v_i[i] if value[g][i]>value_vi[i] else x_all[g][i]
-            value[g+1][i] = value_vi[i] if value[g][i]>value_vi[i] else value[g][i]
-        #self-adaptive DE
-        f_list[g+1] = 0.9+0.1*random.random() if random.random() < 0.1 else f_list[g]
-        cr_list[g+1] = random.random() if random.random() < 0.1 else cr_list[g]
-        print('Best parameters:',x_all[g+1][np.argmin(value[g+1])])    
-        print('least cost function',np.min(value[g+1]))
-        print('std为：',np.std(value[g+1]))
-        
-        filename = './result/'+str(g)+'_'+time.strftime('%Y%m%d-%H-%M',time.localtime())+'.mat'
-        sio.savemat(filename,{'x_all':x_all,'value':value,'f_list':f_list,'cr_list':cr_list,'best_para':x_all[g+1][np.argmin(value[g+1])],'min_fun':np.min(value[g+1])})
-    evaluate_result = value[-1]
-    best_x_i = x_all[-1][np.argmin(evaluate_result)]
+    if num_CPU>1:
+        p = Pool(num_CPU)
+        for g in range(iterate_time-1):
+            print('第',g,'代 Parallel')
+            
+            result = []
+            for i in range(m_size):
+                result.append(p.apply_async(evolution,(evaluate_func,i,g,n,S,x_all.copy(),cr_list.copy(),f_list.copy(),x_u.copy(),x_l.copy())))
+            res = np.array([result[i].get() for i in range(len(result))])
+            v_i = np.array([res[i][0] for i in range(len(res))])
+            value_vi = np.array([res[i][1] for i in range(len(res))])
+            for i in range(len(v_i)):
+                x_all[g+1][i] = v_i[i] if value[g][i]>value_vi[i] else x_all[g][i]
+                value[g+1][i] = value_vi[i] if value[g][i]>value_vi[i] else value[g][i]
+            #self-adaptive DE
+            f_list[g+1] = 0.9+0.1*random.random() if random.random() < 0.1 else f_list[g]
+            cr_list[g+1] = random.random() if random.random() < 0.1 else cr_list[g]
+            print('Best parameters:',x_all[g+1][np.argmin(value[g+1])])    
+            print('least cost function',np.min(value[g+1]))
+            print('std为：',np.std(value[g+1]))
+            
+            filename = './DE_Result/'+str(g)+'_'+time.strftime('%Y%m%d-%H-%M',time.localtime())+'.mat'
+            sio.savemat(filename,{'x_all':x_all,'value':value,'f_list':f_list,'cr_list':cr_list,'best_para':x_all[g+1][np.argmin(value[g+1])],'min_fun':np.min(value[g+1])})
+        evaluate_result = value[-1]
+        best_x_i = x_all[-1][np.argmin(evaluate_result)]
+
+        p.close()
+        p.join()
+    else:
+        for g in range(iterate_time-1):
+            print('第',g,'代 Series')
+            
+            result = []
+            for i in range(m_size):
+                result.append(evolution(evaluate_func,i,g,n,S,x_all.copy(),cr_list.copy(),f_list.copy(),x_u.copy(),x_l.copy(),))
+            v_i = np.array([result[i][0] for i in range(len(result))])
+            value_vi = np.array([result[i][1] for i in range(len(reresults))])
+            for i in range(len(v_i)):
+                x_all[g+1][i] = v_i[i] if value[g][i]>value_vi[i] else x_all[g][i]
+                value[g+1][i] = value_vi[i] if value[g][i]>value_vi[i] else value[g][i]
+            #self-adaptive DE
+            f_list[g+1] = 0.9+0.1*random.random() if random.random() < 0.1 else f_list[g]
+            cr_list[g+1] = random.random() if random.random() < 0.1 else cr_list[g]
+            print('Best parameters:',x_all[g+1][np.argmin(value[g+1])])    
+            print('least cost function',np.min(value[g+1]))
+            print('std为：',np.std(value[g+1]))
+            
+            filename = './DE_Result/'+str(g)+'_'+time.strftime('%Y%m%d-%H-%M',time.localtime())+'.mat'
+            sio.savemat(filename,{'x_all':x_all,'value':value,'f_list':f_list,'cr_list':cr_list,'best_para':x_all[g+1][np.argmin(value[g+1])],'min_fun':np.min(value[g+1])})
+        evaluate_result = value[-1]
+        best_x_i = x_all[-1][np.argmin(evaluate_result)]
     print('f_list:',f_list[-1])
     print('cr_list',cr_list[-1])
     print('value:',evaluate_result)
     print('最小值：',np.min(evaluate_result))
     print('最佳参数：',best_x_i)
-    p.close()
-    p.join()
+    return([best_x_i,np.min(evaluate_result)])
 
 def evaluate_func(x):
     a = x[0]
