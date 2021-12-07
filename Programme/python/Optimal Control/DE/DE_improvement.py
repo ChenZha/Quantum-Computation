@@ -49,6 +49,7 @@ def de(evaluate_func,n = 4, m_size = 20 , f = 0.5 , cr = 0.3 , S = 1 , iterate_t
     value = np.zeros((iterate_time , m_size ))
     f_list = np.zeros(iterate_time);f_list[0] = f
     cr_list = np.zeros(iterate_time);cr_list[0] = cr 
+    num_evaluate_func=0
     
     if os.path.exists('DE_Result'):
         pass
@@ -72,7 +73,8 @@ def de(evaluate_func,n = 4, m_size = 20 , f = 0.5 , cr = 0.3 , S = 1 , iterate_t
                 for j in range(n):
                     x_all[0][i][j] = x_l[j] + random.random()*(x_u[j]-x_l[j])
                 initial.append(evaluate_func(x_all[0][i]))
-            value[0] = np.array([initial[i] for i in range(len(initial))])
+                num_evaluate_func = num_evaluate_func+1
+            value[0] = np.array(initial)
         
     else:#通过输入的inputfile.mat文件进行初始化
         inputdata = sio.loadmat(inputfile)
@@ -120,8 +122,9 @@ def de(evaluate_func,n = 4, m_size = 20 , f = 0.5 , cr = 0.3 , S = 1 , iterate_t
             result = []
             for i in range(m_size):
                 result.append(evolution(evaluate_func,i,g,n,S,x_all.copy(),cr_list.copy(),f_list.copy(),x_u.copy(),x_l.copy(),))
+                num_evaluate_func = num_evaluate_func+1
             v_i = np.array([result[i][0] for i in range(len(result))])
-            value_vi = np.array([result[i][1] for i in range(len(reresults))])
+            value_vi = np.array([result[i][1] for i in range(len(result))])
             for i in range(len(v_i)):
                 x_all[g+1][i] = v_i[i] if value[g][i]>value_vi[i] else x_all[g][i]
                 value[g+1][i] = value_vi[i] if value[g][i]>value_vi[i] else value[g][i]
@@ -131,9 +134,10 @@ def de(evaluate_func,n = 4, m_size = 20 , f = 0.5 , cr = 0.3 , S = 1 , iterate_t
             print('Best parameters:',x_all[g+1][np.argmin(value[g+1])])    
             print('least cost function',np.min(value[g+1]))
             print('std为：',np.std(value[g+1]))
+            print('num_eval:',num_evaluate_func)
             
             filename = './DE_Result/'+str(g)+'_'+time.strftime('%Y%m%d-%H-%M',time.localtime())+'.mat'
-            sio.savemat(filename,{'x_all':x_all,'value':value,'f_list':f_list,'cr_list':cr_list,'best_para':x_all[g+1][np.argmin(value[g+1])],'min_fun':np.min(value[g+1])})
+            sio.savemat(filename,{'x_all':x_all,'value':value,'f_list':f_list,'cr_list':cr_list,'best_para':x_all[g+1][np.argmin(value[g+1])],'min_fun':np.min(value[g+1]),'num_evaluate_func':num_evaluate_func})
         evaluate_result = value[-1]
         best_x_i = x_all[-1][np.argmin(evaluate_result)]
     print('f_list:',f_list[-1])
