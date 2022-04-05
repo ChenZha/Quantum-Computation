@@ -167,17 +167,17 @@ if __name__ == '__main__':
 
     # %% 
     # 双比特门保真度
-    # Hdrive = [[driveH[0],IPulse],[driveH[1],IPulse]]
-    # startTime = datetime.datetime.now()
-    # args = {'T_P':60,'T_copies':101 , 'omegaI':-71.4e-6}
-    # processTomo = DT.process(drive = Hdrive , retainNode = [0,2], processPlot  = False , RWF = 'CpRWF' , RWAFreq = 0.0 ,parallel = True , argument = args)
-    # targetMatrix =  Qobj(np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,-1]]), dims=processTomo.dims)
-    # theta = [-np.angle(processTomo.full()[2,2]),-np.angle(processTomo.full()[1,1])]
-    # processTomo = DT.phase_comp(processTomo,theta)
-    # Ufidelity = np.abs(np.trace(processTomo.dag()*targetMatrix))/(np.shape(targetMatrix.full())[0])
-    # endTime = datetime.datetime.now()
-    # print(Ufidelity)
-    # print((endTime-startTime).seconds) 
+    Hdrive = [[driveH[0],IPulse],[driveH[1],IPulse]]
+    startTime = datetime.datetime.now()
+    args = {'T_P':60,'T_copies':101 , 'omegaI':-71.4e-6}
+    processTomo = DT.process(drive = Hdrive , retainNode = [0,2], processPlot  = False , RWF = 'CpRWF' , RWAFreq = 0.0 ,parallel = True , argument = args)
+    targetMatrix =  Qobj(np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,-1]]), dims=processTomo.dims)
+    theta = [-np.angle(processTomo.full()[2,2]),-np.angle(processTomo.full()[1,1])]
+    processTomo = DT.phase_comp(processTomo,theta)
+    Ufidelity = np.abs(np.trace(processTomo.dag()*targetMatrix))/(np.shape(targetMatrix.full())[0])
+    endTime = datetime.datetime.now()
+    print(Ufidelity)
+    print((endTime-startTime).seconds) 
 
     # %% 
     # 双比特sweepI  -71.4e-6
@@ -191,22 +191,22 @@ if __name__ == '__main__':
     # plt.show()
     # %%
     # drive shape
-    args = {'T_P':120,'T_copies':101 , 'omegaI':-71.4e-6}
-    time = np.linspace(-10,args['T_P']+10,1000*args['T_P']+1)
-    inputFilter = signal.butter(8, 0.5, 'lowpass')
-    func = ControlWaveForm(IPulse, inputFilter, 'pulse', args)
-    # plt.figure()
-    # plt.plot(time, [func(t,args) for t in time])
-    # plt.show()
-    a = func(10,args)
-    Hdrive1 = [[driveH[0],func],[driveH[1],func]]
-    Hdrive2 = [[driveH[0],IPulse],[driveH[1],IPulse]]
-    Hdrive3 = [[sum(driveH),IPulse]]
-    iniState = tensor((basis(Nlevel[0],1)).unit(),(basis(Nlevel[1],0)).unit(),(basis(Nlevel[2],1)).unit())
-    startTime1 = datetime.datetime.now()
-    final = DT.QutipEvolution(drive = Hdrive1 , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = False, argument = args)
-    endTime1 = datetime.datetime.now()
-    print((endTime1-startTime1).seconds)
+    # args = {'T_P':120,'T_copies':101 , 'omegaI':-71.4e-6}
+    # time = np.linspace(-10,args['T_P']+10,1000*args['T_P']+1)
+    # inputFilter = signal.butter(8, 0.5, 'lowpass')
+    # func = ControlWaveForm(IPulse, inputFilter, 'pulse', args)
+    # # plt.figure()
+    # # plt.plot(time, [func(t,args) for t in time])
+    # # plt.show()
+    # a = func(10,args)
+    # Hdrive1 = [[driveH[0],func],[driveH[1],func]]
+    # Hdrive2 = [[driveH[0],IPulse],[driveH[1],IPulse]]
+    # Hdrive3 = [[sum(driveH),IPulse]]
+    # iniState = tensor((basis(Nlevel[0],1)).unit(),(basis(Nlevel[1],0)).unit(),(basis(Nlevel[2],1)).unit())
+    # startTime1 = datetime.datetime.now()
+    # final = DT.QutipEvolution(drive = Hdrive1 , psi = iniState,  RWF = 'CpRWF', RWAFreq = 0, track_plot = False, argument = args)
+    # endTime1 = datetime.datetime.now()
+    # print((endTime1-startTime1).seconds)
 
     
     # startTime2 = datetime.datetime.now()

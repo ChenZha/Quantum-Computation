@@ -29,8 +29,8 @@ class BasicQubit():
         # 生成基本的测量operator
         self.E_uc,self.E_e,self.E_g,self.X_m,self.Y_m= self._BasicMeasurementOperator()
         #找到本征值和本征态
-        [self.energyEig,self.stateEig] = self.__Hamilton.eigenstates()
-        self.firstExcited = self._FirstExcite()
+        
+        
     def GetHamilton(self):
         return(self.__Hamilton)
     def GetNlevel(self):
@@ -251,6 +251,8 @@ class BasicQubit():
         numQubit = len(Nlevel)
         U = []
         if self.RWF=='CpRWF':
+            [self.energyEig,self.stateEig] = self.__Hamilton.eigenstates()
+            self.firstExcited = self._FirstExcite()
             for index in range(numQubit):
                 mat = np.diag(np.ones(Nlevel[index],dtype = complex))
                 mat[1,1] = np.exp(1j*(self.energyEig[self.firstExcited[index+1]]-self.energyEig[self.firstExcited[0]])*select_time)
@@ -266,6 +268,8 @@ class BasicQubit():
                 RW = Qobj(mat)
                 U.append(RW)
         elif self.RWF=='custom_RWF':
+            [self.energyEig,self.stateEig] = self.__Hamilton.eigenstates()
+            self.firstExcited = self._FirstExcite()
             for index in range(numQubit):
                 if type(self.RWAFreq) == float or type(self.RWAFreq) == int:
                     self.RWAFreq = [self.RWAFreq]*self.numQubit
@@ -850,7 +854,7 @@ def ControlWaveForm(inputWaveForm, inputFilter, inputType, args):
         funtion format func(t,args)
     '''
     if inputType == 'pulse':
-        timeSampling = np.linspace(0,args['T_P'],2*args['T_P']+1) # 2G采样率
+        timeSampling = np.linspace(0,args['T_P'],2*int(args['T_P'])+1) # 2G采样率
         SamlingFunction = np.vectorize(functools.partial(inputWaveForm, args = args))
         dataSampling = SamlingFunction(timeSampling)
         filtedData = signal.filtfilt(inputFilter[0], inputFilter[1], dataSampling)  #data为要过滤的信号
