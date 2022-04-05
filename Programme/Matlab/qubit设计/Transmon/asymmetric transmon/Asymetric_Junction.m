@@ -2,7 +2,7 @@
 func = CalFun();
 %%
 C = (82.8+9.8)*10^(-15);
-R= 8500;
+R= 9000;
 [Ex,~] = func .E_asym(func.C_E(C),func.R_E(R),8,0,50);
 w_max_f = Ex(2)-Ex(1);
 w_max_f23 =  Ex(3)-Ex(2);

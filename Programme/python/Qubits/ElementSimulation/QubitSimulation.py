@@ -589,7 +589,8 @@ class TransmonQubit(BasicQubit):
             phiX = 2 *np.pi*Mx/phi0
             drive = self.__EjMatrixTop[node,node]*np.cos(np.pi*self.__flux[node,node]) * phiX * (self.phi[node]-self.phi[node]**3/6)
             detune = self.__EjMatrixTop[node,node]*np.sin(np.pi*self.__flux[node,node]) * phiZ * (1-self.phi[node]**2/2+self.phi[node]**4/24)
-            detune = Qobj(np.diag(np.diag(detune)),dims = detune.dims)
+            
+            # detune = Qobj(np.diag(np.diag(detune)),dims = detune.dims)
             dirveH = [drive, detune]
         elif couplingMode == 'Current_2rd':
             # 考虑一阶和二阶项
