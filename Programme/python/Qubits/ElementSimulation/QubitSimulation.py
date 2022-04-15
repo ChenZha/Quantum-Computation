@@ -776,12 +776,19 @@ class Xmon(TransmonQubit):
         # 计算Cinv
         Capa = -np.array(self.__capacity)
         for ii in range(np.shape(Capa)[0]):
-            Capa[ii][ii] = -sum(self.__capacity[ii])
+            if np.shape(Capa)[0]==1:
+                Capa[ii] = -self.__capacity[ii]
+            else:
+                Capa[ii][ii] = -sum(self.__capacity[ii])
+            
         CInv = np.linalg.inv(Capa)
         # 计算Linv
         LInv = -1/np.array(self.__inductance)
         for ii in range(np.shape(LInv)[0]):
-            LInv[ii][ii] = -np.sum(LInv[ii])
+            if np.shape(LInv)[0]==1:
+                LInv[ii] = -LInv[ii]
+            else:
+                LInv[ii][ii] = -np.sum(LInv[ii])
         # 计算EjMatrix
         R2E = np.vectorize(self._R2E)
         EjMatrixTop = R2E(np.array(self.__resistance))

@@ -70,56 +70,60 @@ if __name__ == '__main__':
     
     # %% 
     # 生成比特
-    CJ=8e-15;     SRatio=6.5;     
-    C24=1.34e-15;     
-    C12=1.38e-15+CJ;     
-    C23=20.58e-15;  
-    C34=20.58e-15;   
-    C1=150e-15-C12-C24;     
-    C2=150e-15-C12-C24;     
-    C3=107e-15+SRatio*CJ-2*C23
-    R=8000
+    # CJ=10e-15;     SRatio=6.5;     
+    # C24=1.773e-15;     
+    # C12=2.988e-15+CJ;     
+    # C23=20.455e-15;  
+    # C34=20.455e-15;   
+    # C1=105.694e-15;     
+    # C2=105.694e-15;     
+    # C3=66e-15+SRatio*CJ
+    # R=9000
+
     
-    Capa = np.array([
-        [C1,C12,0,0,0],
-        [C12,C2,C23,C24,0],
-        [0,C23,C3,C34,0],
-        [0,C24,C34,C2,C12],
-        [0,0,0,C12,C1],
-    ])
-    Linv = np.ones_like(Capa)*1e9
-    RNAN = 1e9
-    RList = np.array([
-        [RNAN,R,RNAN,RNAN,RNAN],
-        [R,RNAN,RNAN,RNAN,RNAN],
-        [RNAN,RNAN,R/SRatio,RNAN,RNAN],
-        [RNAN,RNAN,RNAN,RNAN,R],
-        [RNAN,RNAN,RNAN,R,RNAN],
-    ])
-    flux = np.zeros_like(Capa)
-    flux[4,3] = 0.2
-    flux[3,4] = 0.2
-    SMatrix = np.array([
-        [1,-1,0,0,0],
-        [1,1,0,0,0],
-        [0,0,1,0,0],
-        [0,0,0,1,-1],
-        [0,0,0,1,1],
-    ])
-    structure = [[0,1],[2],[3,4]]
-    Nlevel = [6,6,6]
-    para = [Capa,Linv,RList,flux,SMatrix,structure,Nlevel]
-    DT = DifferentialTransmon(para)
-    energyLevel = DT.energyEig-DT.energyEig[0]
+    # Capa = np.array([
+    #     [C1,C12,0,0,0],
+    #     [C12,C2,C23,C24,0],
+    #     [0,C23,C3,C34,0],
+    #     [0,C24,C34,C2,C12],
+    #     [0,0,0,C12,C1],
+    # ])
+    # Linv = np.ones_like(Capa)*1e9
+    # RNAN = 1e9
+    # RList = np.array([
+    #     [RNAN,R,RNAN,RNAN,RNAN],
+    #     [R,RNAN,RNAN,RNAN,RNAN],
+    #     [RNAN,RNAN,R/SRatio,RNAN,RNAN],
+    #     [RNAN,RNAN,RNAN,RNAN,R],
+    #     [RNAN,RNAN,RNAN,R,RNAN],
+    # ])
+    # flux = np.zeros_like(Capa)
+    # flux[4,3] = 0.0
+    # flux[3,4] = 0.0
+    # SMatrix = np.array([
+    #     [1,-1,0,0,0],
+    #     [1,1,0,0,0],
+    #     [0,0,1,0,0],
+    #     [0,0,0,1,-1],
+    #     [0,0,0,1,1],
+    # ])
+    # structure = [[0,1],[2],[3,4]]
+    # Nlevel = [10,10,10]
+    # para = [Capa,Linv,RList,flux,SMatrix,structure,Nlevel]
+    # DT = DifferentialTransmon(para)
+    # Hamilton = DT.GetHamilton()
+    # [energyEig,stateEig] = Hamilton.eigenstates()
+    # energyLevel = (energyEig-energyEig[0])/2/np.pi
+    # print(energyLevel)
 
     # %% 
     # 生成驱动哈密顿量
-    Mx = 0.1e-12
-    Mz = 1.7e-12
-    node = 2
-    couplingParameter = [Mx,Mz]
-    couplingMode = 'Current_1st'
-    driveH = DT.DriveHamilton(node,couplingParameter,couplingMode)
+    # Mx = 0.1e-12
+    # Mz = 1.7e-12
+    # node = 2
+    # couplingParameter = [Mx,Mz]
+    # couplingMode = 'Current_1st'
+    # driveH = DT.DriveHamilton(node,couplingParameter,couplingMode)
 
     # %% 
     # 单比特驱动演化
@@ -167,17 +171,17 @@ if __name__ == '__main__':
 
     # %% 
     # 双比特门保真度
-    Hdrive = [[driveH[0],IPulse],[driveH[1],IPulse]]
-    startTime = datetime.datetime.now()
-    args = {'T_P':60,'T_copies':101 , 'omegaI':-71.4e-6}
-    processTomo = DT.process(drive = Hdrive , retainNode = [0,2], processPlot  = False , RWF = 'CpRWF' , RWAFreq = 0.0 ,parallel = True , argument = args)
-    targetMatrix =  Qobj(np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,-1]]), dims=processTomo.dims)
-    theta = [-np.angle(processTomo.full()[2,2]),-np.angle(processTomo.full()[1,1])]
-    processTomo = DT.phase_comp(processTomo,theta)
-    Ufidelity = np.abs(np.trace(processTomo.dag()*targetMatrix))/(np.shape(targetMatrix.full())[0])
-    endTime = datetime.datetime.now()
-    print(Ufidelity)
-    print((endTime-startTime).seconds) 
+    # Hdrive = [[driveH[0],IPulse],[driveH[1],IPulse]]
+    # startTime = datetime.datetime.now()
+    # args = {'T_P':60,'T_copies':101 , 'omegaI':-71.4e-6}
+    # processTomo = DT.process(drive = Hdrive , retainNode = [0,2], processPlot  = False , RWF = 'CpRWF' , RWAFreq = 0.0 ,parallel = True , argument = args)
+    # targetMatrix =  Qobj(np.array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,-1]]), dims=processTomo.dims)
+    # theta = [-np.angle(processTomo.full()[2,2]),-np.angle(processTomo.full()[1,1])]
+    # processTomo = DT.phase_comp(processTomo,theta)
+    # Ufidelity = np.abs(np.trace(processTomo.dag()*targetMatrix))/(np.shape(targetMatrix.full())[0])
+    # endTime = datetime.datetime.now()
+    # print(Ufidelity)
+    # print((endTime-startTime).seconds) 
 
     # %% 
     # 双比特sweepI  -71.4e-6
@@ -234,3 +238,74 @@ if __name__ == '__main__':
     # a = [1e-5 for t in time]
     # endTime = datetime.datetime.now()
     # print((endTime-startTime).microseconds)
+
+
+    # %%
+    # CJ=8e-15;          
+     
+    # C12=1.7428/2/np.pi*1e-13+CJ;     
+      
+    # C1=7.6868/2/np.pi*1e-13-C12;     
+    # C2=7.6868/2/np.pi*1e-13-C12;  
+    # print(4*C12+2*C1)   
+    # R=8000
+    
+    # Capa = np.array([
+    #     [C1,C12],
+    #     [C12,C2],
+    # ])
+    # Linv = np.ones_like(Capa)*1e9
+    # RNAN = 1e9
+    # RList = np.array([
+    #     [RNAN,R],
+    #     [R,RNAN],
+    # ])
+    # flux = np.zeros_like(Capa)
+    
+    # SMatrix = np.array([
+    #     [1,-1],
+    #     [1,1],
+        
+    # ])
+    # structure = [[0,1]]
+    # Nlevel = [10]
+    # para = [Capa,Linv,RList,flux,SMatrix,structure,Nlevel]
+    # DT = DifferentialTransmon(para)
+    # Hamilton = DT.GetHamilton()
+    # [energyEig,stateEig] = Hamilton.eigenstates()
+    # energyLevel = (energyEig-energyEig[0])/2/np.pi
+    # %%
+    CJ=10e-15;     
+    
+    C12=2.988e-15+CJ;     
+     
+    C1=105.694e-15+20.455e-15*2;     
+    C2=105.694e-15+20.455e-15*2;     
+    R=9000
+    print(4*C12+2*C1)   
+    Capa = np.array([
+        [C1,C12],
+        [C12,C2],
+        
+    ])
+    Linv = np.ones_like(Capa)*1e9
+    RNAN = 1e9
+    RList = np.array([
+        [RNAN,R],
+        [R,RNAN],
+      
+    ])
+    flux = np.zeros_like(Capa)
+    SMatrix = np.array([
+        [1,-1],
+        [1,1],
+    ])
+    structure = [[0,1]]
+    Nlevel = [10]
+    para = [Capa,Linv,RList,flux,SMatrix,structure,Nlevel]
+    DT = DifferentialTransmon(para)
+    Hamilton = DT.GetHamilton()
+    [energyEig,stateEig] = Hamilton.eigenstates()
+    energyLevel = (energyEig-energyEig[0])/2/np.pi
+    print(energyLevel)
+# %%
