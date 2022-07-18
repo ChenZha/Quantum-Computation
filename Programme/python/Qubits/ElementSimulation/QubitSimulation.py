@@ -1,3 +1,7 @@
+'''
+Author: ChenZha
+USTC
+'''
 import numpy as np
 import math
 from qutip import *
@@ -31,10 +35,17 @@ class BasicQubit():
         #找到本征值和本征态
         
         
+        
     def GetHamilton(self):
         return(self.__Hamilton)
     def GetNlevel(self):
         return(self.__Hamilton.dims[0])
+    def HamiltonAdd(self,term):
+        self.__Hamilton = self.__Hamilton+term
+        return(self.__Hamilton)
+    def HamiltonChange(self,Hamilton):
+        self.__Hamilton = Hamilton
+        return(self.__Hamilton)
     def _BasicMeasurementOperator(self):
         '''
         生成构成用于测量的基本operator
@@ -256,6 +267,7 @@ class BasicQubit():
             for index in range(numQubit):
                 mat = np.diag(np.ones(Nlevel[index],dtype = complex))
                 mat[1,1] = np.exp(1j*(self.energyEig[self.firstExcited[index+1]]-self.energyEig[self.firstExcited[0]])*select_time)
+                # mat[1,1] = np.exp(1j*(self.energyEig[self.firstExcited[index+1]])*select_time)
                 RW = Qobj(mat)
                 U.append(RW)
         elif self.RWF=='NoRWF':
@@ -722,7 +734,8 @@ class Frequency2DQubit(BasicQubit):
         # 生成未加驱动的基本哈密顿量
         Hamilton = self._H0Generation()
         super(Frequency2DQubit,self).__init__(Hamilton, *args , **kwargs)
-        
+    def FrequencyGet(self):
+        return(self.__frequency)    
     def _BasicHamiltonOperator(self):
         '''
         生成构成哈密顿量的基本operator
@@ -812,6 +825,7 @@ class DifferentialTransmon(TransmonQubit):
         # 计算Cinv
         Capa = -np.array(self.__capacity)
         for ii in range(np.shape(Capa)[0]):
+            print(ii)
             Capa[ii][ii] = -sum(Capa[ii])
         Capa = np.dot(np.transpose(SMatrixInv),np.dot(Capa,SMatrixInv))
         CInv = np.linalg.inv(Capa)
