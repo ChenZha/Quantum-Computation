@@ -659,7 +659,7 @@ class Frequency1DQubit(BasicQubit):
     '''
     def __init__(self , qubitsParameter , *args , **kwargs):
         # qubitsParameter结构:frequency(频率);coupling(耦合强度);eta_q(非简谐性);Nlevel(涉及的能级)
-        self.__frequency , self.__coupling , self.__etaQ , self.__Nlevel = qubitsParameter #输入节点频率矩阵，耦合矩阵，非简谐性矩阵，能级数目
+        self.__frequency , self.__coupling , self.__etaQ , self.__Nlevel, self.with2Excitation = qubitsParameter #输入节点频率矩阵，耦合矩阵，非简谐性矩阵，能级数目
         self.__numQubit = len(self.__frequency)
         if type(self.__Nlevel) == int:
                 self.__Nlevel = [self.__Nlevel]*self.__numQubit
@@ -703,7 +703,11 @@ class Frequency1DQubit(BasicQubit):
         '''
         Hq = sum([self.__frequency[index]*self.sm[index].dag()*self.sm[index] + self.__etaQ[index]*self.E_uc[index]  for index in range(self.__numQubit)])
         if self.__numQubit != 1:
-            Hc = sum([self.__coupling[index]*(self.sm[index]+self.sm[index].dag())*(self.sm[index+1]+self.sm[index+1].dag()) for index in range(self.__numQubit-1)])
+            if self.with2Excitation:
+                Hc = sum([self.__coupling[index]*(self.sm[index]+self.sm[index].dag())*(self.sm[index+1]+self.sm[index+1].dag()) for index in range(self.__numQubit-1)])
+            else:
+                Hc = sum([self.__coupling[index]*(self.sm[index]*self.sm[index+1].dag()+self.sm[index].dag()*self.sm[index+1]) for index in range(self.__numQubit-1)])
+            
         else:
             Hc = 0
         H0 = Hq+Hc
@@ -715,7 +719,7 @@ class Frequency2DQubit(BasicQubit):
     '''
     def __init__(self , qubitsParameter , *args , **kwargs):
         # qubitsParameter结构:frequency(频率);coupling(耦合强度);eta_q(非简谐性);Nlevel(涉及的能级)
-        self.__frequency , self.__coupling , self.__etaQ , self.__Nlevel = qubitsParameter
+        self.__frequency , self.__coupling , self.__etaQ , self.__Nlevel, self.with2Excitation = qubitsParameter
         self.__numQubit = int(np.size(self.__frequency)) #比特数目
         self.rowQubit , self.columnQubit = np.shape(self.__frequency)
         if type(self.__Nlevel) == int:
@@ -769,8 +773,12 @@ class Frequency2DQubit(BasicQubit):
         '''
         Hq = sum([self.__frequency[index_x,index_y]*self.sm[index_x*self.columnQubit+index_y].dag()*self.sm[index_x*self.columnQubit+index_y] + self.__etaQ[index_x,index_y]*self.E_uc[index_x*self.columnQubit+index_y] for index_x in range(self.rowQubit) for index_y in range(self.columnQubit)])
         if self.__numQubit != 1:
-            HcRow = sum([self.__coupling[2*index_x+1,index_y]*(self.sm[index_x*self.columnQubit+index_y]+self.sm[index_x*self.columnQubit+index_y].dag())*(self.sm[(index_x+1)*self.columnQubit+index_y]+self.sm[(index_x+1)*self.columnQubit+index_y].dag()) for index_x in range(self.rowQubit) for index_y in range(self.columnQubit) if index_x != self.rowQubit-1])
-            HcColumn = sum([self.__coupling[2*index_x,index_y]*(self.sm[index_x*self.columnQubit+index_y]+self.sm[index_x*self.columnQubit+index_y].dag())*(self.sm[index_x*self.columnQubit+index_y+1]+self.sm[index_x*self.columnQubit+index_y+1].dag()) for index_x in range(self.rowQubit) for index_y in range(self.columnQubit) if index_y != self.columnQubit-1])
+            if self.with2Excitation:
+                HcRow = sum([self.__coupling[2*index_x+1,index_y]*(self.sm[index_x*self.columnQubit+index_y]+self.sm[index_x*self.columnQubit+index_y].dag())*(self.sm[(index_x+1)*self.columnQubit+index_y]+self.sm[(index_x+1)*self.columnQubit+index_y].dag()) for index_x in range(self.rowQubit) for index_y in range(self.columnQubit) if index_x != self.rowQubit-1])
+                HcColumn = sum([self.__coupling[2*index_x,index_y]*(self.sm[index_x*self.columnQubit+index_y]+self.sm[index_x*self.columnQubit+index_y].dag())*(self.sm[index_x*self.columnQubit+index_y+1]+self.sm[index_x*self.columnQubit+index_y+1].dag()) for index_x in range(self.rowQubit) for index_y in range(self.columnQubit) if index_y != self.columnQubit-1])
+            else:
+                HcRow = sum([self.__coupling[2*index_x+1,index_y]*(self.sm[index_x*self.columnQubit+index_y]*self.sm[(index_x+1)*self.columnQubit+index_y].dag()+self.sm[index_x*self.columnQubit+index_y].dag()*self.sm[(index_x+1)*self.columnQubit+index_y]) for index_x in range(self.rowQubit) for index_y in range(self.columnQubit) if index_x != self.rowQubit-1])
+                HcColumn = sum([self.__coupling[2*index_x,index_y]*(self.sm[index_x*self.columnQubit+index_y]*self.sm[index_x*self.columnQubit+index_y+1].dag()+self.sm[index_x*self.columnQubit+index_y].dag()*self.sm[index_x*self.columnQubit+index_y+1]) for index_x in range(self.rowQubit) for index_y in range(self.columnQubit) if index_y != self.columnQubit-1])
         else:
             HcRow = 0
             HcColumn = 0
@@ -798,8 +806,8 @@ class Xmon(TransmonQubit):
             LInv[ii][ii] = -np.sum(LInv[ii])
         # 计算EjMatrix
         R2E = np.vectorize(self._R2E)
-        EjMatrixTop = R2E(np.array(self.__resistance))
-        qubitsParameter = [CInv,LInv,EjMatrixTop,self.__flux, self.__Nlevel]
+        self.EjMatrixTop = R2E(np.array(self.__resistance))
+        qubitsParameter = [CInv,LInv,self.EjMatrixTop,self.__flux, self.__Nlevel]
         super().__init__(qubitsParameter, *args, **kwargs)
     def _R2E(self,R):
         hbar=1.054560652926899e-34
@@ -810,6 +818,8 @@ class Xmon(TransmonQubit):
         I = I0*R0/R
         Ej = I*hbar/2/e/hbar/1e9
         return(Ej)
+    def EjGet(self):
+        return(self.EjMatrixTop)
 
 class DifferentialTransmon(TransmonQubit):
     '''
@@ -825,7 +835,6 @@ class DifferentialTransmon(TransmonQubit):
         # 计算Cinv
         Capa = -np.array(self.__capacity)
         for ii in range(np.shape(Capa)[0]):
-            print(ii)
             Capa[ii][ii] = -sum(Capa[ii])
         Capa = np.dot(np.transpose(SMatrixInv),np.dot(Capa,SMatrixInv))
         CInv = np.linalg.inv(Capa)
