@@ -555,16 +555,16 @@ class TransmonQubit(BasicQubit):
         e = 1.60217662e-19
         # 计算Cinv
         CInv = self.__capacityInv
-        Ec = e**2/2*CInv/hbar/1e9
+        Ec = e**2/2*CInv/hbar/1e9;self.Ec = Ec
 
         # 计算Linv
         LInv = self.__inductanceInv
-        EL = (hbar/2/e)**2*LInv/hbar/1e9
+        EL = (hbar/2/e)**2*LInv/hbar/1e9;self.EL = EL
         # 计算EU
         EjMatrixTop = self.__EjMatrixTop
         flux = self.__flux
         EjMatrix = EjMatrixTop*np.cos(np.pi*flux)
-        Ej = np.diag(np.diag(EjMatrix))
+        Ej = np.diag(np.diag(EjMatrix));self.Ej = Ej
         EU = EL + Ej
 
         # 谐振子展开
@@ -578,7 +578,16 @@ class TransmonQubit(BasicQubit):
         self.phi = [np.sqrt(2)*(beta[ii]/alpha[ii])**(1/4)*XX[ii] for ii in range(len(alpha))]
         self.nn = [np.sqrt(2)*(alpha[ii]/beta[ii])**(1/4)*YY[ii] for ii in range(len(alpha))]
         self.phid = [sum([(hbar/2/e)**2*CInv[ii,jj]*hbar*self.nn[jj] for jj in range(np.shape(CInv)[1])]) for ii in range(len(self.nn))] 
-
+        # def MatrixEndCorrelation(matrix,num):
+        #     dims = matrix.dims
+        #     data = matrix.data.toarray()
+        #     data[-4:-1,:] = 0
+        #     data[:,-4:-1] = 0
+        #     data[-1,-1] = num;data[-2,-2] = num;data[-3,-3] = num;data[-4,-4] = num
+        #     matrix = Qobj(data,dims = dims)
+        #     return(matrix)
+        
+        
         H0 = sum([np.sqrt(alpha[ii]*beta[ii])*sn[ii] for ii in range(np.shape(Ec)[0])])
         Heta = sum([-Ej[ii,ii]*(self.phi[ii]**4/24-self.phi[ii]**6/math.factorial(6)+self.phi[ii]**8/math.factorial(8)) for ii in range(np.shape(Ec)[0])])
         '''究竟是否有明显的二态激发'''
