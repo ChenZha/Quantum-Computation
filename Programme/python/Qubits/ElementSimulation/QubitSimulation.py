@@ -507,11 +507,12 @@ class TransmonQubit(BasicQubit):
         驱动：通过电路参数，生成驱动哈密顿量
     '''
     def __init__(self , qubitsParameter , *args , **kwargs):
+        
+        
         self.__capacityInv, self.__inductanceInv, self.__EjMatrixTop, self.__flux, self.__Nlevel = qubitsParameter #输入节点电容矩阵，电感矩阵，电阻矩阵，能级数目
         self.__numQubit = len(self.__Nlevel)
         self.sm,self.E_phi = self._BasicHamiltonOperator()
         Hamilton = self._H0Generation()
-
         ## 选择一部分能级
         # def IndexTransform(Nlevel,NlevelSelect):
         #     indexList = []

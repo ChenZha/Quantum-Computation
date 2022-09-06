@@ -105,8 +105,6 @@ class TwoFloatingTransmonWithGroundedCoupler():#TwoFloatingTransmonWithGroundedC
     '''
     def __init__(self, elementParameter, *args, **kwargs):
         self.capacity, self.resistance = elementParameter
-        
-        # %% 两个qubit通过coupler耦合
         Linv = np.ones_like(self.capacity)*1e9
         RNAN = 1e9
         RList = np.array([
@@ -125,7 +123,7 @@ class TwoFloatingTransmonWithGroundedCoupler():#TwoFloatingTransmonWithGroundedC
             [0,0,0,1,1],
         ])
         structure = [[0,1],[2],[3,4]]
-        Nlevel = [10,10,10]
+        Nlevel = [6,6,6]
         para = [self.capacity,Linv,RList,flux,SMatrix,structure,Nlevel]
         DT = DifferentialTransmon(para)
         Hamilton = DT.GetHamilton()
@@ -138,7 +136,7 @@ class TwoFloatingTransmonWithFloatingCoupler():
     '''
     def __init__(self, elementParameter, *args, **kwargs):
         self.capacity, self.resistance = elementParameter
-        # %% 两个qubit通过coupler耦合
+
         Linv = np.ones_like(self.capacity)*1e9
         RNAN = 1e9
         RList = np.array([
@@ -159,12 +157,12 @@ class TwoFloatingTransmonWithFloatingCoupler():
             [0,0,0,0,1, 1],
         ])
         structure = [[0,1],[2,3],[4,5]]
-        Nlevel = [10,10,10]
+        Nlevel = [6,6,6]
         para = [self.capacity,Linv,RList,flux,SMatrix,structure,Nlevel]
         DT = DifferentialTransmon(para)
         Hamilton = DT.GetHamilton()
         [energyEig,stateEig] = Hamilton.eigenstates()
         self.energyLevel = (energyEig-energyEig[0])/2/np.pi
-        # %% 两个qubit直接耦合
+  
         
     
