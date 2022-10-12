@@ -33,7 +33,42 @@ class XmonEnergy():
         el = np.sort(el)
         el = (el-el[0])/2/np.pi
         return(el)
-
+class XmonEnergy1V4():
+    '''
+    输出的频率单位为GHz
+    '''
+    def __init__(self, elementParameter, *args, **kwargs):
+        self.capacity, self.resistance = elementParameter
+        Linv = np.ones_like(self.capacity)*1e9
+        RNAN = 1e9
+        RList = np.ones_like(self.capacity)*RNAN
+        RList[0,0] = self.resistance[0]
+        RList[1,1] = self.resistance[1]
+        RList[2,2] = self.resistance[2]
+        RList[3,3] = self.resistance[3]
+        RList[4,4] = self.resistance[4]
+        RList[5,5] = self.resistance[5]
+        RList[6,6] = self.resistance[6]
+        RList[7,7] = self.resistance[7]
+        RList[8,8] = self.resistance[8]
+        flux = np.zeros_like(self.capacity)
+        SMatrix = np.diag([1]*9)
+        structure = [[0],[1],[2]]
+        Nlevel = [10,5,10]
+        para = [self.capacity,Linv,RList,flux,SMatrix,structure,Nlevel]
+        DT = DifferentialTransmon(para)
+        [energyEig,stateEig] = DT.EigenGet()
+        self.energyLevel = (energyEig-energyEig[0])/2/np.pi
+        
+        # 计算基矢对应的index
+        stateNumList = [[0,0,0],[0,0,1],[1,0,0],[0,1,0],[1,0,1],[0,0,2],[2,0,0]]
+        stateList = [tensor(basis(Nlevel[0],num[0]),basis(Nlevel[1],num[1]),basis(Nlevel[2],num[2])) for num in stateNumList]
+        self.stateIndexList = [DT.findstate(state) for state in stateList]
+        self.Ec = DT.Ec
+        self.Ej = DT.Ej
+        couplerLeakage1 = abs((stateEig[self.stateIndexList[1]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
+        couplerLeakage2 = abs((stateEig[self.stateIndexList[2]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
+        self.couplerLeakage = max([couplerLeakage1[0,0],couplerLeakage2[0,0]])
 class SingleFloatingTransmon():
     '''
     输出的频率单位为GHz
@@ -68,36 +103,6 @@ class SingleFloatingTransmon():
         el = np.sort(el)
         el = (el-el[0])/2/np.pi
         return(el)
-class TwoFloatingTransmonWithGroundedCoupler():
-    '''
-    输出的频率单位为GHz
-    '''
-    def __init__(self, elementParameter, *args, **kwargs):
-        self.capacity, self.resistance = elementParameter
-        Linv = np.ones_like(self.capacity)*1e9
-        RNAN = 1e9
-        RList = np.array([
-            [RNAN,self.resistance[0],RNAN,RNAN,RNAN],
-            [self.resistance[0],RNAN,RNAN,RNAN,RNAN],
-            [RNAN,RNAN,self.resistance[1],RNAN,RNAN],
-            [RNAN,RNAN,RNAN,RNAN,self.resistance[2]],
-            [RNAN,RNAN,RNAN,self.resistance[2],RNAN],
-        ])
-        flux = np.zeros_like(self.capacity)
-        SMatrix = np.array([
-            [1,-1,0,0,0],
-            [1,1,0,0,0],
-            [0,0,1,0,0],
-            [0,0,0,1,-1],
-            [0,0,0,1,1],
-        ])
-        structure = [[0,1],[2],[3,4]]
-        Nlevel = [10,10,10]
-        para = [self.capacity,Linv,RList,flux,SMatrix,structure,Nlevel]
-        DT = DifferentialTransmon(para)
-        Hamilton = DT.GetHamilton()
-        [energyEig,stateEig] = Hamilton.eigenstates()
-        self.energyLevel = (energyEig-energyEig[0])/2/np.pi
         
 class TwoFloatingTransmonWithGroundedCoupler():#TwoFloatingTransmonWithGroundedCoupler
     '''
@@ -116,20 +121,75 @@ class TwoFloatingTransmonWithGroundedCoupler():#TwoFloatingTransmonWithGroundedC
         ])
         flux = np.zeros_like(self.capacity)
         SMatrix = np.array([
-            [1,-1,0,0,0],
             [1,1,0,0,0],
+            [-1,1,0,0,0],
             [0,0,1,0,0],
             [0,0,0,1,-1],
             [0,0,0,1,1],
         ])
-        structure = [[0,1],[2],[3,4]]
-        Nlevel = [6,6,6]
+        structure = [[1,0],[2],[3,4]]
+        Nlevel = [10,5,10]
         para = [self.capacity,Linv,RList,flux,SMatrix,structure,Nlevel]
         DT = DifferentialTransmon(para)
-        Hamilton = DT.GetHamilton()
-        [energyEig,stateEig] = Hamilton.eigenstates()
+        [energyEig,stateEig] = DT.EigenGet()
         self.energyLevel = (energyEig-energyEig[0])/2/np.pi
         
+        # 计算基矢对应的index
+        stateNumList = [[0,0,0],[0,0,1],[1,0,0],[0,1,0],[1,0,1],[0,0,2],[2,0,0]]
+        stateList = [tensor(basis(Nlevel[0],num[0]),basis(Nlevel[1],num[1]),basis(Nlevel[2],num[2])) for num in stateNumList]
+        self.stateIndexList = [DT.findstate(state) for state in stateList]
+        self.Ec = DT.Ec
+        self.Ej = DT.Ej
+        couplerLeakage1 = abs((stateEig[self.stateIndexList[1]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
+        couplerLeakage2 = abs((stateEig[self.stateIndexList[2]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
+        self.couplerLeakage = max([couplerLeakage1[0,0],couplerLeakage2[0,0]])
+
+class FloatingTransmonWithGroundedCoupler1V4():#TwoFloatingTransmonWithGroundedCoupler
+    '''
+    输出的频率单位为GHz
+    '''
+    def __init__(self, elementParameter, *args, **kwargs):
+        self.capacity, self.resistance = elementParameter
+        Linv = np.ones_like(self.capacity)*1e9
+        RNAN = 1e9
+        RList = np.ones_like(self.capacity)*RNAN
+        RList[0,1] = self.resistance[0];RList[1,0] = self.resistance[0]
+        RList[2,2] = self.resistance[1]
+        RList[3,4] = self.resistance[2];RList[4,3] = self.resistance[2]
+        RList[5,5] = self.resistance[3];RList[6,6] = self.resistance[4]
+        RList[7,7] = self.resistance[5]
+        RList[8,8] = self.resistance[6];RList[9,9] = self.resistance[7]
+        RList[10,10] = self.resistance[8]
+        flux = np.zeros_like(self.capacity)
+        SMatrix = np.array([
+            [1,1,0,0,0,0,0,0,0,0,0],
+            [-1,1,0,0,0,0,0,0,0,0,0],
+            [0,0,1,0,0,0,0,0,0,0,0],
+            [0,0,0,1,-1,0,0,0,0,0,0],
+            [0,0,0,1, 1,0,0,0,0,0,0],
+            [0,0,0,0,0,1,0,0,0,0,0],
+            [0,0,0,0,0,0,1,0,0,0,0],
+            [0,0,0,0,0,0,0,1,0,0,0],
+            [0,0,0,0,0,0,0,0,1,0,0],
+            [0,0,0,0,0,0,0,0,0,1,0],
+            [0,0,0,0,0,0,0,0,0,0,1],
+        ])
+        structure = [[1,0],[2],[3,4]]
+        Nlevel = [10,5,10]
+        para = [self.capacity,Linv,RList,flux,SMatrix,structure,Nlevel]
+        DT = DifferentialTransmon(para)
+        [energyEig,stateEig] = DT.EigenGet()
+        self.energyLevel = (energyEig-energyEig[0])/2/np.pi
+        
+        # 计算基矢对应的index
+        stateNumList = [[0,0,0],[0,0,1],[1,0,0],[0,1,0],[1,0,1],[0,0,2],[2,0,0]]
+        stateList = [tensor(basis(Nlevel[0],num[0]),basis(Nlevel[1],num[1]),basis(Nlevel[2],num[2])) for num in stateNumList]
+        self.stateIndexList = [DT.findstate(state) for state in stateList]
+        self.Ec = DT.Ec
+        self.Ej = DT.Ej
+        couplerLeakage1 = abs((stateEig[self.stateIndexList[1]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
+        couplerLeakage2 = abs((stateEig[self.stateIndexList[2]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
+        self.couplerLeakage = max([couplerLeakage1[0,0],couplerLeakage2[0,0]])
 class TwoFloatingTransmonWithFloatingCoupler():
     '''
     输出的频率单位为GHz
@@ -149,20 +209,60 @@ class TwoFloatingTransmonWithFloatingCoupler():
         ])
         flux = np.zeros_like(self.capacity)
         SMatrix = np.array([
-            [1,-1,0,0,0,0],
-            [1, 1,0,0,0,0],
+            [1,1,0,0,0,0],
+            [-1,1,0,0,0,0],
             [0,0,1,-1,0,0],
             [0,0,1, 1,0,0],
             [0,0,0,0,1,-1],
             [0,0,0,0,1, 1],
         ])
-        structure = [[0,1],[2,3],[4,5]]
-        Nlevel = [6,6,6]
+        structure = [[1,0],[2,3],[4,5]]
+        Nlevel = [10,5,10]
         para = [self.capacity,Linv,RList,flux,SMatrix,structure,Nlevel]
         DT = DifferentialTransmon(para)
-        Hamilton = DT.GetHamilton()
-        [energyEig,stateEig] = Hamilton.eigenstates()
+        [energyEig,stateEig] = DT.EigenGet()
         self.energyLevel = (energyEig-energyEig[0])/2/np.pi
-  
         
+        # 计算基矢对应的index
+        stateNumList = [[0,0,0],[0,0,1],[1,0,0],[0,1,0],[1,0,1],[0,0,2],[2,0,0]]
+        stateList = [tensor(basis(Nlevel[0],num[0]),basis(Nlevel[1],num[1]),basis(Nlevel[2],num[2])) for num in stateNumList]
+        self.stateIndexList = [DT.findstate(state) for state in stateList]
+        self.Ec = DT.Ec
+        self.Ej = DT.Ej
+        couplerLeakage1 = abs((stateEig[self.stateIndexList[1]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
+        couplerLeakage2 = abs((stateEig[self.stateIndexList[2]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
+        self.couplerLeakage = max([couplerLeakage1[0,0],couplerLeakage2[0,0]])
+
+class FloatingTransmonWithFloatingCoupler1V4():
+    '''
+    输出的频率单位为GHz
+    '''
+    def __init__(self, elementParameter, *args, **kwargs):
+        self.capacity, self.resistance = elementParameter
+        Linv = np.ones_like(self.capacity)*1e9
+        RNAN = 1e9
+        RList = np.ones_like(self.capacity)*RNAN
+        SMatrix = np.zeros_like(self.capacity)
+        flux = np.zeros_like(self.capacity)
+        for ii in range(len(self.resistance)):
+            RList[2*ii,2*ii+1] = self.resistance[ii];RList[2*ii+1,2*ii] = self.resistance[ii]
+            SMatrix[2*ii,2*ii+1]=-1;SMatrix[2*ii,2*ii]=1;SMatrix[2*ii+1,2*ii+1]=1;SMatrix[2*ii+1,2*ii]=1;
+        SMatrix[0,1] = 1;SMatrix[1,0] = -1
+        structure = [[1,0],[2,3],[4,5]]
+        Nlevel = [10,5,10]
+        para = [self.capacity,Linv,RList,flux,SMatrix,structure,Nlevel]
+        DT = DifferentialTransmon(para)
+        [energyEig,stateEig] = DT.EigenGet()
+        self.energyLevel = (energyEig-energyEig[0])/2/np.pi
+        
+        # 计算基矢对应的index
+        stateNumList = [[0,0,0],[0,0,1],[1,0,0],[0,1,0],[1,0,1],[0,0,2],[2,0,0]]
+        stateList = [tensor(basis(Nlevel[0],num[0]),basis(Nlevel[1],num[1]),basis(Nlevel[2],num[2])) for num in stateNumList]
+        self.stateIndexList = [DT.findstate(state) for state in stateList]
+        self.Ec = DT.Ec
+        self.Ej = DT.Ej
+        couplerLeakage1 = abs((stateEig[self.stateIndexList[1]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
+        couplerLeakage2 = abs((stateEig[self.stateIndexList[2]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
+        self.couplerLeakage = max([couplerLeakage1[0,0],couplerLeakage2[0,0]])
+
     

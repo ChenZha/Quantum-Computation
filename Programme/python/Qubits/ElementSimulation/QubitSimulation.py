@@ -113,6 +113,9 @@ class BasicQubit():
         qustate = [basis(Nlevel[ii],int(state[ii])) for ii in range(len(state))]
         qustate = tensor(*qustate)
         return(qustate)
+    def EigenGet(self):
+        [self.energyEig,self.stateEig] = self.__Hamilton.eigenstates()
+        return([self.energyEig,self.stateEig])
     def findstate(self,state,searchSpace='brev'):
         '''
         在self.stateEig中找到state对应的index,对于简并的态，01探测到的是01+10，10探测到的是01-10
@@ -133,7 +136,7 @@ class BasicQubit():
         else:
             print('search space error')
 
-        threshold = 0.08
+        threshold = 0.1
         probeResult = [expect(ket2dm(self.stateEig[ii]),state) for ii in range(searchLen)]
         probeResultSorted = sorted(probeResult, reverse=True)
         isDegenerated = abs(probeResultSorted[0]-probeResultSorted[1])<threshold
@@ -262,7 +265,7 @@ class BasicQubit():
         numQubit = len(Nlevel)
         U = []
         if self.RWF=='CpRWF':
-            [self.energyEig,self.stateEig] = self.__Hamilton.eigenstates()
+            self.EigenGet()
             self.firstExcited = self._FirstExcite()
             for index in range(numQubit):
                 mat = np.diag(np.ones(Nlevel[index],dtype = complex))
@@ -557,6 +560,10 @@ class TransmonQubit(BasicQubit):
         # 计算Cinv
         CInv = self.__capacityInv
         Ec = e**2/2*CInv/hbar/1e9;self.Ec = Ec
+        # Ec = np.array([[1.42662403, 0.33936265, 0.0231],
+        #                 [0.33936265, 2.37269959, 0.33936265],
+        #                 [0.0231, 0.33936265, 1.42662403]])
+        # self.Ec = Ec
 
         # 计算Linv
         LInv = self.__inductanceInv
