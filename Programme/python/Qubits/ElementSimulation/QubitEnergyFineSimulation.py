@@ -66,6 +66,8 @@ class XmonEnergy1V4():
         self.stateIndexList = [DT.findstate(state) for state in stateList]
         self.Ec = DT.Ec
         self.Ej = DT.Ej
+        self.couplingMinus = ((stateEig[1].dag()*tensor(basis(Nlevel[0],1),basis(Nlevel[1],0),basis(Nlevel[2],0))).data.toarray()[0,0])*((stateEig[1].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],1))).data.toarray()[0,0])>0
+        
         couplerLeakage1 = abs((stateEig[self.stateIndexList[1]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
         couplerLeakage2 = abs((stateEig[self.stateIndexList[2]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
         self.couplerLeakage = max([couplerLeakage1[0,0],couplerLeakage2[0,0]])
@@ -140,6 +142,8 @@ class TwoFloatingTransmonWithGroundedCoupler():#TwoFloatingTransmonWithGroundedC
         self.stateIndexList = [DT.findstate(state) for state in stateList]
         self.Ec = DT.Ec
         self.Ej = DT.Ej
+        self.couplingMinus = ((stateEig[1].dag()*tensor(basis(Nlevel[0],1),basis(Nlevel[1],0),basis(Nlevel[2],0))).data.toarray()[0,0])*((stateEig[1].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],1))).data.toarray()[0,0])>0
+
         couplerLeakage1 = abs((stateEig[self.stateIndexList[1]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
         couplerLeakage2 = abs((stateEig[self.stateIndexList[2]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
         self.couplerLeakage = max([couplerLeakage1[0,0],couplerLeakage2[0,0]])
@@ -187,6 +191,8 @@ class FloatingTransmonWithGroundedCoupler1V4():#TwoFloatingTransmonWithGroundedC
         self.stateIndexList = [DT.findstate(state) for state in stateList]
         self.Ec = DT.Ec
         self.Ej = DT.Ej
+        self.couplingMinus = ((stateEig[1].dag()*tensor(basis(Nlevel[0],1),basis(Nlevel[1],0),basis(Nlevel[2],0))).data.toarray()[0,0])*((stateEig[1].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],1))).data.toarray()[0,0])>0
+
         couplerLeakage1 = abs((stateEig[self.stateIndexList[1]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
         couplerLeakage2 = abs((stateEig[self.stateIndexList[2]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
         self.couplerLeakage = max([couplerLeakage1[0,0],couplerLeakage2[0,0]])
@@ -229,6 +235,8 @@ class TwoFloatingTransmonWithFloatingCoupler():
         self.stateIndexList = [DT.findstate(state) for state in stateList]
         self.Ec = DT.Ec
         self.Ej = DT.Ej
+        self.couplingMinus = ((stateEig[1].dag()*tensor(basis(Nlevel[0],1),basis(Nlevel[1],0),basis(Nlevel[2],0))).data.toarray()[0,0])*((stateEig[1].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],1))).data.toarray()[0,0])>0
+
         couplerLeakage1 = abs((stateEig[self.stateIndexList[1]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
         couplerLeakage2 = abs((stateEig[self.stateIndexList[2]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
         self.couplerLeakage = max([couplerLeakage1[0,0],couplerLeakage2[0,0]])
@@ -261,6 +269,47 @@ class FloatingTransmonWithFloatingCoupler1V4():
         self.stateIndexList = [DT.findstate(state) for state in stateList]
         self.Ec = DT.Ec
         self.Ej = DT.Ej
+        self.couplingMinus = ((stateEig[1].dag()*tensor(basis(Nlevel[0],1),basis(Nlevel[1],0),basis(Nlevel[2],0))).data.toarray()[0,0])*((stateEig[1].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],1))).data.toarray()[0,0])>0
+
+        couplerLeakage1 = abs((stateEig[self.stateIndexList[1]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
+        couplerLeakage2 = abs((stateEig[self.stateIndexList[2]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
+        self.couplerLeakage = max([couplerLeakage1[0,0],couplerLeakage2[0,0]])
+        
+class GroundedTransmonWithFloatingCoupler1V4():
+    '''
+    输出的频率单位为GHz
+    '''
+    def __init__(self, elementParameter, *args, **kwargs):
+        self.capacity, self.resistance = elementParameter
+        Linv = np.ones_like(self.capacity)*1e9
+        RNAN = 1e9
+        RList = np.ones_like(self.capacity)*RNAN
+        SMatrix = np.zeros_like(self.capacity)
+        flux = np.zeros_like(self.capacity)
+        RList[0,0]=self.resistance[0]
+        RList[1,2]=self.resistance[1];RList[2,1]=self.resistance[1]
+        RList[3,3]=self.resistance[2]
+        SMatrix[0,0]=1
+        SMatrix[1,1]=1;SMatrix[2,1]=-1;SMatrix[1,2]=1;SMatrix[2,2]=1
+        SMatrix[3,3]=1
+        for ii in range(3,len(self.resistance)):
+            RList[2*ii-2,2*ii-1] = self.resistance[ii];RList[2*ii-1,2*ii-2] = self.resistance[ii]
+            SMatrix[2*ii-2,2*ii-1]=-1;SMatrix[2*ii-2,2*ii-2]=1;SMatrix[2*ii-1,2*ii-1]=1;SMatrix[2*ii-1,2*ii-2]=1;
+        structure = [[0],[2,1],[3]]
+        Nlevel = [10,5,10]
+        para = [self.capacity,Linv,RList,flux,SMatrix,structure,Nlevel]
+        DT = DifferentialTransmon(para)
+        [energyEig,stateEig] = DT.EigenGet()
+        self.energyLevel = (energyEig-energyEig[0])/2/np.pi
+        
+        # 计算基矢对应的index
+        stateNumList = [[0,0,0],[0,0,1],[1,0,0],[0,1,0],[1,0,1],[0,0,2],[2,0,0]]
+        stateList = [tensor(basis(Nlevel[0],num[0]),basis(Nlevel[1],num[1]),basis(Nlevel[2],num[2])) for num in stateNumList]
+        self.stateIndexList = [DT.findstate(state) for state in stateList]
+        self.Ec = DT.Ec
+        self.Ej = DT.Ej
+        self.couplingMinus = ((stateEig[1].dag()*tensor(basis(Nlevel[0],1),basis(Nlevel[1],0),basis(Nlevel[2],0))).data.toarray()[0,0])*((stateEig[1].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],1))).data.toarray()[0,0])>0
+
         couplerLeakage1 = abs((stateEig[self.stateIndexList[1]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
         couplerLeakage2 = abs((stateEig[self.stateIndexList[2]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))).data.toarray())**2
         self.couplerLeakage = max([couplerLeakage1[0,0],couplerLeakage2[0,0]])

@@ -5,7 +5,7 @@ USTC
 import numpy as np
 import math
 from qutip import *
-import functools
+import functools   
 from multiprocessing import Pool
 from scipy import signal, interpolate
 import matplotlib.pyplot as plt
