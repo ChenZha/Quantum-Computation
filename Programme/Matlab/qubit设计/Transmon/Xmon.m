@@ -24,7 +24,7 @@ classdef Xmon < handle
         T2_flux
         T2_Ic
         T2
-        
+           
     end
     %% 
     

@@ -125,7 +125,7 @@ class BasicQubit():
             index：int
         '''
         Nlevel = self.__Hamilton.dims[0]
-        numQubit = len(Nlevel)
+        numQubit = len(Nlevel) 
         indexLevel = None
         assert int(len(state.dims[0])) == numQubit
 
@@ -142,12 +142,13 @@ class BasicQubit():
         isDegenerated = abs(probeResultSorted[0]-probeResultSorted[1])<threshold
     
         if isDegenerated:
-            expect1 = (self.stateEig[probeResult.index(probeResultSorted[0])].dag()*state).data.toarray()[0][0]
-            expect2 = (self.stateEig[probeResult.index(probeResultSorted[1])].dag()*state).data.toarray()[0][0]
-            if expect1*expect2>0:
-                return(probeResult.index(probeResultSorted[0]))
-            else:
-                return(probeResult.index(probeResultSorted[1]))
+            return([probeResult.index(probeResultSorted[0]),probeResult.index(probeResultSorted[1])])
+            # expect1 = (self.stateEig[probeResult.index(probeResultSorted[0])].dag()*state).data.toarray()[0][0]
+            # expect2 = (self.stateEig[probeResult.index(probeResultSorted[1])].dag()*state).data.toarray()[0][0]
+            # if expect1*expect2>0:
+            #     return(probeResult.index(probeResultSorted[0]))
+            # else:
+            #     return(probeResult.index(probeResultSorted[1]))
         else:
             return(probeResult.index(probeResultSorted[0]))
     def _FirstExcite(self):
@@ -877,7 +878,7 @@ class DifferentialTransmon(TransmonQubit):
         hbar=1.054560652926899e-34
         h = hbar*2*np.pi
         e = 1.60217662e-19 
-        I0 = 280e-9
+        I0 = 280e-9   
         R0 = 1000
         I = I0*R0/R
         Ej = I*hbar/2/e/hbar/1e9
