@@ -1,5 +1,0 @@
-通過sigmax耦合，qubit的頻譜僅僅有一個chi左右的偏移，共振頻率不受另一個qubit狀態的影響
-通過sigmaz耦合，qubit的共振峯受另一個qubit狀態的影響，正負偏移40chi
-
-
-qubit與腔耦合，qubit的狀態影響腔的諧振頻率，正負一個chi

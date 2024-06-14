@@ -1,8 +1,0 @@
--184818293.691648	230397279.706372	-70279820.6230473	120995153.867865	-180078695.139379	215301401.257590	-64507135.5273906	132896704.205873	-184715455.128268	218324576.861230	-64613885.7404824	49143183.6502339
-
-
-mainly three question
-1. the relationship among phi_1, phi_2 and phi_3
-2. for excitaion at 6, Should we measure C(6,j,t) or C(3,j,t)
-3. the sensitivity of time reversal to the error of Zgate and the error of minus detuning
-
