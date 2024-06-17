@@ -17,16 +17,16 @@ class BasicQubit():
     最原始的qubit类，输入qubit的哈密顿量，
     方法包含基础测量operator的生成,比特状态寻址, 态的演化，平均值的演化，process tomography, 态演化的画图
     '''
-    # default evolution parameter
+    # # default evolution parameter
     default_options=Options()
-    default_options.atol=1e-8
-    default_options.rtol=1e-6
-    default_options.first_step=0.01
-    default_options.num_cpus=8
-    default_options.nsteps=1e6
-    default_options.gui='True'
-    default_options.ntraj=1000
-    default_options.rhs_reuse=True
+    # default_options.atol=1e-8
+    # default_options.rtol=1e-6
+    # default_options.first_step=0.01
+    # default_options.num_cpus=16
+    # default_options.nsteps=1e6
+    # default_options.gui='True'
+    # default_options.ntraj=1000
+    # default_options.rhs_reuse=True
 
     def __init__(self , Hamilton , *args , **kwargs):
         self.__Hamilton = Hamilton #输入节点电容矩阵，电感矩阵，电阻矩阵，能级数目
