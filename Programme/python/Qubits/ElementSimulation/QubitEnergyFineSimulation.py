@@ -228,11 +228,11 @@ class FloatingTransmonWithGroundedCoupler1V4():#TwoFloatingTransmonWithGroundedC
         self.Ej = DT.Ej
         
         idxmin = min([self.stateIndexList[1],self.stateIndexList[2]])
-        self.couplingMinus = ((stateEig[self.stateIndexList[idxmin]].dag()*tensor(basis(Nlevel[0],1),basis(Nlevel[1],0),basis(Nlevel[2],0))))*((stateEig[self.stateIndexList[idxmin]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],1))))>0
+        self.couplingMinus = np.real(((stateEig[self.stateIndexList[idxmin]].dag()*tensor(basis(Nlevel[0],1),basis(Nlevel[1],0),basis(Nlevel[2],0))))*((stateEig[self.stateIndexList[idxmin]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],1)))))>0
 
         couplerLeakage1 = abs((stateEig[self.stateIndexList[1]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))))**2
         couplerLeakage2 = abs((stateEig[self.stateIndexList[2]].dag()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0))))**2
-        self.couplerLeakage = (couplerLeakage1[0,0]+couplerLeakage2[0,0])/2
+        self.couplerLeakage = (couplerLeakage1+couplerLeakage2)/2
         
         self.QCCoupling = abs((tensor(basis(Nlevel[0],0),basis(Nlevel[1],1),basis(Nlevel[2],0)).dag()*DT.GetHamilton()*tensor(basis(Nlevel[0],1),basis(Nlevel[1],0),basis(Nlevel[2],0)))/2/np.pi)
         self.QQDirectCoupling = abs((tensor(basis(Nlevel[0],1),basis(Nlevel[1],0),basis(Nlevel[2],0)).dag()*DT.GetHamilton()*tensor(basis(Nlevel[0],0),basis(Nlevel[1],0),basis(Nlevel[2],1)))/2/np.pi)
